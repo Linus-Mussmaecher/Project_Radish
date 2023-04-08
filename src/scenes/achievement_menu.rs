@@ -36,39 +36,38 @@ impl AchievementMenu {
         .set_font("Retro")
         .set_scale(48.)
         .to_owned()
-        .to_element_measured(0, ctx);
+        .to_element(0, ctx);
 
         let mut achievements = mooeye::containers::GridBox::new(4, 4);
         for index in 0..16 {
-            let mut achievement = ggez::graphics::Image::from_path(ctx, "/sprites/lock.png")
+            let achievement = ggez::graphics::Image::from_path(ctx, "/sprites/lock.png")
                 .expect("Loading of lock.png failed.")
-                .to_element_measured(0, ctx);
-            achievement.visuals = box_vis;
-            achievement.layout.x_size = achievement.layout.x_size.scale(4.);
-            achievement.layout.y_size = achievement.layout.y_size.scale(4.);
-
-            let mut tooltip = ggez::graphics::Text::new(
-                TextFragment::new("Pride and Accomplishment\n")
-                    .color(Color::from_rgb_u32(PALETTE[7]))
-                    .scale(28.),
-            )
-            .add(
-                TextFragment::new(format!(
-                    "One day, this will be achievement number {}.",
-                    index
-                ))
-                .color(Color::from_rgb_u32(PALETTE[6]))
-                .scale(20.),
-            )
-            .set_font("Retro")
-            .set_wrap(true)
-            .set_bounds(Vec2::new(300., 200.))
-            .to_owned()
-            .to_element_measured(0, ctx);
-
-            tooltip = mooeye::ui_element::make_tooltip(tooltip, box_vis);
-
-            achievement.set_tooltip(Some(tooltip));
+                .to_element_builder(0, ctx)
+                .with_visuals(box_vis)
+                .scaled(4., 4.)
+                .with_tooltip(
+                    ggez::graphics::Text::new(
+                        TextFragment::new("Pride and Accomplishment\n")
+                            .color(Color::from_rgb_u32(PALETTE[7]))
+                            .scale(28.),
+                    )
+                    .add(
+                        TextFragment::new(format!(
+                            "One day, this will be achievement number {}.",
+                            index
+                        ))
+                        .color(Color::from_rgb_u32(PALETTE[6]))
+                        .scale(20.),
+                    )
+                    .set_font("Retro")
+                    .set_wrap(true)
+                    .set_bounds(Vec2::new(300., 200.))
+                    .to_owned()
+                    .to_element_builder(0, ctx)
+                    .with_tooltip_layout()
+                    .build()
+                )
+                .build();
 
             achievements
                 .add(achievement, index % 4, index / 4)
@@ -77,17 +76,18 @@ impl AchievementMenu {
         achievements.vertical_spacing = 10.;
         achievements.horizontal_spacing = 10.;
 
-        let achievements = achievements.to_element(0);
+        let achievements = achievements.to_element(0, ctx);
 
-        let mut back = ggez::graphics::Text::new(
+        let back = ggez::graphics::Text::new(
             TextFragment::new("Close").color(Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
         .set_scale(32.)
         .to_owned()
-        .to_element_measured(1, ctx);
-        back.visuals = box_vis;
-        back.hover_visuals = Some(box_hover_vis);
+        .to_element_builder(1, ctx)
+        .with_visuals(box_vis)
+        .with_hover_visuals(box_hover_vis)
+        .build();
 
         // Container
 
@@ -96,13 +96,12 @@ impl AchievementMenu {
         credits_box.add(achievements);
         credits_box.add(back);
         credits_box.spacing = 25.;
-        let mut credits_box = credits_box.to_element(0);
-        credits_box.visuals = box_vis;
-        credits_box.layout.x_alignment = Alignment::MIN;
-        credits_box.layout.y_alignment = Alignment::MIN;
-        credits_box.layout.x_offset = 25.;
-        credits_box.layout.y_offset = 25.;
-        credits_box.layout.padding = (25., 25., 25., 25.);
+        let credits_box = credits_box.to_element_builder(0, ctx)
+        .with_visuals(box_vis)
+        .with_alignment(Alignment::MIN, Alignment::MIN)
+        .with_offset(25., 25.)
+        .with_padding((25., 25., 25., 25.))
+        .build();
 
         Self { gui: credits_box }
     }

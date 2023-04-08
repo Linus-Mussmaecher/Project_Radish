@@ -1557,8 +1557,8 @@ dependencies = [
 
 [[package]]
 name = "mooeye"
-version = "0.1.0"
-source = "git+https://github.com/Linus-Mussmaecher/mooeye#22ac8a82928978f83d350be5d2ce4e07849bf8bd"
+version = "0.2.0"
+source = "git+https://github.com/Linus-Mussmaecher/mooeye#2ec4946f07abeba298ab16d3943a49ce74c434ba"
 dependencies = [
  "ggez",
  "tinyvec",

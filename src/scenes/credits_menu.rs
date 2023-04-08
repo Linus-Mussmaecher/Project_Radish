@@ -35,7 +35,7 @@ impl CreditsMenu {
         .set_font("Retro")
         .set_scale(48.)
         .to_owned()
-        .to_element_measured(0, ctx);
+        .to_element(0, ctx);
 
         let text = ggez::graphics::Text::new(
             TextFragment::new("Programming:\n")
@@ -69,17 +69,20 @@ impl CreditsMenu {
         )
         .set_font("Retro")
         .to_owned()
-        .to_element_measured(0, ctx);
+        .to_element(0, ctx);
 
-        let mut back = ggez::graphics::Text::new(
+        
+
+        let back = ggez::graphics::Text::new(
             TextFragment::new("Close").color(Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
         .set_scale(32.)
         .to_owned()
-        .to_element_measured(1, ctx);
-        back.visuals = box_vis;
-        back.hover_visuals = Some(box_hover_vis);
+        .to_element_builder(1, ctx)
+        .with_visuals(box_vis)
+        .with_hover_visuals(box_hover_vis)
+        .build();
 
         // Container
 
@@ -88,13 +91,13 @@ impl CreditsMenu {
         credits_box.add(text);
         credits_box.add(back);
         credits_box.spacing = 25.;
-        let mut credits_box = credits_box.to_element(0);
-        credits_box.visuals = box_vis;
-        credits_box.layout.x_alignment = Alignment::MIN;
-        credits_box.layout.y_alignment = Alignment::MIN;
-        credits_box.layout.x_offset = 25.;
-        credits_box.layout.y_offset = 25.;
-        credits_box.layout.padding = (25., 25., 25., 25.);
+        let credits_box = credits_box.to_element_builder(0, ctx)
+        .with_visuals(box_vis)
+        .with_alignment(Alignment::MIN, Alignment::MIN)
+        .with_offset(25., 25.)
+        .with_padding((25., 25., 25., 25.))
+        .build();
+
 
         Self { gui: credits_box }
     }

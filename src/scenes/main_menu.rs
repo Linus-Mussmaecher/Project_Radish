@@ -32,70 +32,76 @@ impl MainMenu {
         .set_font("Retro")
         .set_scale(48.)
         .to_owned()
-        .to_element_measured(1, ctx);
+        .to_element(1, ctx);
 
         // play
-        let mut play = ggez::graphics::Text::new(
+        let play = ggez::graphics::Text::new(
             TextFragment::new("Play").color(Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
         .set_scale(32.)
         .to_owned()
-        .to_element_measured(1, ctx);
-        play.visuals = box_vis;
-        play.hover_visuals = Some(box_hover_vis);
+        .to_element_builder(1, ctx)
+        .with_visuals(box_vis)
+        .with_hover_visuals(box_hover_vis)
+        .build();
 
-        let mut tutorial = ggez::graphics::Text::new(
+        let tutorial = ggez::graphics::Text::new(
             TextFragment::new("Tutorial").color(Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
         .set_scale(32.)
         .to_owned()
-        .to_element_measured(2, ctx);
-        tutorial.visuals = box_vis;
-        tutorial.hover_visuals = Some(box_hover_vis);
+        .to_element_builder(2, ctx)
+        .with_visuals(box_vis)
+        .with_hover_visuals(box_hover_vis)
+        .build();
 
         // achievement
 
-        let mut achievements = ggez::graphics::Text::new(
+        let achievements = ggez::graphics::Text::new(
             TextFragment::new("Achievements").color(Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
         .set_scale(32.)
         .to_owned()
-        .to_element_measured(3, ctx);
-        achievements.visuals = box_vis;
-        achievements.hover_visuals = Some(box_hover_vis);
+        .to_element_builder(3, ctx)
+        .with_visuals(box_vis)
+        .with_hover_visuals(box_hover_vis)
+        .build();
 
-        let mut options = ggez::graphics::Text::new(
+        let options = ggez::graphics::Text::new(
             TextFragment::new("Options").color(Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
         .set_scale(32.)
         .to_owned()
-        .to_element_measured(4, ctx);
-        options.visuals = box_vis;
-        options.hover_visuals = Some(box_hover_vis);
-        
-        let mut credits = ggez::graphics::Text::new(
+        .to_element_builder(4, ctx)
+        .with_visuals(box_vis)
+        .with_hover_visuals(box_hover_vis)
+        .build();
+
+        let credits = ggez::graphics::Text::new(
             TextFragment::new("Credits").color(Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
         .set_scale(32.)
         .to_owned()
-        .to_element_measured(5, ctx);
-        credits.visuals = box_vis;
-        credits.hover_visuals = Some(box_hover_vis);
+        .to_element_builder(5, ctx)
+        .with_visuals(box_vis)
+        .with_hover_visuals(box_hover_vis)
+        .build();
 
-        let mut quit = ggez::graphics::Text::new(
+        let quit = ggez::graphics::Text::new(
             TextFragment::new("Quit").color(Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
         .set_scale(32.)
         .to_owned()
-        .to_element_measured(6, ctx);
-        quit.visuals = box_vis;
-        quit.hover_visuals = Some(box_hover_vis);
+        .to_element_builder(6, ctx)
+        .with_visuals(box_vis)
+        .with_hover_visuals(box_hover_vis)
+        .build();
 
         // Container
 
@@ -107,19 +113,21 @@ impl MainMenu {
         menu_box.add(credits);
         menu_box.add(quit);
         menu_box.spacing = 25.;
-        let mut menu_box = menu_box.to_element(0);
-        menu_box.visuals = box_vis;
-        menu_box.layout.x_alignment = Alignment::CENTER;
-        menu_box.layout.y_alignment = Alignment::MIN;
-        menu_box.layout.padding = (25., 25., 25., 25.);
+        let menu_box = menu_box
+            .to_element_builder(0, ctx)
+            .with_visuals(box_vis)
+            .with_alignment(Alignment::CENTER, Alignment::MIN)
+            .with_padding((25., 25., 25., 25.))
+            .build();
 
         let mut big_box = mooeye::containers::VerticalBox::new();
         big_box.add(title);
         big_box.add(menu_box);
-        let mut big_box = big_box.to_element(0);
-        big_box.layout.x_alignment = Alignment::MAX;
-        big_box.layout.y_alignment = Alignment::MIN;
-        big_box.layout.padding = (25., 25., 25., 25.);
+        let big_box = big_box.to_element_builder(0, ctx)
+        .with_visuals(box_vis)
+        .with_alignment(Alignment::MAX, Alignment::MIN)
+        .with_padding((25., 25., 25., 25.))
+        .build();
 
         Self { gui: big_box }
     }
@@ -130,22 +138,26 @@ impl Scene for MainMenu {
         &mut self,
         ctx: &mut ggez::Context,
     ) -> Result<mooeye::scene_manager::SceneSwitch, ggez::GameError> {
-
         let messages = self.gui.manage_messages(ctx, &HashSet::new());
-
 
         let mut res = mooeye::scene_manager::SceneSwitch::None;
 
         if messages.contains(&mooeye::UiMessage::Clicked(3)) {
-            res = mooeye::scene_manager::SceneSwitch::Push(Box::new(super::achievement_menu::AchievementMenu::new(ctx)));
+            res = mooeye::scene_manager::SceneSwitch::Push(Box::new(
+                super::achievement_menu::AchievementMenu::new(ctx),
+            ));
         }
 
         if messages.contains(&mooeye::UiMessage::Clicked(4)) {
-            res = mooeye::scene_manager::SceneSwitch::Push(Box::new(super::options_menu::OptionsMenu::new(ctx)));
+            res = mooeye::scene_manager::SceneSwitch::Push(Box::new(
+                super::options_menu::OptionsMenu::new(ctx),
+            ));
         }
 
         if messages.contains(&mooeye::UiMessage::Clicked(5)) {
-            res = mooeye::scene_manager::SceneSwitch::Push(Box::new(super::credits_menu::CreditsMenu::new(ctx)));
+            res = mooeye::scene_manager::SceneSwitch::Push(Box::new(
+                super::credits_menu::CreditsMenu::new(ctx),
+            ));
         }
 
         if messages.contains(&mooeye::UiMessage::Clicked(6)) {
