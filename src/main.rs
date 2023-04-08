@@ -4,8 +4,8 @@ use mooeye::scene_manager::SceneManager;
 mod scenes;
 use scenes::main_menu::MainMenu;
 
-const WIDTH: f32 = 768.;
-const HEIGHT: f32 = 512.;
+const WIDTH: f32 = 1200.;
+const HEIGHT: f32 = 900.;
 
 const PALETTE: [u32;16] = [
     0x385074,

@@ -76,6 +76,16 @@ impl MainMenu {
         .to_element_measured(4, ctx);
         options.visuals = box_vis;
         options.hover_visuals = Some(box_hover_vis);
+        
+        let mut credits = ggez::graphics::Text::new(
+            TextFragment::new("Credits").color(Color::from_rgb_u32(PALETTE[6])),
+        )
+        .set_font("Retro")
+        .set_scale(32.)
+        .to_owned()
+        .to_element_measured(5, ctx);
+        credits.visuals = box_vis;
+        credits.hover_visuals = Some(box_hover_vis);
 
         let mut quit = ggez::graphics::Text::new(
             TextFragment::new("Quit").color(Color::from_rgb_u32(PALETTE[6])),
@@ -83,7 +93,7 @@ impl MainMenu {
         .set_font("Retro")
         .set_scale(32.)
         .to_owned()
-        .to_element_measured(5, ctx);
+        .to_element_measured(6, ctx);
         quit.visuals = box_vis;
         quit.hover_visuals = Some(box_hover_vis);
 
@@ -94,6 +104,7 @@ impl MainMenu {
         menu_box.add(tutorial);
         menu_box.add(achievements);
         menu_box.add(options);
+        menu_box.add(credits);
         menu_box.add(quit);
         menu_box.spacing = 25.;
         let mut menu_box = menu_box.to_element(0);
@@ -123,11 +134,25 @@ impl Scene for MainMenu {
         let messages = self.gui.manage_messages(ctx, &HashSet::new());
 
 
-        if messages.contains(&mooeye::UiMessage::Clicked(5)) {
-            Ok(mooeye::scene_manager::SceneSwitch::Pop(1))
-        } else {
-            Ok(mooeye::scene_manager::SceneSwitch::None)
+        let mut res = mooeye::scene_manager::SceneSwitch::None;
+
+        if messages.contains(&mooeye::UiMessage::Clicked(3)) {
+            res = mooeye::scene_manager::SceneSwitch::Push(Box::new(super::achievement_menu::AchievementMenu::new(ctx)));
         }
+
+        if messages.contains(&mooeye::UiMessage::Clicked(4)) {
+            res = mooeye::scene_manager::SceneSwitch::Push(Box::new(super::options_menu::OptionsMenu::new(ctx)));
+        }
+
+        if messages.contains(&mooeye::UiMessage::Clicked(5)) {
+            res = mooeye::scene_manager::SceneSwitch::Push(Box::new(super::credits_menu::CreditsMenu::new(ctx)));
+        }
+
+        if messages.contains(&mooeye::UiMessage::Clicked(6)) {
+            res = mooeye::scene_manager::SceneSwitch::Pop(1);
+        }
+
+        Ok(res)
     }
 
     fn draw(&mut self, ctx: &mut ggez::Context, mouse_listen: bool) -> Result<(), ggez::GameError> {
