@@ -17,6 +17,7 @@ impl MainMenu {
             border_width: 3.,
             rounded_corners: 6.,
         };
+        
         let box_hover_vis = mooeye::ui_element::Visuals {
             background: Color::from_rgb_u32(PALETTE[1]),
             border: Color::from_rgb_u32(PALETTE[7]),
@@ -123,11 +124,11 @@ impl MainMenu {
         let mut big_box = mooeye::containers::VerticalBox::new();
         big_box.add(title);
         big_box.add(menu_box);
-        let big_box = big_box.to_element_builder(0, ctx)
-        .with_visuals(box_vis)
-        .with_alignment(Alignment::MAX, Alignment::MIN)
-        .with_padding((25., 25., 25., 25.))
-        .build();
+        let big_box = big_box
+            .to_element_builder(0, ctx)
+            .with_alignment(Alignment::MAX, Alignment::MIN)
+            .with_padding((25., 25., 25., 25.))
+            .build();
 
         Self { gui: big_box }
     }

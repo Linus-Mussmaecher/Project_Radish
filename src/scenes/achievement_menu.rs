@@ -64,6 +64,7 @@ impl AchievementMenu {
                     .set_bounds(Vec2::new(300., 200.))
                     .to_owned()
                     .to_element_builder(0, ctx)
+                    .with_visuals(box_vis)
                     .with_tooltip_layout()
                     .build()
                 )
