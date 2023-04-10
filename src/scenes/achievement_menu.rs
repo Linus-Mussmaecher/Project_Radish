@@ -1,9 +1,7 @@
-use std::collections::HashSet;
-
 use ggez::{
     glam::Vec2,
     graphics::{self, Color, TextFragment},
-    Context,
+    Context, GameError,
 };
 use mooeye::{scene_manager::Scene, ui_element::Alignment, UiContent, UiElement};
 
@@ -14,7 +12,7 @@ pub struct AchievementMenu {
 }
 
 impl AchievementMenu {
-    pub fn new(ctx: &Context) -> Self {
+    pub fn new(ctx: &Context) -> Result<Self, GameError> {
         let box_vis = mooeye::ui_element::Visuals {
             background: Color::from_rgb_u32(PALETTE[0]),
             border: Color::from_rgb_u32(PALETTE[7]),
@@ -93,18 +91,18 @@ impl AchievementMenu {
         // Container
 
         let mut credits_box = mooeye::containers::VerticalBox::new();
-        credits_box.add(title);
-        credits_box.add(achievements);
-        credits_box.add(back);
+        credits_box.add(title)?;
+        credits_box.add(achievements)?;
+        credits_box.add(back)?;
         credits_box.spacing = 25.;
         let credits_box = credits_box.to_element_builder(0, ctx)
         .with_visuals(box_vis)
-        .with_alignment(Alignment::MIN, Alignment::MIN)
+        .with_alignment(Alignment::Min, Alignment::Min)
         .with_offset(25., 25.)
         .with_padding((25., 25., 25., 25.))
         .build();
 
-        Self { gui: credits_box }
+        Ok(Self { gui: credits_box })
     }
 }
 
@@ -113,7 +111,7 @@ impl Scene for AchievementMenu {
         &mut self,
         ctx: &mut ggez::Context,
     ) -> Result<mooeye::scene_manager::SceneSwitch, ggez::GameError> {
-        let messages = self.gui.manage_messages(ctx, &HashSet::new());
+        let messages = self.gui.manage_messages(ctx, None);
 
         if messages.contains(&mooeye::UiMessage::Clicked(1)) {
             Ok(mooeye::scene_manager::SceneSwitch::Pop(1))

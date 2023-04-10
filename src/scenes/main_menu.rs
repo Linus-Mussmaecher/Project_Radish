@@ -1,6 +1,4 @@
-use std::collections::HashSet;
-
-use ggez::graphics::{self, Color, TextFragment};
+use ggez::{graphics::{self, Color, TextFragment}, GameError};
 use mooeye::{scene_manager::Scene, ui_element::Alignment, UiContent, UiElement};
 
 use crate::PALETTE;
@@ -10,7 +8,7 @@ pub struct MainMenu {
 }
 
 impl MainMenu {
-    pub fn new(ctx: &ggez::Context) -> Self {
+    pub fn new(ctx: &ggez::Context) -> Result<Self, GameError> {
         let box_vis = mooeye::ui_element::Visuals {
             background: Color::from_rgb_u32(PALETTE[0]),
             border: Color::from_rgb_u32(PALETTE[7]),
@@ -107,30 +105,30 @@ impl MainMenu {
         // Container
 
         let mut menu_box = mooeye::containers::VerticalBox::new();
-        menu_box.add(play);
-        menu_box.add(tutorial);
-        menu_box.add(achievements);
-        menu_box.add(options);
-        menu_box.add(credits);
-        menu_box.add(quit);
+        menu_box.add(play)?;
+        menu_box.add(tutorial)?;
+        menu_box.add(achievements)?;
+        menu_box.add(options)?;
+        menu_box.add(credits)?;
+        menu_box.add(quit)?;
         menu_box.spacing = 25.;
         let menu_box = menu_box
             .to_element_builder(0, ctx)
             .with_visuals(box_vis)
-            .with_alignment(Alignment::CENTER, Alignment::MIN)
+            .with_alignment(Alignment::Center, Alignment::Min)
             .with_padding((25., 25., 25., 25.))
             .build();
 
         let mut big_box = mooeye::containers::VerticalBox::new();
-        big_box.add(title);
-        big_box.add(menu_box);
+        big_box.add(title)?;
+        big_box.add(menu_box)?;
         let big_box = big_box
             .to_element_builder(0, ctx)
-            .with_alignment(Alignment::MAX, Alignment::MIN)
+            .with_alignment(Alignment::Max, Alignment::Min)
             .with_padding((25., 25., 25., 25.))
             .build();
 
-        Self { gui: big_box }
+        Ok(Self { gui: big_box })
     }
 }
 
@@ -139,26 +137,26 @@ impl Scene for MainMenu {
         &mut self,
         ctx: &mut ggez::Context,
     ) -> Result<mooeye::scene_manager::SceneSwitch, ggez::GameError> {
-        let messages = self.gui.manage_messages(ctx, &HashSet::new());
+        let messages = self.gui.manage_messages(ctx, None);
 
         let mut res = mooeye::scene_manager::SceneSwitch::None;
 
         if messages.contains(&mooeye::UiMessage::Clicked(3)) {
-            res = mooeye::scene_manager::SceneSwitch::Push(Box::new(
-                super::achievement_menu::AchievementMenu::new(ctx),
-            ));
+            res = mooeye::scene_manager::SceneSwitch::push(
+                super::achievement_menu::AchievementMenu::new(ctx)?,
+            );
         }
 
         if messages.contains(&mooeye::UiMessage::Clicked(4)) {
-            res = mooeye::scene_manager::SceneSwitch::Push(Box::new(
-                super::options_menu::OptionsMenu::new(ctx),
-            ));
+            res = mooeye::scene_manager::SceneSwitch::push(
+                super::options_menu::OptionsMenu::new(ctx)?,
+            );
         }
 
         if messages.contains(&mooeye::UiMessage::Clicked(5)) {
-            res = mooeye::scene_manager::SceneSwitch::Push(Box::new(
-                super::credits_menu::CreditsMenu::new(ctx),
-            ));
+            res = mooeye::scene_manager::SceneSwitch::push(
+                super::credits_menu::CreditsMenu::new(ctx)?,
+            );
         }
 
         if messages.contains(&mooeye::UiMessage::Clicked(6)) {

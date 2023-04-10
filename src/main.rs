@@ -60,7 +60,7 @@ fn main() -> GameResult {
 
     // create Start Scene
 
-    let start_scene = MainMenu::new(&ctx);
+    let start_scene = MainMenu::new(&ctx)?;
 
     //create Scene Manager
 
