@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::{collections::VecDeque, time::Duration};
 
 use legion::*;
 use mooeye::{*, scene_manager::Scene};
@@ -9,11 +9,15 @@ use crate::PALETTE;
 mod game_action;
 use game_action::GameAction;
 
+mod components;
+
 
 pub struct GameState{
     world: World,
 
     resources: Resources,
+
+    main_schedule: Schedule,
 
     gui: UiElement<()>,
 }
@@ -48,10 +52,22 @@ impl GameState {
         .as_fill()
         .build();
 
-        let mut resources = Resources::default();
-        resources.insert(VecDeque::<GameAction>::new());
 
-        Ok(Self { world: World::default(), gui: main_box, resources})
+        let mut world = World::default();
+
+        world.push((components::Position::new(200., 50.), components::Velocity{dx: 0., dy: 2.},
+            sprite::Sprite::from_path_fmt("/sprites/skeleton_basic_16_16.png", ctx, Duration::from_secs_f32(0.25))
+         ));
+
+        let mut resources = Resources::default();
+        resources.insert(VecDeque::<GameAction>::new() as game_action::ActionQueue);
+
+        let main_schedule = Schedule::builder()
+        .add_system(components::position::update_position_system())
+        .add_system(components::position::position_apply_system())
+        .build();
+
+        Ok(Self { world, gui: main_box, main_schedule, resources})
     }
 }
 
@@ -60,8 +76,7 @@ impl Scene for GameState{
     fn update(&mut self, ctx: &mut Context) -> Result<scene_manager::SceneSwitch, GameError> {
         // lots of systems here
 
-
-
+        self.main_schedule.execute(&mut self.world, &mut self.resources);
 
         // in-game menu
 
@@ -83,6 +98,7 @@ impl Scene for GameState{
 
         // Draw game
 
+        components::sprite::draw_sprites(&mut self.world, ctx, &mut canvas);
 
         // Draw GUI
         self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);
