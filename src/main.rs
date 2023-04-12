@@ -4,6 +4,8 @@ use mooeye::scene_manager::SceneManager;
 mod scenes;
 use scenes::main_menu::MainMenu;
 
+mod game_state;
+
 const WIDTH: f32 = 1200.;
 const HEIGHT: f32 = 900.;
 
@@ -46,7 +48,7 @@ fn main() -> GameResult {
             .window_mode(
                 conf::WindowMode::default()
                     .fullscreen_type(conf::FullscreenType::Windowed)
-                    .resizable(true)
+                    //.resizable(true)
                     .dimensions(WIDTH, HEIGHT),
             )
             .build()?;

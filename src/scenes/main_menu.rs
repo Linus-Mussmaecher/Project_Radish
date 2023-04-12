@@ -1,7 +1,7 @@
 use ggez::{graphics::{self, Color, TextFragment}, GameError};
 use mooeye::{scene_manager::Scene, ui_element::Alignment, UiContent, UiElement};
 
-use crate::PALETTE;
+use crate::{PALETTE, game_state};
 
 pub struct MainMenu {
     gui: UiElement<()>,
@@ -140,6 +140,17 @@ impl Scene for MainMenu {
         let messages = self.gui.manage_messages(ctx, None);
 
         let mut res = mooeye::scene_manager::SceneSwitch::None;
+
+        if messages.contains(&mooeye::UiMessage::Clicked(1)) {
+            res = mooeye::scene_manager::SceneSwitch::replace(
+                game_state::GameState::new(ctx)?, 1,
+            );
+        }
+        if messages.contains(&mooeye::UiMessage::Clicked(2)) {
+            res = mooeye::scene_manager::SceneSwitch::replace(
+                game_state::GameState::new(ctx)?, 1,
+            );
+        }
 
         if messages.contains(&mooeye::UiMessage::Clicked(3)) {
             res = mooeye::scene_manager::SceneSwitch::push(
