@@ -7,5 +7,5 @@ pub type ActionQueue = VecDeque<GameAction>;
 pub enum GameAction{
     Move{entity: legion::Entity, del: Vec2},
     #[allow(dead_code)]
-    None,
+    TakeDamage{entity: legion::Entity, dmg: i32},
 }

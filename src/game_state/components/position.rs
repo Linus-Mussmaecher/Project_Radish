@@ -7,8 +7,17 @@ pub type Position = Vec2;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Velocity{
-    pub dx: f32,
-    pub dy: f32,
+    dx: f32,
+    dy: f32,
+}
+
+impl Velocity{
+    pub fn new(dx: f32, dy: f32) -> Self{
+        Self{
+            dx,
+            dy,
+        }
+    }
 }
 
 impl From<Vec2> for Velocity{
@@ -19,7 +28,7 @@ impl From<Vec2> for Velocity{
 
 impl From<Velocity> for Vec2 {
     fn from(value: Velocity) -> Self {
-        Self { x: value.dx, y: value.dx }
+        Self { x: value.dx, y: value.dy }
     }
 }
 
@@ -35,6 +44,7 @@ pub fn position_apply(entity2: &Entity, pos: &mut Position, #[resource] actions:
         if let GameAction::Move{ entity, del } = action{
             if *entity == *entity2 {
                 *pos += *del;
+                //println!("Moving something by {}, {}", del.x, del.y);
             }
         }
     }
