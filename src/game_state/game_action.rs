@@ -8,5 +8,4 @@ pub enum GameAction{
     Move{entity: legion::Entity, del: Vec2},
     #[allow(dead_code)]
     TakeDamage{entity: legion::Entity, dmg: i32},
-    Collide{entity1: legion::Entity, entity2: legion::Entity},
 }

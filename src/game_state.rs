@@ -61,7 +61,7 @@ impl GameState {
                 ctx,
                 Duration::from_secs_f32(0.25),
             )?,
-            components::Collision::new_basic(16.,16.)
+            components::Collision::new_basic(16.,16.),
         ));
 
         world.push((
@@ -72,12 +72,14 @@ impl GameState {
                 ctx,
                 Duration::from_secs_f32(0.25),
             )?,
-            components::Collision::new_basic(16.,16.)
+            components::Collision::new_basic(16.,16.),
+            components::Duration::new(3, 0),
         ));
 
         let mut resources = Resources::default();
         resources.insert(ActionQueue::new());
         resources.insert(MessageSet::new());
+        resources.insert(ctx.time.delta());
 
         let main_schedule = Schedule::builder()
             .add_system(components::collision::collide_system())
@@ -85,6 +87,7 @@ impl GameState {
             .add_system(components::position::position_apply_system())
             .add_system(components::health::take_damage_system())
             .add_system(components::health::remove_dead_system())
+            .add_system(components::duration::manage_durations_system())
             .build();
 
         Ok(Self {
@@ -99,6 +102,8 @@ impl GameState {
 impl Scene for GameState {
     fn update(&mut self, ctx: &mut Context) -> Result<scene_manager::SceneSwitch, GameError> {
         // lots of systems here
+
+        self.resources.insert(ctx.time.delta());
 
         if let Some(mut action_queue) = self.resources.get_mut::<ActionQueue>() {
             components::control::control_csystem(&mut self.world, ctx, &mut action_queue);

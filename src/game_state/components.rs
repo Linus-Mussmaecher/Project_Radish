@@ -18,3 +18,6 @@ pub use spawner::Spawner;
 
 pub mod collision;
 pub use collision::Collision;
+
+pub mod duration;
+pub use std::time::Duration;
