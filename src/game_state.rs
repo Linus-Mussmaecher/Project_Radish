@@ -1,4 +1,4 @@
-use std::{collections::{VecDeque, HashSet}, time::Duration};
+use std::time::Duration;
 
 use ggez::{graphics::Color, *};
 use legion::*;
@@ -7,8 +7,8 @@ use mooeye::{scene_manager::Scene, *};
 use crate::PALETTE;
 
 mod game_action;
-use game_action::GameAction;
 use game_action::ActionQueue;
+//use game_action::GameAction;
 
 mod game_message;
 use game_message::GameMessage;
@@ -53,7 +53,7 @@ impl GameState {
         let mut world = World::default();
 
         world.push((
-            components::Position::new(200., 50.),
+            components::Position::new(208., 50.),
             components::Velocity::new(0., 2.),
             components::Control::new(2.),
             sprite::Sprite::from_path_fmt(
@@ -61,6 +61,18 @@ impl GameState {
                 ctx,
                 Duration::from_secs_f32(0.25),
             )?,
+            components::Collision::new_basic(16.,16.)
+        ));
+
+        world.push((
+            components::Position::new(200., 200.),
+            components::Velocity::new(0., 0.),
+            sprite::Sprite::from_path_fmt(
+                "/sprites/skeleton_basic_16_16.png",
+                ctx,
+                Duration::from_secs_f32(0.25),
+            )?,
+            components::Collision::new_basic(16.,16.)
         ));
 
         let mut resources = Resources::default();
@@ -68,6 +80,7 @@ impl GameState {
         resources.insert(MessageSet::new());
 
         let main_schedule = Schedule::builder()
+            .add_system(components::collision::collide_system())
             .add_system(components::position::update_position_system())
             .add_system(components::position::position_apply_system())
             .add_system(components::health::take_damage_system())
@@ -87,15 +100,14 @@ impl Scene for GameState {
     fn update(&mut self, ctx: &mut Context) -> Result<scene_manager::SceneSwitch, GameError> {
         // lots of systems here
 
-        
-        if let Some(mut action_queue) = self.resources.get_mut::<ActionQueue>(){
+        if let Some(mut action_queue) = self.resources.get_mut::<ActionQueue>() {
             components::control::control_csystem(&mut self.world, ctx, &mut action_queue);
         }
 
         self.main_schedule
             .execute(&mut self.world, &mut self.resources);
 
-        if let Some(mut action_queue) = self.resources.get_mut::<ActionQueue>(){
+        if let Some(mut action_queue) = self.resources.get_mut::<ActionQueue>() {
             action_queue.clear();
         }
 

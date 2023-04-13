@@ -15,3 +15,6 @@ pub use control::Control;
 
 pub mod spawner;
 pub use spawner::Spawner;
+
+pub mod collision;
+pub use collision::Collision;
