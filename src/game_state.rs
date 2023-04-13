@@ -65,8 +65,8 @@ impl GameState {
         ));
 
         world.push((
-            components::Position::new(200., 200.),
-            components::Velocity::new(0., 0.),
+            components::Position::new(208., 200.),
+            components::Velocity::new(-1., 0.),
             sprite::Sprite::from_path_fmt(
                 "/sprites/skeleton_basic_16_16.png",
                 ctx,

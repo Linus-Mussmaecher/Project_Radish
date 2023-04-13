@@ -18,6 +18,15 @@ impl Velocity{
             dy,
         }
     }
+
+    pub fn get_dx(&self) -> f32{
+        self.dx
+    }
+
+    
+    pub fn get_dy(&self) -> f32{
+        self.dy
+    }
 }
 
 impl From<Vec2> for Velocity{
