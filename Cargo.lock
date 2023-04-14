@@ -1696,8 +1696,7 @@ dependencies = [
 [[package]]
 name = "mooeye"
 version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4d9a78ed3fa320a6563fc3a8cada3a05276acdf2f3eacc36eb6be93281621d61"
+source = "git+https://github.com/Linus-Mussmaecher/mooeye#30ccc57eb650be408fad4d23fbab0a0f0fcfb3b7"
 dependencies = [
  "ggez",
  "tinyvec",
