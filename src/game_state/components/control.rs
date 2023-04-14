@@ -31,6 +31,6 @@ pub fn control_csystem(world: &mut World, ctx: &Context, actions: &mut ActionQue
     }
 
     for (entity, control) in <(Entity, &Control)>::query().iter(world){
-        actions.push_back(super::GameAction::Move { entity: *entity, del: del * control.move_speed})
+        actions.push_back((*entity, super::GameAction::Move { delta: del * control.move_speed}))
     }
 }

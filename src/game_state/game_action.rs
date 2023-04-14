@@ -2,10 +2,12 @@ use std::collections::VecDeque;
 
 use ggez::glam::Vec2;
 
-pub type ActionQueue = VecDeque<GameAction>;
+pub type ActionQueue = VecDeque<(legion::Entity, GameAction)>;
 
 pub enum GameAction{
-    Move{entity: legion::Entity, del: Vec2},
+    Move{delta: Vec2},
     #[allow(dead_code)]
-    TakeDamage{entity: legion::Entity, dmg: i32},
+    TakeDamage{dmg: i32},
+    TakeCityDamage{dmg: u32},
+    GainGold{amount: u32},
 }

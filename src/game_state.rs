@@ -14,6 +14,9 @@ mod game_message;
 use game_message::GameMessage;
 use game_message::MessageSet;
 
+mod game_data;
+use game_data::GameData;
+
 mod components;
 
 pub struct GameState {
@@ -21,7 +24,9 @@ pub struct GameState {
 
     resources: Resources,
 
-    main_schedule: Schedule,
+    action_prod_schedule: Schedule,
+
+    action_cons_schedule: Schedule,
 
     gui: UiElement<GameMessage>,
 }
@@ -61,7 +66,8 @@ impl GameState {
                 ctx,
                 Duration::from_secs_f32(0.25),
             )?,
-            components::Collision::new_basic(16.,16.),
+            components::Collision::new_basic(16., 16.),
+            components::Enemy::new(1, 10),
         ));
 
         world.push((
@@ -72,28 +78,31 @@ impl GameState {
                 ctx,
                 Duration::from_secs_f32(0.25),
             )?,
-            components::Collision::new_basic(16.,16.),
+            components::Collision::new_basic(16., 16.),
             components::Duration::new(3, 0),
         ));
 
         let mut resources = Resources::default();
         resources.insert(ActionQueue::new());
         resources.insert(MessageSet::new());
+        resources.insert(GameData::default());
         resources.insert(ctx.time.delta());
-
-        let main_schedule = Schedule::builder()
-            .add_system(components::collision::collide_system())
-            .add_system(components::position::update_position_system())
-            .add_system(components::position::position_apply_system())
-            .add_system(components::health::take_damage_system())
-            .add_system(components::health::remove_dead_system())
-            .add_system(components::duration::manage_durations_system())
-            .build();
 
         Ok(Self {
             world,
             gui: main_box,
-            main_schedule,
+            action_prod_schedule: Schedule::builder()
+                .add_system(components::collision::collide_system())
+                .add_system(components::position::update_position_system())
+                .add_system(components::enemy::manage_enemies_system())
+                .build(),
+            action_cons_schedule: Schedule::builder()
+                .add_system(components::position::position_apply_system())
+                .add_system(components::health::remove_dead_system())
+                .add_system(components::duration::manage_durations_system())
+                .add_system(components::health::take_damage_system())
+                .add_system(game_data::handle_game_data_actions_system())
+                .build(),
             resources,
         })
     }
@@ -104,17 +113,38 @@ impl Scene for GameState {
         // lots of systems here
 
         self.resources.insert(ctx.time.delta());
+        {
+            let mut action_queue =
+                self.resources
+                    .get_mut::<ActionQueue>()
+                    .ok_or_else(||GameError::CustomError(
+                        "Could not unpack action queue.".to_owned(),
+                    ))?;
 
-        if let Some(mut action_queue) = self.resources.get_mut::<ActionQueue>() {
             components::control::control_csystem(&mut self.world, ctx, &mut action_queue);
         }
 
-        self.main_schedule
+        // produce game actions of this frame
+
+        self.action_prod_schedule
             .execute(&mut self.world, &mut self.resources);
 
-        if let Some(mut action_queue) = self.resources.get_mut::<ActionQueue>() {
-            action_queue.clear();
-        }
+        // transform game actions of this frame
+
+        // consume game actions of this frame
+
+        self.action_cons_schedule
+            .execute(&mut self.world, &mut self.resources);
+
+        // clear game actions
+
+        let mut action_queue =
+            self.resources
+                .get_mut::<ActionQueue>()
+                .ok_or_else(|| GameError::CustomError(
+                    "Could not unpack action queue.".to_owned(),
+                ))?;
+        action_queue.clear();
 
         // in-game menu
 

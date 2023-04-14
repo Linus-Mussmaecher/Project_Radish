@@ -21,3 +21,6 @@ pub use collision::Collision;
 
 pub mod duration;
 pub use std::time::Duration;
+
+pub mod enemy;
+pub use enemy::Enemy;

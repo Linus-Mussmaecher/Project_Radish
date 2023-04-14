@@ -43,5 +43,5 @@ pub fn collide(world: &mut SubWorld, #[resource] actions: &mut ActionQueue, #[re
 pub fn bounce_back(e1: Entity, e2: Entity, world: &SubWorld, actions: &mut ActionQueue, _messages: &mut MessageSet){
     let v1 = *world.entry_ref(e1).unwrap().into_component::<Position>().unwrap();
     let v2 = *world.entry_ref(e2).unwrap().into_component::<Position>().unwrap();
-    actions.push_back(super::GameAction::Move { entity: e1, del: (v1 - v2).normalize_or_zero() });
+    actions.push_back((e1, super::GameAction::Move { delta: (v1 - v2).normalize_or_zero() }));
 }

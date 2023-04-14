@@ -1,7 +1,7 @@
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, std::hash::Hash)]
 pub enum GameMessage{
-    SkeletonSpawned,
+    
 }
 
 

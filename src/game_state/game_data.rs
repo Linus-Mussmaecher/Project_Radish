@@ -1,0 +1,47 @@
+use super::{game_action::ActionQueue, components::GameAction};
+use legion::*;
+
+pub struct GameData {
+    score: u32,
+    gold: u32,
+    pub city_health: i32,
+}
+
+impl GameData {
+    pub fn add_gold(&mut self, amount: u32) {
+        self.score += amount;
+        self.gold += amount;
+    }
+
+    #[allow(dead_code)]
+    pub fn spend(&mut self, amount: u32) -> bool {
+        if amount <= self.gold {
+            self.gold -= amount;
+            true
+        } else {
+            false
+        }
+    }
+}
+
+impl Default for GameData {
+    fn default() -> Self {
+        Self {
+            score: 0,
+            gold: 0,
+            city_health: 100,
+        }
+    }
+}
+
+#[system]
+pub fn handle_game_data_actions(#[resource] actions: &mut ActionQueue, #[resource] game_data: &mut GameData){
+    for action in actions{
+        if let (_, GameAction::TakeCityDamage { dmg }) = action{
+            game_data.city_health -= *dmg as i32;
+        } else if let (_, GameAction::GainGold { amount }) = action{
+            game_data.add_gold(*amount);
+        }
+    }
+
+}

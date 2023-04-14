@@ -44,16 +44,15 @@ impl From<Velocity> for Vec2 {
 
 #[legion::system(for_each)]
 pub fn update_position(entity: &Entity, vel: &Velocity,  #[resource] actions: &mut ActionQueue){
-    actions.push_back(GameAction::Move { entity: *entity, del: Vec2::from(*vel) })
+    actions.push_back((*entity, GameAction::Move {  delta: Vec2::from(*vel) }))
 }
 
 #[legion::system(for_each)]
 pub fn position_apply(entity2: &Entity, pos: &mut Position, #[resource] actions: &ActionQueue){
     for action in actions {
-        if let GameAction::Move{ entity, del } = action{
+        if let (entity, GameAction::Move{delta }) = action{
             if *entity == *entity2 {
-                *pos += *del;
-                //println!("Moving something by {}, {}", del.x, del.y);
+                *pos += *delta;
             }
         }
     }
