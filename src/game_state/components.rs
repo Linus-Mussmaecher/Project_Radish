@@ -20,7 +20,7 @@ pub mod collision;
 pub use collision::Collision;
 
 pub mod duration;
-pub use std::time::Duration;
+pub use duration::LifeDuration;
 
 pub mod enemy;
 pub use enemy::Enemy;

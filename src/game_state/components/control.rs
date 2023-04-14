@@ -1,5 +1,5 @@
-use crate::game_state::{game_action::ActionQueue};
-use ggez::{glam::Vec2, Context};
+use crate::game_state::{game_action::ActionQueue, controller::Interactions};
+use ggez::{glam::Vec2};
 use legion::*;
 
 
@@ -13,24 +13,17 @@ impl Control {
     }
 }
 
-pub fn control_csystem(world: &mut World, ctx: &Context, actions: &mut ActionQueue){
+#[system(for_each)]
+pub fn control(entity: &Entity, control: &Control, #[resource] ix: &Interactions, #[resource] actions: &mut ActionQueue){ 
 
     let mut del = Vec2::ZERO;
 
-    if ctx.keyboard.is_key_pressed(ggez::winit::event::VirtualKeyCode::Up){
-        del.y -= 1.;
-    }
-    if ctx.keyboard.is_key_pressed(ggez::winit::event::VirtualKeyCode::Down){
-        del.y += 1.;
-    }
-    if ctx.keyboard.is_key_pressed(ggez::winit::event::VirtualKeyCode::Left){
+    if let Some(true) = ix.commands.get(&crate::game_state::controller::Command::MoveLeft){
         del.x -= 1.;
     }
-    if ctx.keyboard.is_key_pressed(ggez::winit::event::VirtualKeyCode::Right){
+    if let Some(true) = ix.commands.get(&crate::game_state::controller::Command::MoveRight){
         del.x += 1.;
     }
 
-    for (entity, control) in <(Entity, &Control)>::query().iter(world){
-        actions.push_back((*entity, super::GameAction::Move { delta: del * control.move_speed}))
-    }
+    actions.push_back((*entity, super::GameAction::Move { delta: del * control.move_speed}))
 }

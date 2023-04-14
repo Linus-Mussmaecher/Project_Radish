@@ -17,12 +17,18 @@ use game_message::MessageSet;
 mod game_data;
 use game_data::GameData;
 
+use self::controller::Controller;
+
 mod components;
+
+mod controller;
 
 pub struct GameState {
     world: World,
 
     resources: Resources,
+
+    controller: Controller,
 
     action_prod_schedule: Schedule,
 
@@ -60,7 +66,6 @@ impl GameState {
         world.push((
             components::Position::new(208., 50.),
             components::Velocity::new(0., 2.),
-            components::Control::new(2.),
             sprite::Sprite::from_path_fmt(
                 "/sprites/skeleton_basic_16_16.png",
                 ctx,
@@ -72,14 +77,14 @@ impl GameState {
 
         world.push((
             components::Position::new(208., 200.),
-            components::Velocity::new(-1., 0.),
+            components::Control::new(2.),
             sprite::Sprite::from_path_fmt(
                 "/sprites/skeleton_basic_16_16.png",
                 ctx,
                 Duration::from_secs_f32(0.25),
             )?,
             components::Collision::new_basic(16., 16.),
-            components::Duration::new(3, 0),
+            components::LifeDuration::new(Duration::from_secs_f32(3.5)),
         ));
 
         let mut resources = Resources::default();
@@ -95,34 +100,27 @@ impl GameState {
                 .add_system(components::collision::collide_system())
                 .add_system(components::position::update_position_system())
                 .add_system(components::enemy::manage_enemies_system())
+                .add_system(components::control::control_system())
                 .build(),
             action_cons_schedule: Schedule::builder()
                 .add_system(components::position::position_apply_system())
-                .add_system(components::health::remove_dead_system())
-                .add_system(components::duration::manage_durations_system())
                 .add_system(components::health::take_damage_system())
                 .add_system(game_data::handle_game_data_actions_system())
+                .add_system(components::duration::manage_durations_system())
+                .add_system(components::health::remove_dead_system())
                 .build(),
             resources,
+            controller: Controller::from_path("./data/keymap.toml"),
         })
     }
 }
 
 impl Scene for GameState {
     fn update(&mut self, ctx: &mut Context) -> Result<scene_manager::SceneSwitch, GameError> {
-        // lots of systems here
+        
+        // create interaction struct and insert as resource
 
-        self.resources.insert(ctx.time.delta());
-        {
-            let mut action_queue =
-                self.resources
-                    .get_mut::<ActionQueue>()
-                    .ok_or_else(||GameError::CustomError(
-                        "Could not unpack action queue.".to_owned(),
-                    ))?;
-
-            components::control::control_csystem(&mut self.world, ctx, &mut action_queue);
-        }
+        self.resources.insert(self.controller.get_interactions(ctx));
 
         // produce game actions of this frame
 
@@ -157,6 +155,7 @@ impl Scene for GameState {
                 .keyboard
                 .is_key_just_pressed(winit::event::VirtualKeyCode::F10)
         {
+            self.controller.save_to_file("./data/keymap.data");
             return Ok(scene_manager::SceneSwitch::push(
                 crate::scenes::in_game_menu::InGameMenu::new(ctx)?,
             ));
