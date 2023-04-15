@@ -24,7 +24,7 @@ pub fn manage_enemies(entity: &Entity, enemy: &Enemy, health: Option<&Health>, p
     // if enemy is dead, gain bounty
     if match health {
         None => false,
-        Some(health) => health.0 <= 0,
+        Some(health) => health.get_current_health() <= 0,
     } {
         actions.push_back((*entity, super::GameAction::GainGold { amount: enemy.bounty }));
     }

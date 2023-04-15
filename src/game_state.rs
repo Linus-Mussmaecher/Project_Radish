@@ -73,6 +73,7 @@ impl GameState {
             )?,
             components::Collision::new_basic(16., 16.),
             components::Enemy::new(1, 10),
+            components::LifeDuration::new(Duration::from_secs_f32(3.5)),
         ));
 
         world.push((
@@ -84,7 +85,7 @@ impl GameState {
                 Duration::from_secs_f32(0.25),
             )?,
             components::Collision::new_basic(16., 16.),
-            components::LifeDuration::new(Duration::from_secs_f32(3.5)),
+            components::Health::new(5),
         ));
 
         let mut resources = Resources::default();
@@ -172,7 +173,7 @@ impl Scene for GameState {
 
         // Draw game
 
-        components::sprite::draw_sprites(&mut self.world, ctx, &mut canvas);
+        components::sprite::draw_sprites(&mut self.world, ctx, &mut canvas)?;
 
         // Draw GUI
         self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);
