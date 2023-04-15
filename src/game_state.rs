@@ -46,8 +46,10 @@ impl GameState {
             rounded_corners: 6.,
         };
 
+        // main box
         let mut main_box = containers::StackBox::new();
 
+        // options icon
         let cog_icon = graphics::Image::from_path(ctx, "/sprites/cog.png")?
             .to_element_builder(1, ctx)
             .with_visuals(box_vis)
@@ -58,6 +60,125 @@ impl GameState {
             .build();
 
         main_box.add(cog_icon)?;
+
+        // gold display
+        let gold_icon = sprite::Sprite::from_path_fmt(
+            "/sprites/coin_16_16.png",
+            ctx,
+            Duration::from_secs_f32(0.25),
+        )?
+        .to_element_builder(0, ctx)
+        .scaled(2., 2.)
+        .build();
+
+        let gold_text = graphics::Text::new(
+            graphics::TextFragment::new("0000").color(Color::from_rgb_u32(PALETTE[6])),
+        )
+        .set_scale(32.)
+        .set_font("Retro")
+        .to_owned()
+        .to_element_builder(0, ctx)
+        .with_message_handler(|message_set, _, transitions| {
+            for message in message_set {
+                if let ui_element::UiMessage::Extern(GameMessage::UpdateGold(new_gold)) = message {
+                    transitions.push_back(
+                        ui_element::Transition::new(Duration::ZERO)
+                        .with_new_content(graphics::Text::new(
+                            graphics::TextFragment::new(format!("{:04}", *new_gold)).color(Color::from_rgb_u32(PALETTE[6])),
+                        )
+                        .set_scale(32.)
+                        .set_font("Retro")
+                        .to_owned())
+                    );
+                }
+            }
+        })
+        .build();
+
+        let mut gold_box = containers::HorizontalBox::new();
+        gold_box.add(gold_icon)?;
+        gold_box.add(gold_text)?;
+        let gold_box = gold_box
+            .to_element_builder(0, ctx)
+            .with_visuals(box_vis)
+            .with_alignment(ui_element::Alignment::Min, ui_element::Alignment::Min)
+            .with_offset(10., 10.)
+            .with_tooltip(
+                graphics::Text::new(
+                    graphics::TextFragment::new("Your current amount of gold.")
+                        .color(Color::from_rgb_u32(PALETTE[6])),
+                )
+                .set_scale(24.)
+                .set_font("Retro")
+                .to_owned()
+                .to_element_builder(0, ctx)
+                .with_tooltip_layout()
+                .with_visuals(box_vis)
+                .build(),
+            )
+            .build();
+
+        main_box.add(gold_box)?;
+
+        // city health display
+
+        let city_display = sprite::Sprite::from_path_fmt(
+            "/sprites/city_16_16.png",
+            ctx,
+            Duration::from_secs_f32(0.25),
+        )?
+        .to_element_builder(0, ctx)
+        .scaled(2., 2.)
+        .build();
+
+        let city_text = graphics::Text::new(
+            graphics::TextFragment::new("100").color(Color::from_rgb_u32(PALETTE[6])),
+        )
+        .set_scale(32.)
+        .set_font("Retro")
+        .to_owned()
+        .to_element_builder(0, ctx)
+        .with_message_handler(|message_set, _, transitions| {
+            for message in message_set {
+                if let ui_element::UiMessage::Extern(GameMessage::UpdateCityHealth(new_health)) = message {
+                    transitions.push_back(
+                        ui_element::Transition::new(Duration::ZERO)
+                        .with_new_content(graphics::Text::new(
+                            graphics::TextFragment::new(format!("{:03}", *new_health)).color(Color::from_rgb_u32(PALETTE[6])),
+                        )
+                        .set_scale(32.)
+                        .set_font("Retro")
+                        .to_owned())
+                    );
+                }
+            }
+        })
+        .build();
+
+        let mut city_box = containers::HorizontalBox::new();
+        city_box.add(city_display)?;
+        city_box.add(city_text)?;
+        let city_box = city_box
+            .to_element_builder(0, ctx)
+            .with_visuals(box_vis)
+            .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Min)
+            .with_offset(-10., 10.)
+            .with_tooltip(
+                graphics::Text::new(
+                    graphics::TextFragment::new("The health your city currently has left.")
+                        .color(Color::from_rgb_u32(PALETTE[6])),
+                )
+                .set_scale(24.)
+                .set_font("Retro")
+                .to_owned()
+                .to_element_builder(0, ctx)
+                .with_tooltip_layout()
+                .with_visuals(box_vis)
+                .build(),
+            )
+            .build();
+
+        main_box.add(city_box)?;
 
         let main_box = main_box.to_element_builder(0, ctx).as_fill().build();
 
@@ -73,7 +194,7 @@ impl GameState {
             )?,
             components::Collision::new_basic(16., 16.),
             components::Enemy::new(1, 10),
-            components::LifeDuration::new(Duration::from_secs_f32(3.5)),
+            //components::LifeDuration::new(Duration::from_secs_f32(3.5)),
         ));
 
         world.push((
@@ -118,7 +239,6 @@ impl GameState {
 
 impl Scene for GameState {
     fn update(&mut self, ctx: &mut Context) -> Result<scene_manager::SceneSwitch, GameError> {
-        
         // create interaction struct and insert as resource
 
         self.resources.insert(self.controller.get_interactions(ctx));
@@ -137,17 +257,20 @@ impl Scene for GameState {
 
         // clear game actions
 
-        let mut action_queue =
-            self.resources
-                .get_mut::<ActionQueue>()
-                .ok_or_else(|| GameError::CustomError(
-                    "Could not unpack action queue.".to_owned(),
-                ))?;
+        let mut action_queue = self
+            .resources
+            .get_mut::<ActionQueue>()
+            .ok_or_else(|| GameError::CustomError("Could not unpack action queue.".to_owned()))?;
         action_queue.clear();
 
         // in-game menu
 
-        let messages = self.gui.manage_messages(ctx, None);
+        let mut message_set = self.resources
+        .get_mut::<MessageSet>()
+        .ok_or_else(|| GameError::CustomError("Could not unpack message set.".to_owned()))?;
+
+        let messages = self.gui.manage_messages(ctx, message_set.clone());
+        message_set.clear();
 
         // react to messages
 
