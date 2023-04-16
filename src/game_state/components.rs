@@ -9,12 +9,10 @@ pub use mooeye::sprite::Sprite;
 
 pub mod health;
 pub use health::Health;
+pub use health::Enemy;
 
 pub mod control;
 pub use control::Control;
-
-pub mod spawner;
-pub use spawner::Spawner;
 
 pub mod collision;
 pub use collision::Collision;
@@ -22,8 +20,9 @@ pub use collision::Collision;
 pub mod duration;
 pub use duration::LifeDuration;
 
-pub mod enemy;
-pub use enemy::Enemy;
 
 pub mod executor;
 pub use executor::Executor;
+
+pub mod spell_casting;
+pub use spell_casting::SpellCaster;

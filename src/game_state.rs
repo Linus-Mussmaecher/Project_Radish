@@ -1,6 +1,4 @@
 use std::time::Duration;
-
-use ggez::glam::Vec2;
 use ggez::{graphics::Color, *};
 use legion::*;
 use mooeye::{scene_manager::Scene, *};
@@ -17,9 +15,10 @@ use game_message::MessageSet;
 
 mod game_data;
 use game_data::GameData;
+mod director;
 
-use self::components::GameAction;
 use self::controller::Controller;
+use self::director::Director;
 
 mod components;
 
@@ -37,6 +36,8 @@ pub struct GameState {
     action_cons_schedule: Schedule,
 
     gui: UiElement<GameMessage>,
+
+    director: Director,
 }
 
 impl GameState {
@@ -192,37 +193,17 @@ impl GameState {
 
         let mut world = World::default();
 
-        world.push((
-            components::Position::new(208., 50.),
-            components::Velocity::new(0., 2.),
-            sprite::Sprite::from_path_fmt(
-                "/sprites/skeleton_basic_16_16.png",
-                ctx,
-                Duration::from_secs_f32(0.25),
-            )?,
-            components::Collision::new(
-                64.,
-                64.,
-                |e1, e2| (ActionQueue::from([
-                    (e2, GameAction::TakeDamage { dmg: 5 }),
-                    (e1, GameAction::AddImmunity { other: e2 }),
-                    (e2, GameAction::Move { delta: Vec2::new(0., -16.) })
-                ]), MessageSet::new()),
-            ),
-            components::Enemy::new(1, 10),
-            //components::LifeDuration::new(Duration::from_secs_f32(3.5)),
-        ));
+        // add player
 
         world.push((
-            components::Position::new(208., 200.),
+            components::Position::new(300., 500.),
             components::Control::new(2.),
             sprite::Sprite::from_path_fmt(
-                "/sprites/skeleton_basic_16_16.png",
+                "/sprites/mage_16_16.png",
                 ctx,
                 Duration::from_secs_f32(0.25),
             )?,
-            components::Collision::new_basic(64., 64.),
-            components::Health::new(5),
+            components::SpellCaster::new(),
         ));
 
         let mut resources = Resources::default();
@@ -238,7 +219,7 @@ impl GameState {
                 // sytems that produce actions
                 .add_system(components::collision::collision_system())
                 .add_system(components::position::velocity_system())
-                .add_system(components::enemy::enemy_system())
+                .add_system(components::health::enemy_system())
                 .add_system(components::control::control_system())
                 .build(),
             action_cons_schedule: Schedule::builder()
@@ -253,6 +234,7 @@ impl GameState {
                 .build(),
             resources,
             controller: Controller::from_path("./data/keymap.toml"),
+            director: Director::new(),
         })
     }
 }
@@ -272,6 +254,10 @@ impl Scene for GameState {
 
         components::executor::resolve_executive_system(&mut self.world, &mut self.resources)?;
 
+        // performs spell casting
+
+        components::spell_casting::spell_casting(&mut self.world, &mut self.resources, ctx);
+
         // transform game actions of this frame
 
         // consume game actions of this frame
@@ -286,6 +272,10 @@ impl Scene for GameState {
             .get_mut::<ActionQueue>()
             .ok_or_else(|| GameError::CustomError("Could not unpack action queue.".to_owned()))?;
         action_queue.clear();
+
+        // director
+
+        self.director.progress(ctx, &mut self.world);
 
         // in-game menu
 
@@ -304,7 +294,6 @@ impl Scene for GameState {
                 .keyboard
                 .is_key_just_pressed(winit::event::VirtualKeyCode::F10)
         {
-            self.controller.save_to_file("./data/keymap.data");
             return Ok(scene_manager::SceneSwitch::push(
                 crate::scenes::in_game_menu::InGameMenu::new(ctx)?,
             ));

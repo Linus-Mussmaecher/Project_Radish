@@ -50,6 +50,7 @@ pub fn collision(
                 && *ent1 != *ent2
                 && !col1.immunity.contains(ent2)
             {
+                println!("Collisions: {:?}, {:?}", *ent1, *ent2);
                 let (n_actions, n_messages) = (col1.collision_handler)(*ent1, *ent2);
                 messages.extend(n_messages.iter());
                 actions.extend(n_actions.iter());
