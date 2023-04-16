@@ -2,19 +2,19 @@ use super::{components::GameAction, game_action::ActionQueue, game_message::{Mes
 use legion::*;
 
 pub struct GameData {
-    score: u32,
-    gold: u32,
+    score: i32,
+    gold: i32,
     pub city_health: i32,
 }
 
 impl GameData {
-    pub fn add_gold(&mut self, amount: u32) {
+    pub fn add_gold(&mut self, amount: i32) {
         self.score += amount;
         self.gold += amount;
     }
 
     #[allow(dead_code)]
-    pub fn spend(&mut self, amount: u32) -> bool {
+    pub fn spend(&mut self, amount: i32) -> bool {
         if amount <= self.gold {
             self.gold -= amount;
             true

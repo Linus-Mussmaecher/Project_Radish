@@ -9,15 +9,8 @@ pub type ActionQueue = VecDeque<(legion::Entity, GameAction)>;
 pub enum GameAction{
     Move{delta: Vec2},
     TakeDamage{dmg: i32},
-    TakeCityDamage{dmg: u32},
-    GainGold{amount: u32},
-    ExecutiveAction(i32),
+    TakeCityDamage{dmg: i32},
+    GainGold{amount: i32},
+    ExecutiveAction(usize),
     AddImmunity{other: legion::Entity},
-}
-
-impl GameAction{
-
-    // pub fn executive_action(lambda: impl Fn(&mut legion::World, &mut ActionQueue, &mut MessageSet) + Send + Sync + 'static) -> Self{
-    //     Self::ExecutiveAction(Box::new(lambda))
-    // }
 }

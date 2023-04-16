@@ -17,6 +17,7 @@ use game_message::MessageSet;
 mod game_data;
 use game_data::GameData;
 
+use self::components::GameAction;
 use self::controller::Controller;
 
 mod components;
@@ -82,13 +83,15 @@ impl GameState {
             for message in message_set {
                 if let ui_element::UiMessage::Extern(GameMessage::UpdateGold(new_gold)) = message {
                     transitions.push_back(
-                        ui_element::Transition::new(Duration::ZERO)
-                        .with_new_content(graphics::Text::new(
-                            graphics::TextFragment::new(format!("{:04}", *new_gold)).color(Color::from_rgb_u32(PALETTE[6])),
-                        )
-                        .set_scale(32.)
-                        .set_font("Retro")
-                        .to_owned())
+                        ui_element::Transition::new(Duration::ZERO).with_new_content(
+                            graphics::Text::new(
+                                graphics::TextFragment::new(format!("{:04}", *new_gold))
+                                    .color(Color::from_rgb_u32(PALETTE[6])),
+                            )
+                            .set_scale(32.)
+                            .set_font("Retro")
+                            .to_owned(),
+                        ),
                     );
                 }
             }
@@ -140,15 +143,19 @@ impl GameState {
         .to_element_builder(0, ctx)
         .with_message_handler(|message_set, _, transitions| {
             for message in message_set {
-                if let ui_element::UiMessage::Extern(GameMessage::UpdateCityHealth(new_health)) = message {
+                if let ui_element::UiMessage::Extern(GameMessage::UpdateCityHealth(new_health)) =
+                    message
+                {
                     transitions.push_back(
-                        ui_element::Transition::new(Duration::ZERO)
-                        .with_new_content(graphics::Text::new(
-                            graphics::TextFragment::new(format!("{:03}", *new_health)).color(Color::from_rgb_u32(PALETTE[6])),
-                        )
-                        .set_scale(32.)
-                        .set_font("Retro")
-                        .to_owned())
+                        ui_element::Transition::new(Duration::ZERO).with_new_content(
+                            graphics::Text::new(
+                                graphics::TextFragment::new(format!("{:03}", *new_health))
+                                    .color(Color::from_rgb_u32(PALETTE[6])),
+                            )
+                            .set_scale(32.)
+                            .set_font("Retro")
+                            .to_owned(),
+                        ),
                     );
                 }
             }
@@ -192,7 +199,13 @@ impl GameState {
                 ctx,
                 Duration::from_secs_f32(0.25),
             )?,
-            components::Collision::new_basic(16., 16.),
+            components::Collision::new(
+                16.,
+                16.,
+                None,
+                vec![GameAction::TakeDamage { dmg: 1 }],
+                None,
+            ),
             components::Enemy::new(1, 10),
             //components::LifeDuration::new(Duration::from_secs_f32(3.5)),
         ));
@@ -219,14 +232,14 @@ impl GameState {
             world,
             gui: main_box,
             action_prod_schedule: Schedule::builder()
-            // sytems that produce actions
+                // sytems that produce actions
                 .add_system(components::collision::collision_system())
                 .add_system(components::position::velocity_system())
                 .add_system(components::enemy::enemy_system())
                 .add_system(components::control::control_system())
                 .build(),
             action_cons_schedule: Schedule::builder()
-            // systems that consume actions
+                // systems that consume actions
                 .add_system(components::position::resolve_move_system())
                 .add_system(components::collision::resolve_immunities_system())
                 .add_system(components::health::resolve_damage_system())
@@ -252,6 +265,10 @@ impl Scene for GameState {
         self.action_prod_schedule
             .execute(&mut self.world, &mut self.resources);
 
+        // perfrom executive game actions of this frame
+
+        components::executor::resolve_executive_system(&mut self.world, &mut self.resources)?;
+
         // transform game actions of this frame
 
         // consume game actions of this frame
@@ -269,9 +286,10 @@ impl Scene for GameState {
 
         // in-game menu
 
-        let mut message_set = self.resources
-        .get_mut::<MessageSet>()
-        .ok_or_else(|| GameError::CustomError("Could not unpack message set.".to_owned()))?;
+        let mut message_set = self
+            .resources
+            .get_mut::<MessageSet>()
+            .ok_or_else(|| GameError::CustomError("Could not unpack message set.".to_owned()))?;
 
         let messages = self.gui.manage_messages(ctx, message_set.clone());
         message_set.clear();

@@ -8,12 +8,12 @@ use super::Position;
 const CITY_BORDER: f32 = 250f32;
 
 pub struct Enemy {
-    damage: u32,
-    bounty: u32,
+    damage: i32,
+    bounty: i32,
 }
 
 impl Enemy {
-    pub fn new(damage: u32, bounty: u32) -> Self {
+    pub fn new(damage: i32, bounty: i32) -> Self {
         Self { damage, bounty }
     }
 }
