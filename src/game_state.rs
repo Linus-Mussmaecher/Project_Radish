@@ -17,7 +17,7 @@ mod game_data;
 use game_data::GameData;
 mod director;
 
-use self::controller::Controller;
+pub use self::controller::Controller;
 use self::director::Director;
 
 mod components;

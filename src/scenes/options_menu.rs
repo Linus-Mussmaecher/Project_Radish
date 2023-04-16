@@ -4,10 +4,11 @@ use ggez::{
 };
 use mooeye::{scene_manager::Scene, ui_element::Alignment, UiContent, UiElement};
 
-use crate::PALETTE;
+use crate::{game_state::Controller, PALETTE};
 
 pub struct OptionsMenu {
     gui: UiElement<()>,
+    controller: crate::game_state::Controller,
 }
 
 impl OptionsMenu {
@@ -62,14 +63,18 @@ impl OptionsMenu {
         credits_box.add(text)?;
         credits_box.add(back)?;
         credits_box.spacing = 25.;
-        let credits_box = credits_box.to_element_builder(0, ctx)
-        .with_visuals(box_vis)
-        .with_alignment(Alignment::Min, Alignment::Min)
-        .with_offset(25., 25.)
-        .with_padding((25., 25., 25., 25.))
-        .build();
-        
-        Ok(Self { gui: credits_box })
+        let credits_box = credits_box
+            .to_element_builder(0, ctx)
+            .with_visuals(box_vis)
+            .with_alignment(Alignment::Min, Alignment::Min)
+            .with_offset(25., 25.)
+            .with_padding((25., 25., 25., 25.))
+            .build();
+
+        Ok(Self {
+            gui: credits_box,
+            controller: Controller::from_path("./data/keymap.toml"),
+        })
     }
 }
 
@@ -81,6 +86,7 @@ impl Scene for OptionsMenu {
         let messages = self.gui.manage_messages(ctx, None);
 
         if messages.contains(&mooeye::UiMessage::Clicked(1)) {
+            self.controller.save_to_file("./data/keymap.toml");
             Ok(mooeye::scene_manager::SceneSwitch::Pop(1))
         } else {
             Ok(mooeye::scene_manager::SceneSwitch::None)
