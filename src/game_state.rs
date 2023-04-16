@@ -219,15 +219,19 @@ impl GameState {
             world,
             gui: main_box,
             action_prod_schedule: Schedule::builder()
-                .add_system(components::collision::collide_system())
-                .add_system(components::position::update_position_system())
-                .add_system(components::enemy::manage_enemies_system())
+            // sytems that produce actions
+                .add_system(components::collision::collision_system())
+                .add_system(components::position::velocity_system())
+                .add_system(components::enemy::enemy_system())
                 .add_system(components::control::control_system())
                 .build(),
             action_cons_schedule: Schedule::builder()
-                .add_system(components::position::position_apply_system())
-                .add_system(components::health::take_damage_system())
-                .add_system(game_data::handle_game_data_actions_system())
+            // systems that consume actions
+                .add_system(components::position::resolve_move_system())
+                .add_system(components::collision::resolve_immunities_system())
+                .add_system(components::health::resolve_damage_system())
+                .add_system(game_data::resolve_gama_data_system())
+                // systems that remove entities
                 .add_system(components::duration::manage_durations_system())
                 .add_system(components::health::remove_dead_system())
                 .build(),

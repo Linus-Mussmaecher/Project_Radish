@@ -19,7 +19,7 @@ impl Enemy {
 }
 
 #[system(for_each)]
-pub fn manage_enemies(
+pub fn enemy(
     entity: &Entity,
     enemy: &Enemy,
     health: Option<&Health>,

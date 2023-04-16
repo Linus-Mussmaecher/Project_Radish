@@ -35,7 +35,7 @@ impl Default for GameData {
 }
 
 #[system]
-pub fn handle_game_data_actions(
+pub fn resolve_gama_data(
     #[resource] actions: &mut ActionQueue,
     #[resource] game_data: &mut GameData,
     #[resource] messages: &mut MessageSet,

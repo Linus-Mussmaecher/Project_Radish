@@ -35,7 +35,7 @@ pub fn remove_dead( entity: &Entity, health: &Health, commands: &mut CommandBuff
 
 #[system(for_each)]
 /// Applies all [TakeDamage] actions to their respective entities.
-pub fn take_damage (ent: &Entity, health: &mut Health, #[resource] actions: &ActionQueue){
+pub fn resolve_damage (ent: &Entity, health: &mut Health, #[resource] actions: &ActionQueue){
     for action in actions{
         if let (entity, super::GameAction::TakeDamage { dmg }) = action{
             if *entity == *ent {
