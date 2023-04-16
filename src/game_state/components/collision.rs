@@ -1,20 +1,14 @@
 use ggez::{glam::Vec2, graphics::Rect};
 use legion::{world::SubWorld, *};
-use mooeye::UiMessage;
 
-use crate::game_state::{
-    game_action::ActionQueue,
-    game_message::{GameMessage, MessageSet},
-};
+use crate::game_state::{game_action::ActionQueue, game_message::MessageSet};
 
 use super::{GameAction, Position};
 pub struct Collision {
     w: f32,
     h: f32,
 
-    self_collision_actions: Vec<GameAction>,
-    other_collision_actions: Vec<GameAction>,
-    collision_messages: Vec<UiMessage<GameMessage>>,
+    collision_handler: Box<dyn Fn(Entity, Entity) -> (ActionQueue, MessageSet) + Send + Sync>,
 
     immunity: Vec<Entity>,
 }
@@ -23,22 +17,18 @@ impl Collision {
     pub fn new(
         w: f32,
         h: f32,
-        self_collision_actions: impl Into<Option<Vec<GameAction>>>,
-        other_collision_actions: impl Into<Option<Vec<GameAction>>>,
-        collision_messages: impl Into<Option<Vec<UiMessage<GameMessage>>>>,
+        collision_handler: impl Fn(Entity, Entity) -> (ActionQueue, MessageSet) + Send + Sync + 'static,
     ) -> Self {
         Self {
             w,
             h,
-            self_collision_actions: self_collision_actions.into().unwrap_or_else(|| Vec::new()),
-            other_collision_actions: other_collision_actions.into().unwrap_or_else(|| Vec::new()),
-            collision_messages: collision_messages.into().unwrap_or_else(|| Vec::new()),
+            collision_handler: Box::new(collision_handler),
             immunity: Vec::new(),
         }
     }
 
     pub fn new_basic(w: f32, h: f32) -> Self {
-        Self::new(w, h, None, None, None)
+        Self::new(w, h, |_, _| (ActionQueue::new(), MessageSet::new()))
     }
 
     fn get_collider(&self, pos: Vec2) -> Rect {
@@ -60,27 +50,23 @@ pub fn collision(
                 && *ent1 != *ent2
                 && !col1.immunity.contains(ent2)
             {
-                messages.extend(col1.collision_messages.iter());
-                actions.extend(
-                    col1.self_collision_actions
-                        .iter()
-                        .map(|action| (*ent1, *action)),
-                );
-                actions.extend(
-                    col1.other_collision_actions
-                        .iter()
-                        .map(|action| (*ent2, *action)),
-                );
+                let (n_actions, n_messages) = (col1.collision_handler)(*ent1, *ent2);
+                messages.extend(n_messages.iter());
+                actions.extend(n_actions.iter());
             }
         }
     }
 }
 
 #[system(for_each)]
-pub fn resolve_immunities(this: &Entity, collision: &mut Collision, #[resource] actions: &ActionQueue){
-    for (ent, action) in actions{
-        if *this == *ent{
-            if let GameAction::AddImmunity { other } = action{
+pub fn resolve_immunities(
+    this: &Entity,
+    collision: &mut Collision,
+    #[resource] actions: &ActionQueue,
+) {
+    for (ent, action) in actions {
+        if *this == *ent {
+            if let GameAction::AddImmunity { other } = action {
                 collision.immunity.push(*other);
             }
         }

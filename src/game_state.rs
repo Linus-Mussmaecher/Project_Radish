@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use ggez::glam::Vec2;
 use ggez::{graphics::Color, *};
 use legion::*;
 use mooeye::{scene_manager::Scene, *};
@@ -200,11 +201,13 @@ impl GameState {
                 Duration::from_secs_f32(0.25),
             )?,
             components::Collision::new(
-                16.,
-                16.,
-                None,
-                vec![GameAction::TakeDamage { dmg: 1 }],
-                None,
+                64.,
+                64.,
+                |e1, e2| (ActionQueue::from([
+                    (e2, GameAction::TakeDamage { dmg: 5 }),
+                    (e1, GameAction::AddImmunity { other: e2 }),
+                    (e2, GameAction::Move { delta: Vec2::new(0., -16.) })
+                ]), MessageSet::new()),
             ),
             components::Enemy::new(1, 10),
             //components::LifeDuration::new(Duration::from_secs_f32(3.5)),
@@ -218,7 +221,7 @@ impl GameState {
                 ctx,
                 Duration::from_secs_f32(0.25),
             )?,
-            components::Collision::new_basic(16., 16.),
+            components::Collision::new_basic(64., 64.),
             components::Health::new(5),
         ));
 

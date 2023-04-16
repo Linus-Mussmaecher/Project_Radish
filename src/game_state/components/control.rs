@@ -25,5 +25,5 @@ pub fn control(entity: &Entity, control: &Control, #[resource] ix: &Interactions
         del.x += 1.;
     }
 
-    actions.push_back((*entity, super::GameAction::Move { delta: del * control.move_speed}))
+    actions.push((*entity, super::GameAction::Move { delta: del * control.move_speed}))
 }

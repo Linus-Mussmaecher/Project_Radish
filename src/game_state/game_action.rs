@@ -1,8 +1,6 @@
-use std::collections::VecDeque;
-
 use ggez::glam::Vec2;
 
-pub type ActionQueue = VecDeque<(legion::Entity, GameAction)>;
+pub type ActionQueue = Vec<(legion::Entity, GameAction)>;
 
 #[derive(Debug, Clone, Copy)]
 #[allow(dead_code)]

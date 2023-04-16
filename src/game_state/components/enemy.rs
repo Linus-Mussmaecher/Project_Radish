@@ -32,7 +32,7 @@ pub fn enemy(
         None => false,
         Some(health) => health.get_current_health() <= 0,
     } {
-        actions.push_back((
+        actions.push((
             *entity,
             super::GameAction::GainGold {
                 amount: enemy.bounty,
@@ -45,7 +45,7 @@ pub fn enemy(
         None => false,
         Some(pos) => pos.y >= CITY_BORDER,
     } {
-        actions.push_back((
+        actions.push((
             *entity,
             super::GameAction::TakeCityDamage { dmg: enemy.damage },
         ));

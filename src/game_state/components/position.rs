@@ -44,7 +44,7 @@ impl From<Velocity> for Vec2 {
 
 #[legion::system(for_each)]
 pub fn velocity(entity: &Entity, vel: &Velocity,  #[resource] actions: &mut ActionQueue){
-    actions.push_back((*entity, GameAction::Move {  delta: Vec2::from(*vel) }))
+    actions.push((*entity, GameAction::Move {  delta: Vec2::from(*vel) }))
 }
 
 #[legion::system(for_each)]
