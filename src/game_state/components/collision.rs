@@ -32,7 +32,7 @@ impl Collision {
     }
 
     fn get_collider(&self, pos: Vec2) -> Rect {
-        Rect::new(pos.x, pos.y, self.w, self.h)
+        Rect::new(pos.x - self.w / 2., pos.y - self.h / 2., self.w, self.h)
     }
 }
 

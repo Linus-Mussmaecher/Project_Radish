@@ -45,7 +45,7 @@ impl Director {
 
             // randomly select an amount of available credits to spend
             let mut to_spend = (random::<f32>() * self.credits as f32) as u64;
-
+            println!("Spending {} of {} credits.", to_spend, self.credits);
             // while credits left to spend
             
             'outer: loop {
@@ -70,7 +70,6 @@ impl Director {
                 // unpack enemy
                 if let Some((cost, spawner)) = enemy {
                     // reduce available credits
-                    println!("{}, {}, {}", to_spend, self.credits, cost);
                     to_spend -= cost;
                     self.credits -= cost;
 
@@ -121,7 +120,7 @@ pub fn spawn_tank_skeleton(world: &mut World, ctx: &Context) -> Result<(), GameE
     // spawn big skeleton
     world.push((
         components::Position::new(random::<f32>() * 500., -20.),
-        components::Velocity::new(0., 35.),
+        components::Velocity::new(0., 15.),
         sprite::Sprite::from_path_fmt(
             "/sprites/skeleton_sword_16_16.png",
             ctx,

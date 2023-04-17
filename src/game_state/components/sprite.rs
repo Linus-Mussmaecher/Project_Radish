@@ -28,20 +28,20 @@ pub fn draw_sprites(
     .iter_mut(world)
     {
         // get factors/position for image mirrogin
-        let (factor, n_pos) = if match vel {
+        let factor = if match vel {
             Some(v) => v.get_dx() < 0.,
             None => false,
         } {
-            (
-                -1.,
-                *pos + Vec2::new(
-                    sprite.dimensions(ctx).unwrap_or_default().w * PIXEL_SIZE,
-                    0.,
-                ),
-            )
+            -1.
         } else {
-            (1., *pos)
+            1.
         };
+
+        let n_pos = *pos
+            + Vec2::new(
+                -sprite.dimensions(ctx).unwrap_or_default().w * PIXEL_SIZE / 2. * factor,
+                -sprite.dimensions(ctx).unwrap_or_default().w * PIXEL_SIZE / 2.,
+            );
 
         // draw the sprite
         sprite.draw_sprite(
@@ -57,12 +57,8 @@ pub fn draw_sprites(
             let blip_size = 2;
             // get starting point
             let area = Rect::new(
-                pos.x
-                    - ((1 + (blip_size + 1) * health.get_max_health()) as f32
-                        - sprite.dimensions(ctx).unwrap_or_default().w)
-                        * PIXEL_SIZE
-                        / 2.,
-                pos.y - (blip_size + 3) as f32 * PIXEL_SIZE,
+                pos.x - (1 + (blip_size + 1) * health.get_max_health()) as f32 * PIXEL_SIZE / 2.,
+                pos.y - ((blip_size + 3) as f32 + sprite.dimensions(ctx).expect("Could not unwrap dimension.").h/2.) * PIXEL_SIZE,
                 (1 + (blip_size + 1) * health.get_max_health()) as f32 * PIXEL_SIZE,
                 (blip_size + 2) as f32 * PIXEL_SIZE,
             );
