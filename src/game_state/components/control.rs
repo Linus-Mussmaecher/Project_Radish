@@ -25,7 +25,7 @@ pub fn control(entity: &Entity, control: &Control, #[resource] ix: &Interactions
         del.x += 1.;
     }
 
-    actions.push((*entity, super::GameAction::Move { delta: del * control.move_speed}));
+    actions.push((*entity, super::GameAction::Move { delta: del * control.move_speed * ix.delta.as_secs_f32()}));
 
     if let Some(true) = ix.commands.get(&crate::game_state::controller::Command::Attack){
         actions.push((*entity, super::GameAction::CastSpell(1)));

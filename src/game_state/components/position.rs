@@ -1,6 +1,6 @@
 use ggez::glam::Vec2;
 use legion::*;
-use crate::game_state::game_action::{ActionQueue, GameAction};
+use crate::game_state::{game_action::{ActionQueue, GameAction}, controller::Interactions};
 
 
 pub type Position = Vec2;
@@ -43,8 +43,8 @@ impl From<Velocity> for Vec2 {
 
 
 #[legion::system(for_each)]
-pub fn velocity(entity: &Entity, vel: &Velocity,  #[resource] actions: &mut ActionQueue){
-    actions.push((*entity, GameAction::Move {  delta: Vec2::from(*vel) }))
+pub fn velocity(entity: &Entity, vel: &Velocity,  #[resource] actions: &mut ActionQueue, #[resource] ix: &Interactions){
+    actions.push((*entity, GameAction::Move {  delta: Vec2::from(*vel) * ix.delta.as_secs_f32()}))
 }
 
 #[legion::system(for_each)]

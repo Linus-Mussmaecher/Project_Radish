@@ -2159,6 +2159,7 @@ dependencies = [
  "ggez",
  "legion",
  "mooeye",
+ "rand",
  "serde",
  "serde_with",
  "toml 0.4.10",

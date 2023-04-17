@@ -34,7 +34,7 @@ pub fn spell_casting(world: &mut World, resources: &mut Resources, ctx: &mut Con
             caster.cooldown = caster.cooldown.saturating_sub(ix.delta);
 
             if action_queue.contains(&(*entity, GameAction::CastSpell(1))) && caster.cooldown == Duration::ZERO {
-                caster.cooldown = Duration::from_secs_f32(1.5);
+                caster.cooldown = Duration::from_secs_f32(0.5);
                 commands.push((
                     components::Position::new(position.x, position.y),
                     super::LifeDuration::new(Duration::from_secs(7)),
@@ -44,7 +44,7 @@ pub fn spell_casting(world: &mut World, resources: &mut Resources, ctx: &mut Con
                         Duration::from_secs_f32(0.25),
                     )
                     .expect("Could not load sprite."),
-                    super::Velocity::new(0., -4.),
+                    super::Velocity::new(0., -250.),
                     super::Collision::new(32., 32., |e1, e2| (
                         vec![
                             (e1, GameAction::Remove),

@@ -197,7 +197,7 @@ impl GameState {
 
         world.push((
             components::Position::new(300., 500.),
-            components::Control::new(2.),
+            components::Control::new(150.),
             sprite::Sprite::from_path_fmt(
                 "/sprites/mage_16_16.png",
                 ctx,
@@ -275,7 +275,7 @@ impl Scene for GameState {
 
         // director
 
-        self.director.progress(ctx, &mut self.world);
+        self.director.progress(ctx, &mut self.world)?;
 
         // in-game menu
 
