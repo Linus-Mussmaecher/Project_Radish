@@ -30,8 +30,6 @@ impl Health {
     }
 }
 
-const CITY_BORDER: f32 = 450f32;
-
 pub struct Enemy {
     damage: i32,
     bounty: i32,
@@ -86,11 +84,12 @@ pub fn enemy(
     enemy: &Enemy,
     pos: Option<&Position>,
     #[resource] actions: &mut ActionQueue,
+    #[resource] boundaries: &ggez::graphics::Rect,
 ) {
     // if enemy reaches the city border, damage the city and remove the enemy
     if match pos {
         None => false,
-        Some(pos) => pos.y >= CITY_BORDER,
+        Some(pos) => pos.y >= boundaries.h,
     } {
         actions.push((
             *entity,

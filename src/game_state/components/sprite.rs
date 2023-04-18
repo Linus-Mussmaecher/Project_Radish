@@ -16,6 +16,7 @@ const PIXEL_SIZE: f32 = 4.;
 /// Draws all the sprites in the world to their respective positions on the canvas.
 pub fn draw_sprites(
     world: &mut World,
+    resources: &mut Resources,
     ctx: &Context,
     canvas: &mut Canvas,
 ) -> Result<(), ggez::GameError> {
@@ -27,6 +28,12 @@ pub fn draw_sprites(
     )>::query()
     .iter_mut(world)
     {
+        // get boundaries for relative moving
+        let boundaries = *resources
+            .get::<Rect>()
+            .ok_or_else(|| ggez::GameError::CustomError("Could not unpack boundaries.".to_owned()))?;
+        let (screen_w, screen_h) = ctx.gfx.drawable_size();
+
         // get factors/position for image mirrogin
         let factor = if match vel {
             Some(v) => v.get_dx() < 0.,
@@ -37,7 +44,15 @@ pub fn draw_sprites(
             1.
         };
 
-        let n_pos = *pos
+        let n_pos = 
+            // position within the world
+            *pos
+            // move as the world is positioned on screen
+            + Vec2::new(
+                (screen_w - boundaries.w)/2.,
+                (screen_h - boundaries.h)/2.,
+            )
+            // move to draw to correct position based on flip
             + Vec2::new(
                 -sprite.dimensions(ctx).unwrap_or_default().w * PIXEL_SIZE / 2. * factor,
                 -sprite.dimensions(ctx).unwrap_or_default().w * PIXEL_SIZE / 2.,
@@ -57,8 +72,8 @@ pub fn draw_sprites(
             let blip_size = 2;
             // get starting point
             let area = Rect::new(
-                pos.x - (1 + (blip_size + 1) * health.get_max_health()) as f32 * PIXEL_SIZE / 2.,
-                pos.y - ((blip_size + 3) as f32 + sprite.dimensions(ctx).expect("Could not unwrap dimension.").h/2.) * PIXEL_SIZE,
+                pos.x - (1 + (blip_size + 1) * health.get_max_health()) as f32 * PIXEL_SIZE / 2. + (screen_w - boundaries.w)/2.,
+                pos.y - ((blip_size + 3) as f32 + sprite.dimensions(ctx).expect("Could not unwrap dimension.").h/2.) * PIXEL_SIZE + (screen_h - boundaries.h)/2.,
                 (1 + (blip_size + 1) * health.get_max_health()) as f32 * PIXEL_SIZE,
                 (blip_size + 2) as f32 * PIXEL_SIZE,
             );

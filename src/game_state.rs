@@ -1,3 +1,4 @@
+use ggez::graphics::Rect;
 use ggez::{graphics::Color, *};
 use legion::*;
 use mooeye::{scene_manager::Scene, *};
@@ -192,11 +193,12 @@ impl GameState {
         let main_box = main_box.to_element_builder(0, ctx).as_fill().build();
 
         let mut world = World::default();
+        let boundaries = Rect::new(0., 0., 600., 800.);
 
         // add player
 
         world.push((
-            components::Position::new(300., 500.),
+            components::Position::new(boundaries.w / 2., boundaries.h),
             components::Control::new(150.),
             sprite::Sprite::from_path_fmt(
                 "/sprites/mage_16_16.png",
@@ -210,6 +212,7 @@ impl GameState {
         resources.insert(ActionQueue::new());
         resources.insert(MessageSet::new());
         resources.insert(GameData::default());
+        resources.insert(boundaries);
         resources.insert(ctx.time.delta());
 
         Ok(Self {
@@ -264,15 +267,17 @@ impl Scene for GameState {
 
         // clear game actions
 
-        let mut action_queue = self
-            .resources
-            .get_mut::<ActionQueue>()
-            .ok_or_else(|| GameError::CustomError("Could not unpack action queue.".to_owned()))?;
-        action_queue.clear();
+        {
+            let mut action_queue = self.resources.get_mut::<ActionQueue>().ok_or_else(|| {
+                GameError::CustomError("Could not unpack action queue.".to_owned())
+            })?;
+            action_queue.clear();
+        }
 
         // director
 
-        self.director.progress(ctx, &mut self.world)?;
+        self.director
+            .progress(ctx, &mut self.world, &mut self.resources)?;
 
         // in-game menu
 
@@ -307,7 +312,7 @@ impl Scene for GameState {
 
         // Draw game
 
-        components::sprite::draw_sprites(&mut self.world, ctx, &mut canvas)?;
+        components::sprite::draw_sprites(&mut self.world, &mut self.resources, ctx, &mut canvas)?;
 
         // Draw GUI
         self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);

@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use ggez::{Context, GameError};
-use legion::World;
+use legion::{Resources, World};
 use mooeye::sprite;
 use rand::random;
 
@@ -12,7 +12,10 @@ pub struct Director {
     intervall: Duration,
     total: Duration,
     credits: u64,
-    enemies: Vec<(u64, &'static dyn Fn(&mut World, &Context) -> Result<(), GameError>)>,
+    enemies: Vec<(
+        u64,
+        &'static dyn Fn(&mut World, &mut Resources, &Context) -> Result<(), GameError>,
+    )>,
 }
 
 impl Director {
@@ -29,7 +32,12 @@ impl Director {
         }
     }
 
-    pub fn progress(&mut self, ctx: &Context, world: &mut World) -> Result<(), GameError> {
+    pub fn progress(
+        &mut self,
+        ctx: &Context,
+        world: &mut World,
+        resources: &mut Resources,
+    ) -> Result<(), GameError> {
         // add time since last frame to counters
 
         self.intervall += ctx.time.delta();
@@ -46,8 +54,8 @@ impl Director {
             // randomly select an amount of available credits to spend
             let mut to_spend = (random::<f32>() * self.credits as f32) as u64;
             println!("Spending {} of {} credits.", to_spend, self.credits);
+
             // while credits left to spend
-            
             'outer: loop {
                 // randomly select a spawn among the optionis
                 let mut enemy_ind = random::<usize>() % self.enemies.len();
@@ -74,7 +82,7 @@ impl Director {
                     self.credits -= cost;
 
                     // spawn
-                    spawner(world, ctx)?;
+                    spawner(world, resources, ctx)?;
                 }
             }
         }
@@ -83,10 +91,13 @@ impl Director {
     }
 }
 
-
-pub fn spawn_basic_skeleton(world: &mut World, ctx: &Context) -> Result<(), GameError> {
+pub fn spawn_basic_skeleton(world: &mut World, resources: &mut Resources, ctx: &Context) -> Result<(), GameError> {
+    // get boundaries for random x
+    let boundaries = *resources.get::<ggez::graphics::Rect>().ok_or_else(|| {
+        ggez::GameError::CustomError("Could not unpack boundaries.".to_owned())
+    })?;
     world.push((
-        components::Position::new(random::<f32>() * 500., -20.),
+        components::Position::new(random::<f32>() * boundaries.w + boundaries.x, -20.),
         components::Velocity::new(0., 40.),
         sprite::Sprite::from_path_fmt(
             "/sprites/skeleton_basic_16_16.png",
@@ -100,9 +111,13 @@ pub fn spawn_basic_skeleton(world: &mut World, ctx: &Context) -> Result<(), Game
     Ok(())
 }
 
-pub fn spawn_fast_skeleton(world: &mut World, ctx: &Context) -> Result<(), GameError> {
+pub fn spawn_fast_skeleton(world: &mut World, resources: &mut Resources, ctx: &Context) -> Result<(), GameError> {
+    // get boundaries for random x
+    let boundaries = *resources.get::<ggez::graphics::Rect>().ok_or_else(|| {
+        ggez::GameError::CustomError("Could not unpack boundaries.".to_owned())
+    })?;
     world.push((
-        components::Position::new(random::<f32>() * 500., -20.),
+        components::Position::new(random::<f32>() * boundaries.w + boundaries.x, -20.),
         components::Velocity::new(0., 65.),
         sprite::Sprite::from_path_fmt(
             "/sprites/skeleton_basic_16_16.png",
@@ -116,10 +131,13 @@ pub fn spawn_fast_skeleton(world: &mut World, ctx: &Context) -> Result<(), GameE
     Ok(())
 }
 
-pub fn spawn_tank_skeleton(world: &mut World, ctx: &Context) -> Result<(), GameError> {
-    // spawn big skeleton
+pub fn spawn_tank_skeleton(world: &mut World, resources: &mut Resources, ctx: &Context) -> Result<(), GameError> {
+    // get boundaries for random x
+    let boundaries = *resources.get::<ggez::graphics::Rect>().ok_or_else(|| {
+        ggez::GameError::CustomError("Could not unpack boundaries.".to_owned())
+    })?;
     world.push((
-        components::Position::new(random::<f32>() * 500., -20.),
+        components::Position::new(random::<f32>() * boundaries.w + boundaries.x, -20.),
         components::Velocity::new(0., 15.),
         sprite::Sprite::from_path_fmt(
             "/sprites/skeleton_sword_16_16.png",
@@ -132,4 +150,3 @@ pub fn spawn_tank_skeleton(world: &mut World, ctx: &Context) -> Result<(), GameE
     ));
     Ok(())
 }
-
