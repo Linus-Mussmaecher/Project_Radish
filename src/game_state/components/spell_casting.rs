@@ -45,7 +45,7 @@ pub fn spell_casting(world: &mut World, resources: &mut Resources, ctx: &mut Con
                     )
                     .expect("Could not load sprite."),
                     super::Velocity::new(0., -250.),
-                    super::Collision::new(32., 32., |e1, e2| (
+                    super::Collision::new(32., 32., false,|e1, e2| (
                         vec![
                             (e1, GameAction::Remove),
                             (e2, GameAction::TakeDamage { dmg: 2 })

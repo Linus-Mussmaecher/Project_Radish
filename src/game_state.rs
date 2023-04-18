@@ -199,6 +199,7 @@ impl GameState {
 
         world.push((
             components::Position::new(boundaries.w / 2., boundaries.h),
+            components::Collision::new_basic(64., 64.),
             components::Control::new(150.),
             sprite::Sprite::from_path_fmt(
                 "/sprites/mage_16_16.png",
@@ -310,7 +311,7 @@ impl Scene for GameState {
             graphics::Canvas::from_frame(ctx, graphics::Color::from_rgb_u32(crate::PALETTE[5]));
         canvas.set_sampler(graphics::Sampler::nearest_clamp());
 
-        // Draw game
+        // Draw world
 
         components::sprite::draw_sprites(&mut self.world, &mut self.resources, ctx, &mut canvas)?;
 

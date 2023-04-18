@@ -61,13 +61,11 @@ pub fn velocity(
 }
 
 #[legion::system(for_each)]
-pub fn resolve_move(entity2: &Entity, pos: &mut Position, #[resource] actions: &ActionQueue, #[resource] boundaries: &ggez::graphics::Rect) {
+pub fn resolve_move(entity2: &Entity, pos: &mut Position, #[resource] actions: &ActionQueue) {
     for action in actions {
         if let (entity, GameAction::Move { delta }) = action {
             if *entity == *entity2 {
                 *pos += *delta;
-                // check horizontal bounds
-                pos.x = pos.x.clamp(boundaries.x, boundaries.x + boundaries.w);
             }
         }
     }

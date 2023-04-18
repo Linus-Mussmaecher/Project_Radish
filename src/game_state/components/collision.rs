@@ -8,6 +8,8 @@ pub struct Collision {
     w: f32,
     h: f32,
 
+    respects_boundaries: bool,
+
     collision_handler: Box<dyn Fn(Entity, Entity) -> (ActionQueue, MessageSet) + Send + Sync>,
 
     immunity: Vec<Entity>,
@@ -17,6 +19,7 @@ impl Collision {
     pub fn new(
         w: f32,
         h: f32,
+        respects_boundaries: bool,
         collision_handler: impl Fn(Entity, Entity) -> (ActionQueue, MessageSet) + Send + Sync + 'static,
     ) -> Self {
         Self {
@@ -24,11 +27,12 @@ impl Collision {
             h,
             collision_handler: Box::new(collision_handler),
             immunity: Vec::new(),
+            respects_boundaries,
         }
     }
 
     pub fn new_basic(w: f32, h: f32) -> Self {
-        Self::new(w, h, |_, _| (ActionQueue::new(), MessageSet::new()))
+        Self::new(w, h, true,|_, _| (ActionQueue::new(), MessageSet::new()))
     }
 
     fn get_collider(&self, pos: Vec2) -> Rect {
@@ -43,8 +47,17 @@ pub fn collision(
     world: &mut SubWorld,
     #[resource] actions: &mut ActionQueue,
     #[resource] messages: &mut MessageSet,
+    #[resource] boundaries: &ggez::graphics::Rect,
 ) {
+    // boundaries check
+    for (pos1, col1) in <(&mut Position, &Collision)>::query().iter_mut(world) {
+        if col1.respects_boundaries{
+            pos1.x = pos1.x.clamp(boundaries.x + col1.w/2., boundaries.x + boundaries.w - col1.w/2.);
+        }
+    }
+    // collision with other entities
     for (ent1, pos1, col1) in <(Entity, &Position, &Collision)>::query().iter(world) {
+        
         for (ent2, pos2, col2) in <(Entity, &Position, &Collision)>::query().iter(world) {
             if col1.get_collider(*pos1).overlaps(&col2.get_collider(*pos2))
                 && *ent1 != *ent2
