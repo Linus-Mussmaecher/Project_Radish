@@ -1,7 +1,7 @@
-use std::time::Duration;
 use ggez::{graphics::Color, *};
 use legion::*;
 use mooeye::{scene_manager::Scene, *};
+use std::time::Duration;
 
 use crate::PALETTE;
 
@@ -221,6 +221,7 @@ impl GameState {
                 .add_system(components::position::velocity_system())
                 .add_system(components::health::enemy_system())
                 .add_system(components::control::control_system())
+                //.add_system(components::executor::)
                 .build(),
             action_cons_schedule: Schedule::builder()
                 // systems that consume actions
@@ -249,10 +250,6 @@ impl Scene for GameState {
 
         self.action_prod_schedule
             .execute(&mut self.world, &mut self.resources);
-
-        // perfrom executive game actions of this frame
-
-        components::executor::resolve_executive_system(&mut self.world, &mut self.resources)?;
 
         // performs spell casting
 

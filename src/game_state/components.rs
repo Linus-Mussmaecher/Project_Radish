@@ -20,9 +20,5 @@ pub use collision::Collision;
 pub mod duration;
 pub use duration::LifeDuration;
 
-
-pub mod executor;
-pub use executor::Executor;
-
 pub mod spell_casting;
 pub use spell_casting::SpellCaster;
