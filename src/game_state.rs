@@ -199,7 +199,7 @@ impl GameState {
 
         world.push((
             components::Position::new(boundaries.w / 2., boundaries.h),
-            components::Collision::new_basic(64., 64.),
+            components::BoundaryCollision::new(true, false, false),
             components::Control::new(150.),
             sprite::Sprite::from_path_fmt(
                 "/sprites/mage_16_16.png",
@@ -207,6 +207,7 @@ impl GameState {
                 Duration::from_secs_f32(0.25),
             )?,
             components::SpellCaster::new(),
+
         ));
 
         let mut resources = Resources::default();
@@ -225,16 +226,16 @@ impl GameState {
                 .add_system(components::position::velocity_system())
                 .add_system(components::health::enemy_system())
                 .add_system(components::control::control_system())
-                //.add_system(components::executor::)
+                .add_system(components::duration::manage_durations_system())
                 .build(),
             action_cons_schedule: Schedule::builder()
                 // systems that consume actions
                 .add_system(components::position::resolve_move_system())
+                .add_system(components::collision::boundary_collision_system())
                 .add_system(components::collision::resolve_immunities_system())
                 .add_system(components::health::resolve_damage_system())
                 .add_system(game_data::resolve_gama_data_system())
                 // systems that remove entities
-                .add_system(components::duration::manage_durations_system())
                 .add_system(components::health::remove_dead_system())
                 .build(),
             resources,

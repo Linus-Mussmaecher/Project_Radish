@@ -76,6 +76,7 @@ pub fn resolve_damage(
             ));
         }
     }
+    
 }
 
 #[system(for_each)]
