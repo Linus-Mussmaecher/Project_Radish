@@ -138,6 +138,7 @@ pub fn spawn_fast_skeleton(
         )?,
         components::Aura::new(256., |act| {
             if let components::GameAction::Move { delta } = act {
+                // speed up nearby allies by 50%
                 components::GameAction::Move { delta: delta * 1.5 }
             } else {
                 act
