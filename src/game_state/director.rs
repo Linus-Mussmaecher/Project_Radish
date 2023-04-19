@@ -118,7 +118,8 @@ pub fn spawn_fast_skeleton(world: &mut World, resources: &mut Resources, ctx: &C
     })?;
     world.push((
         components::Position::new(random::<f32>() * boundaries.w + boundaries.x, -20.),
-        components::Velocity::new(0., 65.),
+        components::Velocity::new(45., 65.),
+        components::BoundaryCollision::new(true, false, true),
         sprite::Sprite::from_path_fmt(
             "/sprites/skeleton_basic_16_16.png",
             ctx,

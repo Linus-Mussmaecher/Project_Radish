@@ -16,6 +16,7 @@ pub use control::Control;
 
 pub mod collision;
 pub use collision::Collision;
+pub use collision::BoundaryCollision;
 
 pub mod duration;
 pub use duration::LifeDuration;

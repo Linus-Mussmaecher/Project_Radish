@@ -1,4 +1,7 @@
-use ggez::{glam::Vec2, graphics::Rect};
+use ggez::{
+    glam::Vec2,
+    graphics::{Rect},
+};
 use legion::{world::SubWorld, *};
 
 use crate::game_state::{game_action::ActionQueue, game_message::MessageSet};
@@ -7,8 +10,6 @@ use super::{GameAction, Position};
 pub struct Collision {
     w: f32,
     h: f32,
-
-    respects_boundaries: bool,
 
     collision_handler: Box<dyn Fn(Entity, Entity) -> (ActionQueue, MessageSet) + Send + Sync>,
 
@@ -19,7 +20,6 @@ impl Collision {
     pub fn new(
         w: f32,
         h: f32,
-        respects_boundaries: bool,
         collision_handler: impl Fn(Entity, Entity) -> (ActionQueue, MessageSet) + Send + Sync + 'static,
     ) -> Self {
         Self {
@@ -27,16 +27,95 @@ impl Collision {
             h,
             collision_handler: Box::new(collision_handler),
             immunity: Vec::new(),
-            respects_boundaries,
         }
     }
 
     pub fn new_basic(w: f32, h: f32) -> Self {
-        Self::new(w, h, true,|_, _| (ActionQueue::new(), MessageSet::new()))
+        Self::new(w, h, |_, _| (ActionQueue::new(), MessageSet::new()))
     }
 
     fn get_collider(&self, pos: Vec2) -> Rect {
         Rect::new(pos.x - self.w / 2., pos.y - self.h / 2., self.w, self.h)
+    }
+}
+
+pub struct BoundaryCollision {
+    x_boundaries: bool,
+    y_boundaries: bool,
+    bounce: bool,
+}
+
+impl BoundaryCollision {
+    pub fn new(x_boundaries: bool, y_boundaries: bool, bounce: bool) -> Self {
+        Self {
+            x_boundaries,
+            y_boundaries,
+            bounce,
+        }
+    }
+}
+
+#[system(for_each)]
+pub fn boundary_collision(
+    pos: &mut Position,
+    bcol: &BoundaryCollision,
+    col: Option<&Collision>,
+    sprite: Option<&super::Sprite>,
+    vel: Option<&mut super::Velocity>,
+    #[resource] boundaries: &Rect,
+) {
+    //try to get a reasonable height
+    let (w, h) = if let Some(col) = col {
+        (col.w, col.h)
+    } else if let Some(sprite) = sprite {
+        //sprite.dimensions()
+        (0., 0.)
+    } else {
+        (0., 0.)
+    };
+
+    // get valid boundaries for center of object
+    let mod_boundaries = Rect::new(
+        boundaries.x + w / 2.,
+        boundaries.y + h / 2.,
+        boundaries.w - w,
+        boundaries.h - h,
+    );
+
+    // flip velocity if neccessary
+    if bcol.bounce {
+        if let Some(vel) = vel {
+            *vel = super::Velocity::new(
+                if bcol.x_boundaries
+                    && (pos.x < mod_boundaries.x || pos.x > mod_boundaries.x + mod_boundaries.w)
+                {
+                    -vel.get_dx()
+                } else {
+                    vel.get_dx()
+                },
+                if bcol.y_boundaries
+                    && (pos.y < mod_boundaries.y || pos.y > mod_boundaries.y + mod_boundaries.h)
+                {
+                    -vel.get_dy()
+                } else {
+                    vel.get_dy()
+                },
+            );
+        }
+    }
+
+    // clamp x-position
+    if bcol.x_boundaries {
+        pos.x = pos
+            .x
+            .clamp(boundaries.x + w / 2., boundaries.x + boundaries.w - w / 2.);
+    }
+
+    // clamp y-position
+    if bcol.y_boundaries {
+        pos.y = pos
+            .y
+            .clamp(boundaries.y + h / 2., boundaries.y + boundaries.h - w / 2.);
     }
 }
 
@@ -47,17 +126,9 @@ pub fn collision(
     world: &mut SubWorld,
     #[resource] actions: &mut ActionQueue,
     #[resource] messages: &mut MessageSet,
-    #[resource] boundaries: &ggez::graphics::Rect,
 ) {
-    // boundaries check
-    for (pos1, col1) in <(&mut Position, &Collision)>::query().iter_mut(world) {
-        if col1.respects_boundaries{
-            pos1.x = pos1.x.clamp(boundaries.x + col1.w/2., boundaries.x + boundaries.w - col1.w/2.);
-        }
-    }
     // collision with other entities
     for (ent1, pos1, col1) in <(Entity, &Position, &Collision)>::query().iter(world) {
-        
         for (ent2, pos2, col2) in <(Entity, &Position, &Collision)>::query().iter(world) {
             if col1.get_collider(*pos1).overlaps(&col2.get_collider(*pos2))
                 && *ent1 != *ent2
