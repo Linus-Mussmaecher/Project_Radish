@@ -28,7 +28,7 @@ impl Director {
                 (40, &spawn_basic_skeleton),
                 (70, &spawn_fast_skeleton),
                 (100, &spawn_loot_skeleton),
-                (120, &spawn_tank_skeleton),
+                (150, &spawn_tank_skeleton),
             ],
         }
     }
@@ -193,8 +193,16 @@ pub fn spawn_tank_skeleton(
             ctx,
             Duration::from_secs_f32(0.25),
         )?,
+        components::Aura::new(192., |act| {
+            if let components::GameAction::TakeDamage { dmg } = act {
+                // reduce dmg by 1, but not below 1, unless it was already at 0
+                components::GameAction::TakeDamage { dmg: (1.min(dmg)).max(dmg - 1) }
+            } else {
+                act
+            }
+        }),
         components::Enemy::new(2, 25),
-        components::Health::new(6),
+        components::Health::new(3),
         components::Collision::new_basic(64., 64.),
     ));
     Ok(())
