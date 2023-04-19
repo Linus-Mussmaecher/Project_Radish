@@ -68,8 +68,7 @@ pub fn boundary_collision(
     let (w, h) = if let Some(col) = col {
         (col.w, col.h)
     } else if let Some(sprite) = sprite {
-        //sprite.dimensions()
-        (0., 0.)
+        sprite.get_dimensions()
     } else {
         (0., 0.)
     };
@@ -149,7 +148,7 @@ pub fn resolve_immunities(
     collision: &mut Collision,
     #[resource] actions: &ActionQueue,
 ) {
-    for (ent, action) in actions {
+    for (ent, action) in actions.iter() {
         if *this == *ent {
             if let GameAction::AddImmunity { other } = action {
                 collision.immunity.push(*other);

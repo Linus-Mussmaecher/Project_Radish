@@ -17,7 +17,6 @@ use game_message::MessageSet;
 mod game_data;
 use game_data::GameData;
 mod director;
-
 pub use self::controller::Controller;
 use self::director::Director;
 
@@ -207,7 +206,6 @@ impl GameState {
                 Duration::from_secs_f32(0.25),
             )?,
             components::SpellCaster::new(),
-
         ));
 
         let mut resources = Resources::default();
@@ -227,6 +225,7 @@ impl GameState {
                 .add_system(components::health::enemy_system())
                 .add_system(components::control::control_system())
                 .add_system(components::duration::manage_durations_system())
+                .add_system(components::health::destroy_by_health_system())
                 .build(),
             action_cons_schedule: Schedule::builder()
                 // systems that consume actions
@@ -235,8 +234,7 @@ impl GameState {
                 .add_system(components::collision::resolve_immunities_system())
                 .add_system(components::health::resolve_damage_system())
                 .add_system(game_data::resolve_gama_data_system())
-                // systems that remove entities
-                .add_system(components::health::remove_dead_system())
+                .add_system(components::health::remove_entities_system())
                 .build(),
             resources,
             controller: Controller::from_path("./data/keymap.toml"),
@@ -267,7 +265,7 @@ impl Scene for GameState {
         self.action_cons_schedule
             .execute(&mut self.world, &mut self.resources);
 
-        // clear game actions
+        // clear action queue
 
         {
             let mut action_queue = self.resources.get_mut::<ActionQueue>().ok_or_else(|| {
@@ -281,26 +279,30 @@ impl Scene for GameState {
         self.director
             .progress(ctx, &mut self.world, &mut self.resources)?;
 
-        // in-game menu
+        // message handling
 
-        let mut message_set = self
-            .resources
-            .get_mut::<MessageSet>()
-            .ok_or_else(|| GameError::CustomError("Could not unpack message set.".to_owned()))?;
-
-        let messages = self.gui.manage_messages(ctx, message_set.clone());
-        message_set.clear();
-
-        // react to messages
-
-        if messages.contains(&UiMessage::Clicked(1))
-            || ctx
-                .keyboard
-                .is_key_just_pressed(winit::event::VirtualKeyCode::F10)
         {
-            return Ok(scene_manager::SceneSwitch::push(
-                crate::scenes::in_game_menu::InGameMenu::new(ctx)?,
-            ));
+            // unpack game messages
+            let mut message_set = self.resources.get_mut::<MessageSet>().ok_or_else(|| {
+                GameError::CustomError("Could not unpack message set.".to_owned())
+            })?;
+
+            // communicate with UI
+            let messages = self.gui.manage_messages(ctx, message_set.clone());
+
+            // clear game messages
+            message_set.clear();
+
+            // react to UI messages
+            if messages.contains(&UiMessage::Clicked(1))
+                || ctx
+                    .keyboard
+                    .is_key_just_pressed(winit::event::VirtualKeyCode::F10)
+            {
+                return Ok(scene_manager::SceneSwitch::push(
+                    crate::scenes::in_game_menu::InGameMenu::new(ctx)?,
+                ));
+            }
         }
 
         Ok(scene_manager::SceneSwitch::none())

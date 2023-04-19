@@ -1,4 +1,8 @@
-use super::{components::GameAction, game_action::ActionQueue, game_message::{MessageSet, GameMessage}};
+use super::{
+    components::GameAction,
+    game_action::ActionQueue,
+    game_message::{GameMessage, MessageSet},
+};
 use legion::*;
 
 pub struct GameData {
@@ -36,13 +40,13 @@ impl Default for GameData {
 
 #[system]
 pub fn resolve_gama_data(
-    #[resource] actions: &mut ActionQueue,
+    #[resource] actions: &ActionQueue,
     #[resource] game_data: &mut GameData,
     #[resource] messages: &mut MessageSet,
 ) {
     let mut change_gold = false;
     let mut change_city = false;
-    for action in actions {
+    for action in actions.iter() {
         if let (_, GameAction::GainGold { amount }) = action {
             game_data.add_gold(*amount);
             change_gold = true;
@@ -53,10 +57,14 @@ pub fn resolve_gama_data(
     }
 
     if change_gold {
-        messages.insert(mooeye::UiMessage::Extern(GameMessage::UpdateGold(game_data.gold)));
+        messages.insert(mooeye::UiMessage::Extern(GameMessage::UpdateGold(
+            game_data.gold,
+        )));
     }
 
-    if change_city{
-        messages.insert(mooeye::UiMessage::Extern(GameMessage::UpdateCityHealth(game_data.city_health)));
+    if change_city {
+        messages.insert(mooeye::UiMessage::Extern(GameMessage::UpdateCityHealth(
+            game_data.city_health,
+        )));
     }
 }

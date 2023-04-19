@@ -43,20 +43,32 @@ impl Enemy {
 
 #[system(for_each)]
 /// Removes entities with zero health or less
-pub fn remove_dead(entity: &Entity, #[resource] actions: &mut ActionQueue, commands: &mut CommandBuffer) {
-    if actions.contains(&(*entity, super::GameAction::Remove)){
+pub fn remove_entities(
+    entity: &Entity,
+    #[resource] actions: &ActionQueue,
+    commands: &mut CommandBuffer,
+) {
+    if actions.contains(&(*entity, super::GameAction::Remove)) {
         commands.remove(*entity);
     }
 }
 
 #[system(for_each)]
+// 
+pub fn destroy_by_health(ent: &Entity, health: &Health, enemy: Option<&Enemy>, #[resource] actions: &mut ActionQueue){
+    if health.curr_health <= 0 {
+        actions.push((*ent, super::GameAction::Remove));
+        // gain gold from enemies
+        if let Some(enemy) = enemy{
+            actions.push((*ent, super::GameAction::GainGold { amount: enemy.bounty }));
+        }
+        // other deathrattles
+    }
+}
+
+#[system(for_each)]
 /// Applies all [TakeDamage] actions to their respective entities.
-pub fn resolve_damage(
-    ent: &Entity,
-    health: &mut Health,
-    enemy: Option<&Enemy>,
-    #[resource] actions: &mut ActionQueue,
-) {
+pub fn resolve_damage(ent: &Entity, health: &mut Health, #[resource] actions: &ActionQueue) {
     for action in actions.iter() {
         if let (entity, super::GameAction::TakeDamage { dmg }) = action {
             if *entity == *ent {
@@ -64,19 +76,6 @@ pub fn resolve_damage(
             }
         }
     }
-    if health.curr_health <= 0 {
-        actions.push((*ent, super::GameAction::Remove));
-
-        if let Some(enemy) = enemy {
-            actions.push((
-                *ent,
-                super::GameAction::GainGold {
-                    amount: enemy.bounty,
-                },
-            ));
-        }
-    }
-    
 }
 
 #[system(for_each)]

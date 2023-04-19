@@ -62,7 +62,7 @@ pub fn velocity(
 
 #[legion::system(for_each)]
 pub fn resolve_move(entity2: &Entity, pos: &mut Position, #[resource] actions: &ActionQueue) {
-    for action in actions {
+    for action in actions.iter() {
         if let (entity, GameAction::Move { delta }) = action {
             if *entity == *entity2 {
                 *pos += *delta;
