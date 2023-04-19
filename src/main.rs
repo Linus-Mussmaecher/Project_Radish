@@ -6,6 +6,8 @@ use scenes::main_menu::MainMenu;
 
 mod game_state;
 
+mod sprite_pool;
+
 const WIDTH: f32 = 1200.;
 const HEIGHT: f32 = 900.;
 

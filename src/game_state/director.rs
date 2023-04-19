@@ -107,7 +107,7 @@ pub fn spawn_basic_skeleton(
         components::Position::new(random::<f32>() * boundaries.w + boundaries.x, -20.),
         components::Velocity::new(0., 40.),
         sprite::Sprite::from_path_fmt(
-            "/sprites/skeleton_basic_16_16.png",
+            "/sprites/enemies/skeleton_basic_16_16.png",
             ctx,
             Duration::from_secs_f32(0.25),
         )?,
@@ -132,7 +132,7 @@ pub fn spawn_fast_skeleton(
         components::Velocity::new(45., 25.),
         components::BoundaryCollision::new(true, false, true),
         sprite::Sprite::from_path_fmt(
-            "/sprites/skeleton_basic_16_16.png",
+            "/sprites/enemies/skeleton_basic_16_16.png",
             ctx,
             Duration::from_secs_f32(0.20),
         )?,
@@ -165,7 +165,7 @@ pub fn spawn_loot_skeleton(
         components::Velocity::new(75., 0.),
         components::BoundaryCollision::new(true, false, true),
         sprite::Sprite::from_path_fmt(
-            "/sprites/skeleton_sword_16_16.png",
+            "/sprites/enemies/skeleton_sword_16_16.png",
             ctx,
             Duration::from_secs_f32(0.20),
         )?,
@@ -190,7 +190,7 @@ pub fn spawn_tank_skeleton(
         components::Position::new(random::<f32>() * boundaries.w + boundaries.x, -20.),
         components::Velocity::new(0., 15.),
         sprite::Sprite::from_path_fmt(
-            "/sprites/skeleton_sword_16_16.png",
+            "/sprites/enemies/skeleton_sword_16_16.png",
             ctx,
             Duration::from_secs_f32(0.25),
         )?,

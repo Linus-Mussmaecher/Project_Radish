@@ -194,17 +194,17 @@ impl GameState {
         let mut world = World::default();
         let boundaries = Rect::new(0., 0., 600., 800.);
 
+        // init sprite pool
+
+        let sprite_pool = crate::sprite_pool::SpritePool::new().with_folder_rec(ctx, "/sprites");
+
         // add player
 
         world.push((
             components::Position::new(boundaries.w / 2., boundaries.h),
             components::BoundaryCollision::new(true, false, false),
             components::Control::new(150.),
-            sprite::Sprite::from_path_fmt(
-                "/sprites/mage_16_16.png",
-                ctx,
-                Duration::from_secs_f32(0.25),
-            )?,
+            sprite_pool.init_sprite("/sprites/mage_16_16.png", Duration::from_secs_f32(0.25))?,
             components::SpellCaster::new(),
         ));
 
@@ -213,7 +213,7 @@ impl GameState {
         resources.insert(MessageSet::new());
         resources.insert(GameData::default());
         resources.insert(boundaries);
-        resources.insert(ctx.time.delta());
+        resources.insert(sprite_pool);
 
         Ok(Self {
             world,
@@ -231,6 +231,7 @@ impl GameState {
                 .build(),
             action_cons_schedule: Schedule::builder()
                 // systems that consume actions
+                .add_system(components::spell_casting::spell_casting_system())
                 .add_system(components::position::resolve_move_system())
                 .add_system(components::collision::boundary_collision_system())
                 .add_system(components::collision::resolve_immunities_system())
@@ -255,10 +256,6 @@ impl Scene for GameState {
 
         self.action_prod_schedule
             .execute(&mut self.world, &mut self.resources);
-
-        // performs spell casting
-
-        components::spell_casting::spell_casting(&mut self.world, &mut self.resources, ctx);
 
         // transform game actions of this frame
 

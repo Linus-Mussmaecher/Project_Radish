@@ -46,10 +46,10 @@ impl Enemy {
 pub fn remove_entities(
     entity: &Entity,
     #[resource] actions: &ActionQueue,
-    commands: &mut CommandBuffer,
+    cmd: &mut CommandBuffer,
 ) {
     if actions.contains(&(*entity, super::GameAction::Remove)) {
-        commands.remove(*entity);
+        cmd.remove(*entity);
     }
 }
 

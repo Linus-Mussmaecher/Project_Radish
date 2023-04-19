@@ -31,10 +31,10 @@ impl PartialEq for GameAction{
 }
 
 #[system]
-pub fn resolve_executive(#[resource] actions: &ActionQueue, commands: &mut CommandBuffer) {
+pub fn resolve_executive(#[resource] actions: &ActionQueue, cmd: &mut CommandBuffer) {
     for (_, action) in actions {
         if let GameAction::ExecutiveAction(lambda) = action {
-            commands.exec_mut(*lambda);
+            cmd.exec_mut(*lambda);
         }
     }
 }
