@@ -27,6 +27,7 @@ impl Director {
             enemies: vec![
                 (40, &spawn_basic_skeleton),
                 (70, &spawn_fast_skeleton),
+                (100, &spawn_loot_skeleton),
                 (120, &spawn_tank_skeleton),
             ],
         }
@@ -52,8 +53,10 @@ impl Director {
             self.intervall = Duration::ZERO;
 
             // randomly select an amount of available credits to spend
-            let mut to_spend = (random::<f32>() * self.credits as f32) as u64;
-            println!("Spending {} of {} credits.", to_spend, self.credits);
+            let mut to_spend = (random::<f32>().powi(2) * self.credits as f32) as u64;
+            if to_spend >= 40 {
+                println!("Spending {} of {} credits.", to_spend, self.credits);
+            }
 
             // while credits left to spend
             'outer: loop {
@@ -91,11 +94,15 @@ impl Director {
     }
 }
 
-pub fn spawn_basic_skeleton(world: &mut World, resources: &mut Resources, ctx: &Context) -> Result<(), GameError> {
+pub fn spawn_basic_skeleton(
+    world: &mut World,
+    resources: &mut Resources,
+    ctx: &Context,
+) -> Result<(), GameError> {
     // get boundaries for random x
-    let boundaries = *resources.get::<ggez::graphics::Rect>().ok_or_else(|| {
-        ggez::GameError::CustomError("Could not unpack boundaries.".to_owned())
-    })?;
+    let boundaries = *resources
+        .get::<ggez::graphics::Rect>()
+        .ok_or_else(|| ggez::GameError::CustomError("Could not unpack boundaries.".to_owned()))?;
     world.push((
         components::Position::new(random::<f32>() * boundaries.w + boundaries.x, -20.),
         components::Velocity::new(0., 40.),
@@ -111,20 +118,31 @@ pub fn spawn_basic_skeleton(world: &mut World, resources: &mut Resources, ctx: &
     Ok(())
 }
 
-pub fn spawn_fast_skeleton(world: &mut World, resources: &mut Resources, ctx: &Context) -> Result<(), GameError> {
+pub fn spawn_fast_skeleton(
+    world: &mut World,
+    resources: &mut Resources,
+    ctx: &Context,
+) -> Result<(), GameError> {
     // get boundaries for random x
-    let boundaries = *resources.get::<ggez::graphics::Rect>().ok_or_else(|| {
-        ggez::GameError::CustomError("Could not unpack boundaries.".to_owned())
-    })?;
+    let boundaries = *resources
+        .get::<ggez::graphics::Rect>()
+        .ok_or_else(|| ggez::GameError::CustomError("Could not unpack boundaries.".to_owned()))?;
     world.push((
         components::Position::new(random::<f32>() * boundaries.w + boundaries.x, -20.),
-        components::Velocity::new(45., 65.),
+        components::Velocity::new(45., 25.),
         components::BoundaryCollision::new(true, false, true),
         sprite::Sprite::from_path_fmt(
             "/sprites/skeleton_basic_16_16.png",
             ctx,
             Duration::from_secs_f32(0.20),
         )?,
+        components::Aura::new(256., |act| {
+            if let components::GameAction::Move { delta } = act {
+                components::GameAction::Move { delta: delta * 1.5 }
+            } else {
+                act
+            }
+        }),
         components::Enemy::new(1, 15),
         components::Health::new(3),
         components::Collision::new_basic(64., 64.),
@@ -132,11 +150,41 @@ pub fn spawn_fast_skeleton(world: &mut World, resources: &mut Resources, ctx: &C
     Ok(())
 }
 
-pub fn spawn_tank_skeleton(world: &mut World, resources: &mut Resources, ctx: &Context) -> Result<(), GameError> {
+pub fn spawn_loot_skeleton(
+    world: &mut World,
+    resources: &mut Resources,
+    ctx: &Context,
+) -> Result<(), GameError> {
     // get boundaries for random x
-    let boundaries = *resources.get::<ggez::graphics::Rect>().ok_or_else(|| {
-        ggez::GameError::CustomError("Could not unpack boundaries.".to_owned())
-    })?;
+    let boundaries = *resources
+        .get::<ggez::graphics::Rect>()
+        .ok_or_else(|| ggez::GameError::CustomError("Could not unpack boundaries.".to_owned()))?;
+    world.push((
+        components::Position::new(random::<f32>() * boundaries.w + boundaries.x, 30.),
+        components::Velocity::new(75., 0.),
+        components::BoundaryCollision::new(true, false, true),
+        sprite::Sprite::from_path_fmt(
+            "/sprites/skeleton_sword_16_16.png",
+            ctx,
+            Duration::from_secs_f32(0.20),
+        )?,
+        components::Enemy::new(0, 100),
+        components::Health::new(8),
+        components::LifeDuration::new(Duration::from_secs(15)),
+        components::Collision::new_basic(64., 64.),
+    ));
+    Ok(())
+}
+
+pub fn spawn_tank_skeleton(
+    world: &mut World,
+    resources: &mut Resources,
+    ctx: &Context,
+) -> Result<(), GameError> {
+    // get boundaries for random x
+    let boundaries = *resources
+        .get::<ggez::graphics::Rect>()
+        .ok_or_else(|| ggez::GameError::CustomError("Could not unpack boundaries.".to_owned()))?;
     world.push((
         components::Position::new(random::<f32>() * boundaries.w + boundaries.x, -20.),
         components::Velocity::new(0., 15.),

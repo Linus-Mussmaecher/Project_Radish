@@ -23,3 +23,6 @@ pub use duration::LifeDuration;
 
 pub mod spell_casting;
 pub use spell_casting::SpellCaster;
+
+pub mod aura;
+pub use aura::Aura;

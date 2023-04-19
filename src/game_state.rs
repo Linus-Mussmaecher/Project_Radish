@@ -226,6 +226,8 @@ impl GameState {
                 .add_system(components::control::control_system())
                 .add_system(components::duration::manage_durations_system())
                 .add_system(components::health::destroy_by_health_system())
+                // systems that transform actions
+                .add_system(components::aura::aura_system())
                 .build(),
             action_cons_schedule: Schedule::builder()
                 // systems that consume actions
