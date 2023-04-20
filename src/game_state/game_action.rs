@@ -8,6 +8,7 @@ pub enum GameAction{
     Remove,
     Move{delta: Vec2},
     TakeDamage{dmg: i32},
+    TakeHealing{heal: i32},
     TakeCityDamage{dmg: i32},
     GainGold{amount: i32},
     ExecutiveAction(&'static(dyn Fn(&mut World, &mut Resources) + Send + Sync)),

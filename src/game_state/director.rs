@@ -1,12 +1,15 @@
 use std::time::Duration;
 
 use ggez::{Context, GameError};
-use legion::{Resources, World};
+use legion::{IntoQuery, Resources, World};
 use rand::random;
 
 use crate::sprite_pool::SpritePool;
 
-use super::components;
+use super::{
+    components::{self, Enemy, GameAction},
+    game_action::ActionQueue,
+};
 
 #[derive(Clone)]
 pub struct Director {
@@ -134,11 +137,12 @@ pub fn spawn_fast_skeleton(world: &mut World, resources: &mut Resources) -> Resu
             Duration::from_secs_f32(0.20),
         )?,
         components::Aura::new(256., |act| {
-            if let components::GameAction::Move { delta } = act {
+            match act {
                 // speed up nearby allies by 50%
-                components::GameAction::Move { delta: delta * 1.5 }
-            } else {
-                act
+                components::GameAction::Move { delta } => {
+                    components::GameAction::Move { delta: delta * 1.5 }
+                }
+                other => other,
             }
         }),
         components::Enemy::new(1, 15),
@@ -188,14 +192,32 @@ pub fn spawn_tank_skeleton(world: &mut World, resources: &mut Resources) -> Resu
             Duration::from_secs_f32(0.25),
         )?,
         components::Aura::new(192., |act| {
-            if let components::GameAction::TakeDamage { dmg } = act {
+            match act {
                 // reduce dmg by 1, but not below 1, unless it was already at 0
-                components::GameAction::TakeDamage {
+                components::GameAction::TakeDamage { dmg } => components::GameAction::TakeDamage {
                     dmg: (1.min(dmg)).max(dmg - 1),
-                }
-            } else {
-                act
+                },
+                other => other,
             }
+        }),
+        components::OnDeath::new(|cmd, ent| {
+            cmd.exec_mut(move |world, res| {
+                let mut action_queue = res.get_mut::<ActionQueue>().unwrap();
+                let entry = world.entry(ent.clone()).unwrap();
+                let pos_self = *entry.get_component::<components::Position>().unwrap();
+                for (enti, pos, _, _) in <(
+                    legion::Entity,
+                    &components::Position,
+                    &Enemy,
+                    &components::Health,
+                )>::query()
+                .iter(world)
+                {
+                    if pos_self.distance(*pos) < 256. && *enti != ent {
+                        action_queue.push((*enti, GameAction::TakeHealing { heal: 2 }));
+                    }
+                }
+            });
         }),
         components::Enemy::new(2, 25),
         components::Health::new(3),

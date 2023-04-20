@@ -19,6 +19,7 @@ pub fn draw_sprites(
     resources: &mut Resources,
     ctx: &Context,
     canvas: &mut Canvas,
+    animate: bool,
 ) -> Result<(), ggez::GameError> {
     for (pos, sprite, vel, health) in <(
         &Position,
@@ -59,6 +60,7 @@ pub fn draw_sprites(
             );
 
         // draw the sprite
+        if animate{
         sprite.draw_sprite(
             ctx,
             canvas,
@@ -66,6 +68,11 @@ pub fn draw_sprites(
                 .dest(n_pos)
                 .scale(Vec2::new(PIXEL_SIZE * factor, PIXEL_SIZE)),
         );
+    } else {
+        sprite.draw(canvas, DrawParam::default()
+        .dest(n_pos)
+        .scale(Vec2::new(PIXEL_SIZE * factor, PIXEL_SIZE)));
+    }
 
         // draw the health bar
         if let Some(health) = health {

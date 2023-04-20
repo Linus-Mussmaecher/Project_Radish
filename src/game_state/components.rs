@@ -10,6 +10,7 @@ pub use mooeye::sprite::Sprite;
 pub mod health;
 pub use health::Health;
 pub use health::Enemy;
+pub use health::OnDeath;
 
 pub mod control;
 pub use control::Control;

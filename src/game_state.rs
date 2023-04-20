@@ -315,7 +315,7 @@ impl Scene for GameState {
 
         // Draw world
 
-        components::sprite::draw_sprites(&mut self.world, &mut self.resources, ctx, &mut canvas)?;
+        components::sprite::draw_sprites(&mut self.world, &mut self.resources, ctx, &mut canvas, mouse_listen)?;
 
         // Draw GUI
         self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);

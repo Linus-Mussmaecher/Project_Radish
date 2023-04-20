@@ -1,8 +1,9 @@
 use legion::{systems::CommandBuffer, *};
+use mooeye::sprite::Sprite;
 
 use crate::game_state::game_action::ActionQueue;
 
-use super::Position;
+use super::{Position, LifeDuration};
 
 /// The Health component track wether a unit has a life bar and can take damage.
 pub struct Health {
@@ -41,6 +42,21 @@ impl Enemy {
     }
 }
 
+/// A struct that contains a closure that can access a command buffer of the world on death.
+/// Preferably, that closure does not mutate world, but uses its state to inform the action queue of taken actions.
+pub struct OnDeath {
+    deathrattle: Box<dyn Fn(&mut CommandBuffer, Entity) + Send + Sync>,
+}
+
+impl OnDeath {
+    /// Creates a new OnDeath component. The carrying entity will trigger the passed closure when its health reaches 0.
+    pub fn new(deathrattle: impl Fn(&mut CommandBuffer, Entity) + 'static + Send + Sync) -> Self {
+        Self {
+            deathrattle: Box::new(deathrattle),
+        }
+    }
+}
+
 #[system(for_each)]
 /// Removes entities with zero health or less
 pub fn remove_entities(
@@ -54,15 +70,46 @@ pub fn remove_entities(
 }
 
 #[system(for_each)]
-// 
-pub fn destroy_by_health(ent: &Entity, health: &Health, enemy: Option<&Enemy>, #[resource] actions: &mut ActionQueue){
+//
+pub fn destroy_by_health(
+    ent: &Entity,
+    health: &Health,
+    enemy: Option<&Enemy>,
+    sprite: Option<&Sprite>,
+    pos: Option<&Position>,
+    on_death: Option<&OnDeath>,
+    #[resource] actions: &mut ActionQueue,
+    cmd: &mut CommandBuffer,
+) {
     if health.curr_health <= 0 {
-        actions.push((*ent, super::GameAction::Remove));
-        // gain gold from enemies
-        if let Some(enemy) = enemy{
-            actions.push((*ent, super::GameAction::GainGold { amount: enemy.bounty }));
+        // in case of enemies
+        if let Some(enemy) = enemy {
+            // gain gold
+            actions.push((
+                *ent,
+                super::GameAction::GainGold {
+                    amount: enemy.bounty,
+                },
+            ));
+            if let Some(sprite) = sprite{
+                    cmd.push((
+                        pos.map(|p| *p).unwrap_or_default(), 
+                        LifeDuration::new(sprite.get_cycle_time() - sprite.get_frame_time()),
+                        {
+                            let mut death_sprite = sprite.clone();
+                            death_sprite.set_variant(1);
+                            death_sprite
+                        }
+                    ));
+            }
         }
-        // other deathrattles
+
+        actions.push((*ent, super::GameAction::Remove));
+
+        // death rattle
+        if let Some(on_death) = on_death {
+            (on_death.deathrattle)(cmd, *ent);
+        }
     }
 }
 
@@ -73,6 +120,10 @@ pub fn resolve_damage(ent: &Entity, health: &mut Health, #[resource] actions: &A
         if let (entity, super::GameAction::TakeDamage { dmg }) = action {
             if *entity == *ent {
                 health.curr_health -= *dmg;
+            }
+        } else if let (entity, super::GameAction::TakeHealing { heal }) = action {
+            if *entity == *ent {
+                health.curr_health += *heal;
             }
         }
     }

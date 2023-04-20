@@ -1724,7 +1724,7 @@ dependencies = [
 [[package]]
 name = "mooeye"
 version = "0.2.1"
-source = "git+https://github.com/Linus-Mussmaecher/mooeye#46fb07d5872ef618934577eb73cfbaeefab2c3a5"
+source = "git+https://github.com/Linus-Mussmaecher/mooeye#63f11bed446427737b11b8a7f5ab6d9336ef4927"
 dependencies = [
  "ggez",
  "tinyvec",
@@ -2351,9 +2351,9 @@ dependencies = [
 
 [[package]]
 name = "rustix"
-version = "0.37.12"
+version = "0.37.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "722529a737f5a942fdbac3a46cee213053196737c5eaa3386d52e85b786f2659"
+checksum = "f79bef90eb6d984c72722595b5b1348ab39275a5e5123faca6863bf07d75a4e0"
 dependencies = [
  "bitflags",
  "errno",
