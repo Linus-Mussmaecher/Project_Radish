@@ -196,15 +196,15 @@ impl GameState {
 
         // init sprite pool
 
-        let sprite_pool = crate::sprite_pool::SpritePool::new().with_folder_rec(ctx, "/sprites");
-
+        let sprite_pool = sprite::SpritePool::new().with_folder(ctx, "/sprites", true);
+            sprite_pool.print_keys();
         // add player
 
         world.push((
             components::Position::new(boundaries.w / 2., boundaries.h),
             components::BoundaryCollision::new(true, false, false),
             components::Control::new(150.),
-            sprite_pool.init_sprite("/sprites/mage_16_16.png", Duration::from_secs_f32(0.25))?,
+            sprite_pool.init_sprite("/sprites/mage", Duration::from_secs_f32(0.25))?,
             components::SpellCaster::new(),
         ));
 
@@ -315,7 +315,13 @@ impl Scene for GameState {
 
         // Draw world
 
-        components::sprite::draw_sprites(&mut self.world, &mut self.resources, ctx, &mut canvas, mouse_listen)?;
+        components::sprite::draw_sprites(
+            &mut self.world,
+            &mut self.resources,
+            ctx,
+            &mut canvas,
+            mouse_listen,
+        )?;
 
         // Draw GUI
         self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);

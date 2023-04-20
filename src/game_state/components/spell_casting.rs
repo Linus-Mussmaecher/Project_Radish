@@ -5,8 +5,8 @@ use crate::{
     game_state::{
         components, controller::Interactions, game_action::ActionQueue, game_message::MessageSet,
     },
-    sprite_pool::SpritePool,
 };
+use mooeye::sprite::SpritePool;
 
 use super::{GameAction, Position};
 
@@ -42,7 +42,7 @@ pub fn spell_casting(
         cmd.push((
             components::Position::new(position.x, position.y),
             super::LifeDuration::new(Duration::from_secs(7)),
-            sp.init_sprite("/sprites/fireball_8_8.png", Duration::from_secs_f32(0.2))
+            sp.init_sprite("/sprites/fireball", Duration::from_secs_f32(0.2))
                 .expect("Could not load sprite."),
             super::Velocity::new(0., -250.),
             super::Collision::new(32., 32., |e1, e2| {

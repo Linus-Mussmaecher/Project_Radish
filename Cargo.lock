@@ -1462,9 +1462,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.141"
+version = "0.2.142"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3304a64d199bb964be99741b7a14d26972741915b3649639149b2479bb46f4b5"
+checksum = "6a987beff54b60ffa6d51982e1aa1146bc42f19bd26be28b0586f252fccf5317"
 
 [[package]]
 name = "libloading"
@@ -1724,9 +1724,10 @@ dependencies = [
 [[package]]
 name = "mooeye"
 version = "0.2.1"
-source = "git+https://github.com/Linus-Mussmaecher/mooeye#63f11bed446427737b11b8a7f5ab6d9336ef4927"
+source = "git+https://github.com/Linus-Mussmaecher/mooeye#ca2c4007c2653fda782156e12391498be1a692b3"
 dependencies = [
  "ggez",
+ "regex",
  "tinyvec",
 ]
 
@@ -2190,7 +2191,6 @@ dependencies = [
  "legion",
  "mooeye",
  "rand",
- "regex",
  "serde",
  "serde_with",
  "toml 0.4.10",

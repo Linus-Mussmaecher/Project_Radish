@@ -4,7 +4,7 @@ use ggez::{Context, GameError};
 use legion::{IntoQuery, Resources, World};
 use rand::random;
 
-use crate::sprite_pool::SpritePool;
+use mooeye::sprite::SpritePool;
 
 use super::{
     components::{self, Enemy, GameAction},
@@ -110,7 +110,7 @@ pub fn spawn_basic_skeleton(world: &mut World, resources: &mut Resources) -> Res
         components::Position::new(random::<f32>() * boundaries.w + boundaries.x, -20.),
         components::Velocity::new(0., 40.),
         sprites.init_sprite(
-            "/sprites/enemies/skeleton_basic_16_16.png",
+            "/sprites/enemies/skeleton_basic",
             Duration::from_secs_f32(0.25),
         )?,
         components::Enemy::new(1, 10),
@@ -133,7 +133,7 @@ pub fn spawn_fast_skeleton(world: &mut World, resources: &mut Resources) -> Resu
         components::Velocity::new(45., 25.),
         components::BoundaryCollision::new(true, false, true),
         sprites.init_sprite(
-            "/sprites/enemies/skeleton_basic_16_16.png",
+            "/sprites/enemies/skeleton_basic",
             Duration::from_secs_f32(0.20),
         )?,
         components::Aura::new(256., |act| {
@@ -165,7 +165,7 @@ pub fn spawn_loot_skeleton(world: &mut World, resources: &mut Resources) -> Resu
         components::Velocity::new(75., 0.),
         components::BoundaryCollision::new(true, false, true),
         sprites.init_sprite(
-            "/sprites/enemies/skeleton_sword_16_16.png",
+            "/sprites/enemies/skeleton_sword",
             Duration::from_secs_f32(0.20),
         )?,
         components::Enemy::new(0, 100),
@@ -188,7 +188,7 @@ pub fn spawn_tank_skeleton(world: &mut World, resources: &mut Resources) -> Resu
         components::Position::new(random::<f32>() * boundaries.w + boundaries.x, -20.),
         components::Velocity::new(0., 15.),
         sprites.init_sprite(
-            "/sprites/enemies/skeleton_sword_16_16.png",
+            "/sprites/enemies/skeleton_sword",
             Duration::from_secs_f32(0.25),
         )?,
         components::Aura::new(192., |act| {
