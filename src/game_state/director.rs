@@ -7,8 +7,7 @@ use rand::random;
 use mooeye::sprite::SpritePool;
 
 use super::{
-    components::{self, Enemy, GameAction},
-    game_action::ActionQueue,
+    components::{self, Enemy, actions::GameAction, Actions},
 };
 
 #[derive(Clone)]
@@ -139,12 +138,12 @@ pub fn spawn_fast_skeleton(world: &mut World, resources: &mut Resources) -> Resu
         components::Aura::new(256., |act| {
             match act {
                 // speed up nearby allies by 50%
-                components::GameAction::Move { delta } => {
-                    components::GameAction::Move { delta: delta * 1.5 }
+                GameAction::Move { delta } => {
+                    GameAction::Move { delta: delta * 1.5 }
                 }
                 other => other,
             }
-        }),
+        }, |_| true),
         components::Enemy::new(1, 15),
         components::Health::new(3),
         components::Collision::new_basic(64., 64.),
@@ -194,27 +193,27 @@ pub fn spawn_tank_skeleton(world: &mut World, resources: &mut Resources) -> Resu
         components::Aura::new(192., |act| {
             match act {
                 // reduce dmg by 1, but not below 1, unless it was already at 0
-                components::GameAction::TakeDamage { dmg } => components::GameAction::TakeDamage {
+                GameAction::TakeDamage { dmg } => GameAction::TakeDamage {
                     dmg: (1.min(dmg)).max(dmg - 1),
                 },
                 other => other,
             }
-        }),
+        }, |_| true),
         components::OnDeath::new(|cmd, ent| {
-            cmd.exec_mut(move |world, res| {
-                let mut action_queue = res.get_mut::<ActionQueue>().unwrap();
+            cmd.exec_mut(move |world, _| {
                 let entry = world.entry(ent.clone()).unwrap();
                 let pos_self = *entry.get_component::<components::Position>().unwrap();
-                for (enti, pos, _, _) in <(
+                for (enti, pos, _, _, actions) in <(
                     legion::Entity,
                     &components::Position,
                     &Enemy,
                     &components::Health,
+                    &mut Actions,
                 )>::query()
-                .iter(world)
+                .iter_mut(world)
                 {
                     if pos_self.distance(*pos) < 256. && *enti != ent {
-                        action_queue.push((*enti, GameAction::TakeHealing { heal: 2 }));
+                        actions.push(GameAction::TakeHealing { heal: 2 });
                     }
                 }
             });

@@ -1,9 +1,9 @@
 use legion::*;
 use std::time::Duration;
 
-use crate::game_state::{controller::Interactions, game_action::ActionQueue};
+use crate::game_state::{controller::Interactions};
 
-use super::GameAction;
+use super::{actions::GameAction, Actions};
 
 pub struct LifeDuration {
     life_duration: Duration,
@@ -21,13 +21,12 @@ impl LifeDuration {
 
 #[system(for_each)]
 pub fn manage_durations(
-    entity: &Entity,
     duration: &mut LifeDuration,
-    #[resource] actions: &mut ActionQueue,
+    actions: &mut Actions,
     #[resource] ix: &Interactions,
 ) {
     duration.life_duration += ix.delta;
     if duration.life_duration >= duration.max_duration {
-        actions.push((*entity, GameAction::Remove))
+        actions.push(GameAction::Remove)
     }
 }

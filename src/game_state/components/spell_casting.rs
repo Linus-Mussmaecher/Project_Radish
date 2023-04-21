@@ -1,12 +1,10 @@
 use legion::{systems::CommandBuffer, *};
 use std::time::Duration;
 
-use crate::game_state::{
-    components, controller::Interactions, game_action::ActionQueue, game_message::MessageSet,
-};
+use crate::game_state::{components, controller::Interactions, game_message::MessageSet};
 use mooeye::sprite::SpritePool;
 
-use super::{GameAction, Position};
+use super::{Actions, actions::GameAction, Position, Enemy};
 
 pub struct SpellCaster {
     //TODO: Implement struct/trait based spells
@@ -23,17 +21,16 @@ impl SpellCaster {
 
 #[system(for_each)]
 pub fn spell_casting(
-    entity: &Entity,
     position: &Position,
     caster: &mut SpellCaster,
-    #[resource] action_queue: &ActionQueue,
+    actions: &Actions,
     #[resource] ix: &Interactions,
     #[resource] sp: &SpritePool,
     cmd: &mut CommandBuffer,
 ) {
     caster.cooldown = caster.cooldown.saturating_sub(ix.delta);
 
-    if action_queue.contains(&(*entity, GameAction::CastSpell(0))) && caster.cooldown.is_zero() {
+    if actions.get_actions().contains(&GameAction::CastSpell(0)) && caster.cooldown.is_zero() {
         caster.cooldown = Duration::from_secs_f32(0.5);
         cmd.push((
             components::Position::new(position.x, position.y),
@@ -53,7 +50,7 @@ pub fn spell_casting(
         ));
     }
 
-    if action_queue.contains(&(*entity, GameAction::CastSpell(1))) && caster.cooldown.is_zero() {
+    if actions.get_actions().contains(&GameAction::CastSpell(1)) && caster.cooldown.is_zero() {
         caster.cooldown = Duration::from_secs_f32(1.5);
         cmd.push((
             components::Position::new(position.x, position.y),
@@ -61,48 +58,69 @@ pub fn spell_casting(
             sp.init_sprite("/sprites/icebomb", Duration::from_secs_f32(0.2))
                 .expect("Could not load sprite."),
             super::Velocity::new(0., -120.),
-            super::Collision::new_executive(32., 32., |e1, e2| {
-                (
-                    vec![
-                        (e1, GameAction::Remove),
-                        (e2, GameAction::TakeDamage { dmg: 3 }),
-                    ],
-                    MessageSet::new(),
-                )
-            }, 
-            |cmd, ent1, _|{
-                cmd.exec_mut(move |world, res| {
-                let ent = world.entry(ent1);
-                if let Some(ent) = ent {
-                    let pos = ent
-                        .get_component::<Position>()
-                        .map(|p| *p)
-                        .unwrap_or_default();
-        
-                    let spritepool = res.get::<SpritePool>().expect("Could not unpack sprite pool in resources.");
-        
-                    world.push((
-                        pos,
-                        super::LifeDuration::new(Duration::from_secs(5)),
-                        {
-                            let mut sprite = spritepool.init_sprite("/sprites/icebomb", Duration::from_secs_f32(0.25)).expect("Could not find sprite.");
-                            sprite.set_variant(1);
-                            sprite
-                        },
-                        super::Aura::new(128., |act| {
-                            match act {
-                                // slow down everything by 90%
-                                components::GameAction::Move { delta } => {
-                                    components::GameAction::Move { delta: delta * 0.1 }
-                                }
-                                other => other,
-                            }
-                        }),
-                    ));
-                }
-            });
-        }
-        ),
+            super::Collision::new_executive(
+                32.,
+                32.,
+                |e1, e2| {
+                    (
+                        vec![
+                            (e1, GameAction::Remove),
+                            (e2, GameAction::TakeDamage { dmg: 3 }),
+                        ],
+                        MessageSet::new(),
+                    )
+                },
+                |cmd, ent1, _| {
+                    cmd.exec_mut(move |world, res| {
+                        let ent = world.entry(ent1);
+                        if let Some(ent) = ent {
+                            let pos = ent
+                                .get_component::<Position>()
+                                .map(|p| *p)
+                                .unwrap_or_default();
+
+                            let spritepool = res
+                                .get::<SpritePool>()
+                                .expect("Could not unpack sprite pool in resources.");
+
+                            world.push((
+                                pos,
+                                super::LifeDuration::new(Duration::from_secs(5)),
+                                {
+                                    let mut sprite = spritepool
+                                        .init_sprite(
+                                            "/sprites/icebomb",
+                                            Duration::from_secs_f32(0.25),
+                                        )
+                                        .expect("Could not find sprite.");
+                                    sprite.set_variant(1);
+                                    sprite
+                                },
+                                super::Aura::new(
+                                    128.,
+                                    |act| {
+                                        match act {
+                                            // slow down enemies by 90%
+                                            GameAction::Move { delta } => {
+                                                GameAction::Move { delta: delta * 0.1 }
+                                            }
+                                            other => other,
+                                        }
+                                    },
+                                    // only enemies
+                                    |entry| {
+                                        if let Ok(_) = entry.get_component::<Enemy>(){
+                                            true
+                                        } else {
+                                            false
+                                        }
+                                    },
+                                ),
+                            ));
+                        }
+                    });
+                },
+            ),
         ));
     }
 }

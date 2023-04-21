@@ -1,6 +1,5 @@
 use super::{
-    components::GameAction,
-    game_action::ActionQueue,
+    components::actions::GameAction,
     game_message::{GameMessage, MessageSet},
 };
 use legion::*;
@@ -38,21 +37,25 @@ impl Default for GameData {
     }
 }
 
-#[system]
+#[system(for_each)]
 pub fn resolve_gama_data(
-    #[resource] actions: &ActionQueue,
+    actions: &super::components::Actions,
     #[resource] game_data: &mut GameData,
     #[resource] messages: &mut MessageSet,
 ) {
     let mut change_gold = false;
     let mut change_city = false;
-    for action in actions.iter() {
-        if let (_, GameAction::GainGold { amount }) = action {
-            game_data.add_gold(*amount);
-            change_gold = true;
-        } else if let (_, GameAction::TakeCityDamage { dmg }) = action {
-            game_data.city_health -= *dmg as i32;
-            change_city = true;
+    for action in actions.get_actions() {
+        match action {
+            GameAction::GainGold { amount } => {
+                game_data.add_gold(*amount);
+                change_gold = true;
+            }
+            GameAction::TakeCityDamage { dmg } => {
+                game_data.city_health -= *dmg as i32;
+                change_city = true;
+            }
+            _ => {}
         }
     }
 

@@ -1,5 +1,3 @@
-pub use super::game_action::GameAction;
-
 pub mod position;
 pub use position::Position;
 pub use position::Velocity;
@@ -27,3 +25,6 @@ pub use spell_casting::SpellCaster;
 
 pub mod aura;
 pub use aura::Aura;
+
+pub mod actions;
+pub use actions::Actions;

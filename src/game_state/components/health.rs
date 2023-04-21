@@ -1,9 +1,7 @@
 use legion::{systems::CommandBuffer, *};
 use mooeye::sprite::Sprite;
 
-use crate::game_state::game_action::ActionQueue;
-
-use super::{Position, LifeDuration};
+use super::{Actions, actions::GameAction, LifeDuration, Position};
 
 /// The Health component track wether a unit has a life bar and can take damage.
 pub struct Health {
@@ -59,12 +57,8 @@ impl OnDeath {
 
 #[system(for_each)]
 /// Removes entities with zero health or less
-pub fn remove_entities(
-    entity: &Entity,
-    #[resource] actions: &ActionQueue,
-    cmd: &mut CommandBuffer,
-) {
-    if actions.contains(&(*entity, super::GameAction::Remove)) {
+pub fn remove_entities(entity: &Entity, actions: &Actions, cmd: &mut CommandBuffer) {
+    if actions.get_actions().contains(&super::actions::GameAction::Remove) {
         cmd.remove(*entity);
     }
 }
@@ -78,33 +72,30 @@ pub fn destroy_by_health(
     sprite: Option<&Sprite>,
     pos: Option<&Position>,
     on_death: Option<&OnDeath>,
-    #[resource] actions: &mut ActionQueue,
+    actions: &mut Actions,
     cmd: &mut CommandBuffer,
 ) {
     if health.curr_health <= 0 {
         // in case of enemies
         if let Some(enemy) = enemy {
             // gain gold
-            actions.push((
-                *ent,
-                super::GameAction::GainGold {
-                    amount: enemy.bounty,
-                },
-            ));
-            if let Some(sprite) = sprite{
-                    cmd.push((
-                        pos.map(|p| *p).unwrap_or_default(), 
-                        LifeDuration::new(sprite.get_cycle_time() - sprite.get_frame_time()),
-                        {
-                            let mut death_sprite = sprite.clone();
-                            death_sprite.set_variant(1);
-                            death_sprite
-                        }
-                    ));
+            actions.push(GameAction::GainGold {
+                amount: enemy.bounty,
+            });
+            if let Some(sprite) = sprite {
+                cmd.push((
+                    pos.map(|p| *p).unwrap_or_default(),
+                    LifeDuration::new(sprite.get_cycle_time() - sprite.get_frame_time()),
+                    {
+                        let mut death_sprite = sprite.clone();
+                        death_sprite.set_variant(1);
+                        death_sprite
+                    },
+                ));
             }
         }
 
-        actions.push((*ent, super::GameAction::Remove));
+        actions.push(GameAction::Remove);
 
         // death rattle
         if let Some(on_death) = on_death {
@@ -115,26 +106,21 @@ pub fn destroy_by_health(
 
 #[system(for_each)]
 /// Applies all [TakeDamage] actions to their respective entities.
-pub fn resolve_damage(ent: &Entity, health: &mut Health, #[resource] actions: &ActionQueue) {
-    for action in actions.iter() {
-        if let (entity, super::GameAction::TakeDamage { dmg }) = action {
-            if *entity == *ent {
-                health.curr_health -= *dmg;
-            }
-        } else if let (entity, super::GameAction::TakeHealing { heal }) = action {
-            if *entity == *ent {
-                health.curr_health += *heal;
-            }
+pub fn resolve_damage(health: &mut Health, actions: &Actions) {
+    for action in actions.get_actions() {
+        if let GameAction::TakeDamage { dmg } = action {
+            health.curr_health -= *dmg;
+        } else if let GameAction::TakeHealing { heal } = action {
+            health.curr_health += *heal;
         }
     }
 }
 
 #[system(for_each)]
 pub fn enemy(
-    entity: &Entity,
     enemy: &Enemy,
     pos: Option<&Position>,
-    #[resource] actions: &mut ActionQueue,
+    actions: &mut Actions,
     #[resource] boundaries: &ggez::graphics::Rect,
 ) {
     // if enemy reaches the city border, damage the city and remove the enemy
@@ -142,10 +128,7 @@ pub fn enemy(
         None => false,
         Some(pos) => pos.y >= boundaries.h,
     } {
-        actions.push((
-            *entity,
-            super::GameAction::TakeCityDamage { dmg: enemy.damage },
-        ));
-        actions.push((*entity, super::GameAction::Remove));
+        actions.push(GameAction::TakeCityDamage { dmg: enemy.damage });
+        actions.push(GameAction::Remove);
     }
 }

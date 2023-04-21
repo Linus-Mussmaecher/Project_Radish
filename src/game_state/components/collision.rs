@@ -1,16 +1,19 @@
 use ggez::{glam::Vec2, graphics::Rect};
 use legion::{systems::CommandBuffer, world::SubWorld, *};
 
-use crate::game_state::{game_action::ActionQueue, game_message::MessageSet};
+use crate::game_state::{components::Actions, game_message::MessageSet};
 
-use super::{GameAction, Position};
+type ActionQueue = Vec<(legion::Entity, GameAction)>;
+
+use super::{actions::GameAction, Position};
 pub struct Collision {
     w: f32,
     h: f32,
 
     collision_handler: Box<dyn Fn(Entity, Entity) -> (ActionQueue, MessageSet) + Send + Sync>,
 
-    executive_collision_handler: Option<Box<dyn Fn(&mut CommandBuffer, Entity, Entity) + Send + Sync>>,
+    executive_collision_handler:
+        Option<Box<dyn Fn(&mut CommandBuffer, Entity, Entity) + Send + Sync>>,
 
     immunity: Vec<Entity>,
 }
@@ -136,13 +139,16 @@ pub fn boundary_collision(
 #[system]
 #[read_component(Position)]
 #[read_component(Collision)]
+#[write_component(Actions)]
 pub fn collision(
     world: &mut SubWorld,
-    #[resource] actions: &mut ActionQueue,
     #[resource] messages: &mut MessageSet,
     cmd: &mut CommandBuffer,
 ) {
     // collision with other entities
+
+    let mut total_actions: Vec<(Entity, GameAction)> = Vec::new();
+
     for (ent1, pos1, col1) in <(Entity, &Position, &Collision)>::query().iter(world) {
         for (ent2, pos2, col2) in <(Entity, &Position, &Collision)>::query().iter(world) {
             if col1.get_collider(*pos1).overlaps(&col2.get_collider(*pos2))
@@ -152,26 +158,28 @@ pub fn collision(
                 //println!("Collisions: {:?}, {:?}", *ent1, *ent2);
                 let (n_actions, n_messages) = (col1.collision_handler)(*ent1, *ent2);
                 messages.extend(n_messages.iter());
-                actions.extend(n_actions.iter());
-                if let Some(exec) = &col1.executive_collision_handler{
+                total_actions.extend(n_actions.iter());
+                if let Some(exec) = &col1.executive_collision_handler {
                     exec(cmd, *ent1, *ent2);
                 }
+            }
+        }
+    }
+
+    for (ent, action) in total_actions{
+        if let Ok(mut entry) = world.entry_mut(ent){
+            if let Ok(actions) = entry.get_component_mut::<Actions>(){
+                actions.push(action);
             }
         }
     }
 }
 
 #[system(for_each)]
-pub fn resolve_immunities(
-    this: &Entity,
-    collision: &mut Collision,
-    #[resource] actions: &ActionQueue,
-) {
-    for (ent, action) in actions.iter() {
-        if *this == *ent {
-            if let GameAction::AddImmunity { other } = action {
-                collision.immunity.push(*other);
-            }
+pub fn resolve_immunities(collision: &mut Collision, actions: &Actions) {
+    for action in actions.get_actions() {
+        if let GameAction::AddImmunity { other } = action {
+            collision.immunity.push(*other);
         }
     }
 }

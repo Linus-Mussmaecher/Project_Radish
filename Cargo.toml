@@ -18,6 +18,8 @@ toml = "^0.4"
 serde_with = "^2.3"
 # Random
 rand = "^0.8"
+# other
+tinyvec = "^1.6"
 [build-dependencies]
 # Buidling
 copy_to_output = "2.1.0"

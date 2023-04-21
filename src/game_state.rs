@@ -6,10 +6,6 @@ use std::time::Duration;
 
 use crate::PALETTE;
 
-mod game_action;
-use game_action::ActionQueue;
-//use game_action::GameAction;
-
 mod game_message;
 use game_message::GameMessage;
 use game_message::MessageSet;
@@ -209,7 +205,6 @@ impl GameState {
         ));
 
         let mut resources = Resources::default();
-        resources.insert(ActionQueue::new());
         resources.insert(MessageSet::new());
         resources.insert(GameData::default());
         resources.insert(boundaries);
@@ -226,12 +221,9 @@ impl GameState {
                 .add_system(components::control::control_system())
                 .add_system(components::duration::manage_durations_system())
                 .add_system(components::health::destroy_by_health_system())
-                // systems that transform actions
-                .add_system(components::aura::aura_system())
                 .build(),
             action_cons_schedule: Schedule::builder()
                 // systems that consume actions
-                .add_system(game_action::resolve_executive_system())
                 .add_system(components::spell_casting::spell_casting_system())
                 .add_system(components::position::resolve_move_system())
                 .add_system(components::collision::boundary_collision_system())
@@ -239,6 +231,7 @@ impl GameState {
                 .add_system(components::health::resolve_damage_system())
                 .add_system(game_data::resolve_gama_data_system())
                 .add_system(components::health::remove_entities_system())
+                .add_system(components::actions::clear_system())
                 .build(),
             resources,
             controller: Controller::from_path("./data/keymap.toml").unwrap_or_default(),
@@ -253,6 +246,10 @@ impl Scene for GameState {
 
         self.resources.insert(self.controller.get_interactions(ctx));
 
+        // make sure all entities have all default components
+
+        ensure_default_components(&mut self.world);
+
         // produce game actions of this frame
 
         self.action_prod_schedule
@@ -260,19 +257,12 @@ impl Scene for GameState {
 
         // transform game actions of this frame
 
+        components::aura::aura_sytem(&mut self.world);
+
         // consume game actions of this frame
 
         self.action_cons_schedule
             .execute(&mut self.world, &mut self.resources);
-
-        // clear action queue
-
-        {
-            let mut action_queue = self.resources.get_mut::<ActionQueue>().ok_or_else(|| {
-                GameError::CustomError("Could not unpack action queue.".to_owned())
-            })?;
-            action_queue.clear();
-        }
 
         // director
 
@@ -330,5 +320,23 @@ impl Scene for GameState {
         // Finish
         canvas.finish(ctx)?;
         Ok(())
+    }
+}
+
+
+fn ensure_default_components(world: &mut World) {
+    let mut list = Vec::new();
+
+    for ent in <Entity>::query()
+        .filter(!component::<components::Actions>())
+        .iter(world)
+    {
+        list.push(*ent);
+    }
+
+    for ent in list {
+        if let Some(mut entry) = world.entry(ent) {
+            entry.add_component(components::Actions::new());
+        }
     }
 }
