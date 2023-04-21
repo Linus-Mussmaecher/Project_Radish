@@ -240,7 +240,7 @@ impl GameState {
                 .add_system(components::health::remove_entities_system())
                 .build(),
             resources,
-            controller: Controller::from_path("./data/keymap.toml"),
+            controller: Controller::from_path("./data/keymap.toml").unwrap_or_default(),
             director: Director::new(),
         })
     }

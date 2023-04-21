@@ -1,1 +1,1 @@
-command_map = [["D", "MoveRight"], ["Right", "MoveRight"], ["Left", "MoveLeft"], ["Space", "Attack"], ["A", "MoveLeft"]]
+command_map = [["Semicolon", "Spell3"], ["D", "MoveRight"], ["A", "MoveLeft"], ["J", "Spell0"], ["Left", "MoveLeft"], ["Right", "MoveRight"], ["Y", "Spell0"], ["Z", "Spell0"], ["K", "Spell1"], ["V", "Spell3"], ["L", "Spell2"], ["C", "Spell2"], ["X", "Spell1"]]

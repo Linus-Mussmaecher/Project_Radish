@@ -13,8 +13,12 @@ pub enum Command {
     /// Move player character to the right.
     MoveRight,
     /// Attack -> TODO: Expand this to multiple spells.
-    Attack,
+    Spell0,
+    Spell1,
+    Spell2,
+    Spell3,
 }
+
 
 #[serde_as]
 #[derive(Serialize, Deserialize, Debug)]
@@ -27,25 +31,22 @@ pub struct Controller {
 
 impl Controller {
     /// Loads a keymap from the given path and constructs a controller.
-    pub fn from_path(path: impl AsRef<Path>) -> Self {
+    pub fn from_path(path: impl AsRef<Path>) -> Result<Self, Box<dyn std::error::Error>> {
         let string = fs::read_to_string(
             path.as_ref()
-                .to_str()
-                .expect("Could not unwrap path string of keymap."),
-        )
-        .expect("Could not open keymap file.");
-        toml::from_str(&string).expect("Cound not convert file.")
+                .to_str().ok_or_else(|| ggez::GameError::CustomError("Could not read path.".to_owned()))?,
+        )?;
+        Ok(toml::from_str(&string)?)
     }
 
     /// Saves this controllers keymap to the given path.
-    pub fn save_to_file(&self, path: impl AsRef<Path>) {
+    pub fn save_to_file(&self, path: impl AsRef<Path>) -> Result<(), Box<dyn std::error::Error>>{
         fs::write(
             path.as_ref()
-                .to_str()
-                .expect("Could not unwrap path string of keymap."),
-            toml::to_string(&self).expect("Could convert to TOML."),
-        )
-        .expect("Could not write to key map file.");
+            .to_str().ok_or_else(|| ggez::GameError::CustomError("Could not read path.".to_owned()))?,
+            toml::to_string(&self)?,
+        )?;
+        Ok(())
     }
 
     /// Listens to all key presses in the context of the last frame and converts it to a list of commands given by the user as well as the time spent in the frame.
@@ -62,6 +63,27 @@ impl Controller {
         }
 
         inter
+    }
+}
+
+
+impl Default for Controller{
+    fn default() -> Self {
+        Self { command_map: HashMap::from([
+            (VirtualKeyCode::A, Command::MoveLeft),
+            (VirtualKeyCode::D, Command::MoveRight),
+            (VirtualKeyCode::Left, Command::MoveLeft),
+            (VirtualKeyCode::Right, Command::MoveRight),
+            (VirtualKeyCode::Y, Command::Spell0),
+            (VirtualKeyCode::Z, Command::Spell0),
+            (VirtualKeyCode::J, Command::Spell0),
+            (VirtualKeyCode::X, Command::Spell1),
+            (VirtualKeyCode::K, Command::Spell1),
+            (VirtualKeyCode::C, Command::Spell2),
+            (VirtualKeyCode::L, Command::Spell2),
+            (VirtualKeyCode::V, Command::Spell3),
+            (VirtualKeyCode::Semicolon, Command::Spell3),
+        ]) }
     }
 }
 

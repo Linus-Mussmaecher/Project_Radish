@@ -35,7 +35,7 @@ pub fn spell_casting(
 ) {
     caster.cooldown = caster.cooldown.saturating_sub(ix.delta);
 
-    if action_queue.contains(&(*entity, GameAction::CastSpell(1)))
+    if action_queue.contains(&(*entity, GameAction::CastSpell(0)))
         && caster.cooldown == Duration::ZERO
     {
         caster.cooldown = Duration::from_secs_f32(0.5);

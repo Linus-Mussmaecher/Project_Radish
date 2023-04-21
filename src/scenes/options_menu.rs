@@ -36,17 +36,8 @@ impl OptionsMenu {
         .to_owned()
         .to_element(0, ctx);
 
-        let text = ggez::graphics::Text::new(
-            TextFragment::new("None yet.")
-                .color(Color::from_rgb_u32(PALETTE[6]))
-                .scale(32.),
-        )
-        .set_font("Retro")
-        .to_owned()
-        .to_element(0, ctx);
-
-        let back = ggez::graphics::Text::new(
-            TextFragment::new("Close").color(Color::from_rgb_u32(PALETTE[6])),
+        let reset_bindings = ggez::graphics::Text::new(
+            TextFragment::new("Reset Keybindings").color(Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
         .set_scale(32.)
@@ -56,11 +47,22 @@ impl OptionsMenu {
         .with_hover_visuals(box_hover_vis)
         .build();
 
+        let back = ggez::graphics::Text::new(
+            TextFragment::new("Close").color(Color::from_rgb_u32(PALETTE[6])),
+        )
+        .set_font("Retro")
+        .set_scale(32.)
+        .to_owned()
+        .to_element_builder(2, ctx)
+        .with_visuals(box_vis)
+        .with_hover_visuals(box_hover_vis)
+        .build();
+
         // Container
 
         let mut credits_box = mooeye::containers::VerticalBox::new();
         credits_box.add(title)?;
-        credits_box.add(text)?;
+        credits_box.add(reset_bindings)?;
         credits_box.add(back)?;
         credits_box.spacing = 25.;
         let credits_box = credits_box
@@ -73,7 +75,7 @@ impl OptionsMenu {
 
         Ok(Self {
             gui: credits_box,
-            controller: Controller::from_path("./data/keymap.toml"),
+            controller: Controller::from_path("./data/keymap.toml").unwrap_or_default(),
         })
     }
 }
@@ -86,7 +88,11 @@ impl Scene for OptionsMenu {
         let messages = self.gui.manage_messages(ctx, None);
 
         if messages.contains(&mooeye::UiMessage::Clicked(1)) {
-            self.controller.save_to_file("./data/keymap.toml");
+            self.controller = Controller::default();
+        }
+
+        if messages.contains(&mooeye::UiMessage::Clicked(2)) {
+            self.controller.save_to_file("./data/keymap.toml").expect("Could not save keybindings.");
             Ok(mooeye::scene_manager::SceneSwitch::Pop(1))
         } else {
             Ok(mooeye::scene_manager::SceneSwitch::None)
