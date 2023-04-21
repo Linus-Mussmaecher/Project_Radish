@@ -1,10 +1,8 @@
-use std::time::Duration;
 use legion::{systems::CommandBuffer, *};
+use std::time::Duration;
 
-use crate::{
-    game_state::{
-        components, controller::Interactions, game_action::ActionQueue, game_message::MessageSet,
-    },
+use crate::game_state::{
+    components, controller::Interactions, game_action::ActionQueue, game_message::MessageSet,
 };
 use mooeye::sprite::SpritePool;
 
@@ -35,13 +33,11 @@ pub fn spell_casting(
 ) {
     caster.cooldown = caster.cooldown.saturating_sub(ix.delta);
 
-    if action_queue.contains(&(*entity, GameAction::CastSpell(0)))
-        && caster.cooldown.is_zero()
-    {
+    if action_queue.contains(&(*entity, GameAction::CastSpell(0))) && caster.cooldown.is_zero() {
         caster.cooldown = Duration::from_secs_f32(0.5);
         cmd.push((
             components::Position::new(position.x, position.y),
-            super::LifeDuration::new(Duration::from_secs(7)),
+            super::LifeDuration::new(Duration::from_secs(10)),
             sp.init_sprite("/sprites/fireball", Duration::from_secs_f32(0.2))
                 .expect("Could not load sprite."),
             super::Velocity::new(0., -250.),
@@ -57,16 +53,15 @@ pub fn spell_casting(
         ));
     }
 
-    if action_queue.contains(&(*entity, GameAction::CastSpell(1)))
-    && caster.cooldown.is_zero() {
+    if action_queue.contains(&(*entity, GameAction::CastSpell(1))) && caster.cooldown.is_zero() {
         caster.cooldown = Duration::from_secs_f32(1.5);
         cmd.push((
             components::Position::new(position.x, position.y),
-            super::LifeDuration::new(Duration::from_secs(7)),
-            sp.init_sprite("/sprites/fireball", Duration::from_secs_f32(0.2))
+            super::LifeDuration::new(Duration::from_secs(10)),
+            sp.init_sprite("/sprites/icebomb", Duration::from_secs_f32(0.2))
                 .expect("Could not load sprite."),
-            super::Velocity::new(0., -250.),
-            super::Collision::new(32., 32., |e1, e2| {
+            super::Velocity::new(0., -120.),
+            super::Collision::new_executive(32., 32., |e1, e2| {
                 (
                     vec![
                         (e1, GameAction::Remove),
@@ -74,7 +69,40 @@ pub fn spell_casting(
                     ],
                     MessageSet::new(),
                 )
-            }),
+            }, 
+            |cmd, ent1, _|{
+                cmd.exec_mut(move |world, res| {
+                let ent = world.entry(ent1);
+                if let Some(ent) = ent {
+                    let pos = ent
+                        .get_component::<Position>()
+                        .map(|p| *p)
+                        .unwrap_or_default();
+        
+                    let spritepool = res.get::<SpritePool>().expect("Could not unpack sprite pool in resources.");
+        
+                    world.push((
+                        pos,
+                        super::LifeDuration::new(Duration::from_secs(5)),
+                        {
+                            let mut sprite = spritepool.init_sprite("/sprites/icebomb", Duration::from_secs_f32(0.25)).expect("Could not find sprite.");
+                            sprite.set_variant(1);
+                            sprite
+                        },
+                        super::Aura::new(128., |act| {
+                            match act {
+                                // slow down everything by 90%
+                                components::GameAction::Move { delta } => {
+                                    components::GameAction::Move { delta: delta * 0.1 }
+                                }
+                                other => other,
+                            }
+                        }),
+                    ));
+                }
+            });
+        }
+        ),
         ));
     }
 }

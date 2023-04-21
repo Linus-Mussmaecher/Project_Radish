@@ -11,7 +11,7 @@ pub enum GameAction{
     TakeHealing{heal: i32},
     TakeCityDamage{dmg: i32},
     GainGold{amount: i32},
-    ExecutiveAction(&'static(dyn Fn(&mut World, &mut Resources) + Send + Sync)),
+    ExecutiveAction(&'static(dyn Fn(&mut CommandBuffer, Entity) + Send + Sync)),
     AddImmunity{other: Entity},
     CastSpell(usize),
 }
@@ -33,9 +33,9 @@ impl PartialEq for GameAction{
 
 #[system]
 pub fn resolve_executive(#[resource] actions: &ActionQueue, cmd: &mut CommandBuffer) {
-    for (_, action) in actions {
+    for (ent, action) in actions {
         if let GameAction::ExecutiveAction(lambda) = action {
-            cmd.exec_mut(*lambda);
+            (*lambda)(cmd, *ent);
         }
     }
 }

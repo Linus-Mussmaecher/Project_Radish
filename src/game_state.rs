@@ -231,6 +231,7 @@ impl GameState {
                 .build(),
             action_cons_schedule: Schedule::builder()
                 // systems that consume actions
+                .add_system(game_action::resolve_executive_system())
                 .add_system(components::spell_casting::spell_casting_system())
                 .add_system(components::position::resolve_move_system())
                 .add_system(components::collision::boundary_collision_system())
