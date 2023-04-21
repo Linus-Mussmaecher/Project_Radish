@@ -36,7 +36,7 @@ pub fn spell_casting(
     caster.cooldown = caster.cooldown.saturating_sub(ix.delta);
 
     if action_queue.contains(&(*entity, GameAction::CastSpell(0)))
-        && caster.cooldown == Duration::ZERO
+        && caster.cooldown.is_zero()
     {
         caster.cooldown = Duration::from_secs_f32(0.5);
         cmd.push((
@@ -50,6 +50,27 @@ pub fn spell_casting(
                     vec![
                         (e1, GameAction::Remove),
                         (e2, GameAction::TakeDamage { dmg: 2 }),
+                    ],
+                    MessageSet::new(),
+                )
+            }),
+        ));
+    }
+
+    if action_queue.contains(&(*entity, GameAction::CastSpell(1)))
+    && caster.cooldown.is_zero() {
+        caster.cooldown = Duration::from_secs_f32(1.5);
+        cmd.push((
+            components::Position::new(position.x, position.y),
+            super::LifeDuration::new(Duration::from_secs(7)),
+            sp.init_sprite("/sprites/fireball", Duration::from_secs_f32(0.2))
+                .expect("Could not load sprite."),
+            super::Velocity::new(0., -250.),
+            super::Collision::new(32., 32., |e1, e2| {
+                (
+                    vec![
+                        (e1, GameAction::Remove),
+                        (e2, GameAction::TakeDamage { dmg: 3 }),
                     ],
                     MessageSet::new(),
                 )

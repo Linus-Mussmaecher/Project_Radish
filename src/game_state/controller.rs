@@ -12,10 +12,13 @@ pub enum Command {
     MoveLeft,
     /// Move player character to the right.
     MoveRight,
-    /// Attack -> TODO: Expand this to multiple spells.
+    /// Cast the first spell in the spell selection.
     Spell0,
+    /// Cast the second spell in the spell selection.
     Spell1,
+    /// Cast the third spell in the spell selection.
     Spell2,
+    /// Cast the fourth spell in the spell selection.
     Spell3,
 }
 
