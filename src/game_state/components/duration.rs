@@ -19,6 +19,12 @@ impl LifeDuration {
     }
 }
 
+impl From<Duration> for LifeDuration {
+    fn from(value: Duration) -> Self {
+        LifeDuration::new(value)
+    }
+}
+
 #[system(for_each)]
 pub fn manage_durations(
     duration: &mut LifeDuration,
