@@ -48,7 +48,7 @@ fn main() -> GameResult {
             .window_mode(
                 conf::WindowMode::default()
                     .fullscreen_type(conf::FullscreenType::Windowed)
-                    //.resizable(true)
+                    .resizable(true)
                     .dimensions(WIDTH, HEIGHT),
             )
             .build()?;

@@ -193,7 +193,7 @@ impl GameState {
         // init sprite pool
 
         let sprite_pool = sprite::SpritePool::new().with_folder(ctx, "/sprites", true);
-            sprite_pool.print_keys();
+
         // add player
 
         world.push((

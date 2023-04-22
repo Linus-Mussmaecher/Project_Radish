@@ -190,9 +190,9 @@ checksum = "0d8c1fef690941d3e7788d328517591fecc684c084084702d6ff1641e993699a"
 
 [[package]]
 name = "bumpalo"
-version = "3.12.0"
+version = "3.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0d261e256854913907f67ed06efbc3338dfe6179796deefc1ff763fc1aee5535"
+checksum = "9b1ce199063694f33ffb7dd4e0ee620741495c32833cde5aa08f02a0bf96f0c8"
 
 [[package]]
 name = "bytecount"
@@ -1724,7 +1724,7 @@ dependencies = [
 [[package]]
 name = "mooeye"
 version = "0.2.1"
-source = "git+https://github.com/Linus-Mussmaecher/mooeye#ca2c4007c2653fda782156e12391498be1a692b3"
+source = "git+https://github.com/Linus-Mussmaecher/mooeye#14f3d03dbdbb6f9aeaf0bd9c1fd434e35104bd0b"
 dependencies = [
  "ggez",
  "regex",

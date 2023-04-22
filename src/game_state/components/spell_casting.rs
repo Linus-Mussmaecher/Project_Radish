@@ -31,7 +31,7 @@ pub fn spell_casting(
     caster.cooldown = caster.cooldown.saturating_sub(ix.delta);
 
     if actions.get_actions().contains(&GameAction::CastSpell(0)) && caster.cooldown.is_zero() {
-        caster.cooldown = Duration::from_secs_f32(0.5);
+        caster.cooldown = Duration::from_secs_f32(0.4);
         cmd.push((
             components::Position::new(position.x, position.y),
             super::LifeDuration::new(Duration::from_secs(10)),
@@ -57,7 +57,7 @@ pub fn spell_casting(
             super::LifeDuration::new(Duration::from_secs(10)),
             sp.init_sprite("/sprites/icebomb", Duration::from_secs_f32(0.2))
                 .expect("Could not load sprite."),
-            super::Velocity::new(0., -120.),
+            super::Velocity::new(0., -520.),
             super::Collision::new_executive(
                 32.,
                 32.,

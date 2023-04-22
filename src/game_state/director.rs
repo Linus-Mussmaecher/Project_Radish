@@ -51,7 +51,7 @@ impl Director {
 
         if self.intervall >= Duration::from_secs(1) {
             // grant credits
-            self.credits += 10 + self.total.as_secs() / 3;
+            self.credits += 25 + self.total.as_secs() / 5;
             // reset intervall
             self.intervall = Duration::ZERO;
 
@@ -107,7 +107,7 @@ pub fn spawn_basic_skeleton(world: &mut World, resources: &mut Resources) -> Res
         .ok_or_else(|| ggez::GameError::CustomError("Could not unpack sprite pool.".to_owned()))?;
     world.push((
         components::Position::new(random::<f32>() * boundaries.w + boundaries.x, -20.),
-        components::Velocity::new(0., 40.),
+        components::Velocity::new(0., 10.),
         sprites.init_sprite(
             "/sprites/enemies/skeleton_basic",
             Duration::from_secs_f32(0.25),
@@ -129,7 +129,7 @@ pub fn spawn_fast_skeleton(world: &mut World, resources: &mut Resources) -> Resu
         .ok_or_else(|| ggez::GameError::CustomError("Could not unpack sprite pool.".to_owned()))?;
     world.push((
         components::Position::new(random::<f32>() * boundaries.w + boundaries.x, -20.),
-        components::Velocity::new(45., 25.),
+        components::Velocity::new(35., 15.),
         components::BoundaryCollision::new(true, false, true),
         sprites.init_sprite(
             "/sprites/enemies/skeleton_basic",
@@ -161,7 +161,7 @@ pub fn spawn_loot_skeleton(world: &mut World, resources: &mut Resources) -> Resu
         .ok_or_else(|| ggez::GameError::CustomError("Could not unpack sprite pool.".to_owned()))?;
     world.push((
         components::Position::new(random::<f32>() * boundaries.w + boundaries.x, 30.),
-        components::Velocity::new(75., 0.),
+        components::Velocity::new(50., 0.),
         components::BoundaryCollision::new(true, false, true),
         sprites.init_sprite(
             "/sprites/enemies/skeleton_sword",
@@ -185,7 +185,7 @@ pub fn spawn_tank_skeleton(world: &mut World, resources: &mut Resources) -> Resu
         .ok_or_else(|| ggez::GameError::CustomError("Could not unpack sprite pool.".to_owned()))?;
     world.push((
         components::Position::new(random::<f32>() * boundaries.w + boundaries.x, -20.),
-        components::Velocity::new(0., 15.),
+        components::Velocity::new(0., 10.),
         sprites.init_sprite(
             "/sprites/enemies/skeleton_sword",
             Duration::from_secs_f32(0.25),
