@@ -111,7 +111,7 @@ pub fn resolve_damage(health: &mut Health, actions: &Actions) {
         if let GameAction::TakeDamage { dmg } = action {
             health.curr_health -= *dmg;
         } else if let GameAction::TakeHealing { heal } = action {
-            health.curr_health += *heal;
+            health.curr_health =  (health.curr_health + *heal).min(health.max_health);
         }
     }
 }

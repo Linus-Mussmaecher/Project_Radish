@@ -1,10 +1,10 @@
-use legion::{systems::CommandBuffer, *};
+use legion::{systems::CommandBuffer, IntoQuery, *};
 use std::time::Duration;
 
 use crate::game_state::{components, controller::Interactions, game_message::MessageSet};
 use mooeye::sprite::SpritePool;
 
-use super::{Actions, actions::GameAction, Position, Enemy};
+use super::{actions::GameAction, Actions, Enemy, Position};
 
 pub struct SpellCaster {
     //TODO: Implement struct/trait based spells
@@ -109,7 +109,7 @@ pub fn spell_casting(
                                     },
                                     // only enemies
                                     |entry| {
-                                        if let Ok(_) = entry.get_component::<Enemy>(){
+                                        if let Ok(_) = entry.get_component::<Enemy>() {
                                             true
                                         } else {
                                             false
@@ -117,6 +117,45 @@ pub fn spell_casting(
                                     },
                                 ),
                             ));
+                        }
+                    });
+                },
+            ),
+        ));
+    }
+
+    if actions.get_actions().contains(&GameAction::CastSpell(2)) && caster.cooldown.is_zero() {
+        caster.cooldown = Duration::from_secs_f32(1.5);
+        cmd.push((
+            components::Position::new(position.x, position.y),
+            super::LifeDuration::new(Duration::from_secs(10)),
+            sp.init_sprite("/sprites/electroorb", Duration::from_secs_f32(0.2))
+                .expect("Could not load sprite."),
+            super::Velocity::new(0., -180.),
+            super::Collision::new_executive(
+                32.,
+                32.,
+                |e1, e2| {
+                    (
+                        vec![(e1, GameAction::AddImmunity { other: e2 })],
+                        MessageSet::new(),
+                    )
+                },
+                |cmd, _, ent2| {
+                    cmd.exec_mut(move |world, _| {
+                        if let Ok(entry) = world.entry_ref(ent2) {
+                            if let Ok(_enemy) = entry.get_component::<Enemy>() {
+                                if let Ok(pos) = entry.get_component::<Position>() {
+                                    let pos_save = *pos;
+                                    for (actions, _enemy2, pos2) in
+                                        <(&mut Actions, &Enemy, &Position)>::query().iter_mut(world)
+                                    {
+                                        if pos_save.distance(*pos2) < 128. {
+                                            actions.push(GameAction::TakeDamage { dmg: 1 });
+                                        }
+                                    }
+                                }
+                            }
                         }
                     });
                 },
