@@ -138,7 +138,7 @@ pub fn collision(
                 //println!("Collisions: {:?}, {:?}", *ent1, *ent2);
                 let (n_actions, n_messages) = (col1.collision_handler)(*ent1, *ent2);
                 messages.extend(n_messages.iter());
-                total_actions.extend(n_actions.iter());
+                total_actions.extend(n_actions);
             }
         }
     }

@@ -1,4 +1,4 @@
-use legion::{systems::CommandBuffer, IntoQuery, *};
+use legion::{systems::CommandBuffer, *};
 use std::time::Duration;
 
 use crate::game_state::{components, controller::Interactions, game_message::MessageSet};
@@ -30,7 +30,12 @@ pub fn spell_casting(
 ) {
     caster.cooldown = caster.cooldown.saturating_sub(ix.delta);
 
-    if actions.get_actions().contains(&GameAction::CastSpell(0)) && caster.cooldown.is_zero() {
+    if actions
+        .get_actions()
+        .iter()
+        .any(|act| matches!(*act, GameAction::CastSpell(0)))
+        && caster.cooldown.is_zero()
+    {
         caster.cooldown = Duration::from_secs_f32(0.4);
         cmd.push((
             components::Position::new(position.x, position.y),
@@ -50,7 +55,12 @@ pub fn spell_casting(
         ));
     }
 
-    if actions.get_actions().contains(&GameAction::CastSpell(1)) && caster.cooldown.is_zero() {
+    if actions
+        .get_actions()
+        .iter()
+        .any(|act| matches!(*act, GameAction::CastSpell(1)))
+        && caster.cooldown.is_zero()
+    {
         caster.cooldown = Duration::from_secs_f32(1.5);
         cmd.push((
             components::Position::new(position.x, position.y),
@@ -63,7 +73,7 @@ pub fn spell_casting(
                     vec![
                         (e1, GameAction::Remove),
                         (e2, GameAction::TakeDamage { dmg: 3 }),
-                        (e1, GameAction::Spawn(&spawn_icebomb)),
+                        (e1, GameAction::spawn(spawn_icebomb)),
                     ],
                     MessageSet::new(),
                 )
@@ -71,7 +81,12 @@ pub fn spell_casting(
         ));
     }
 
-    if actions.get_actions().contains(&GameAction::CastSpell(2)) && caster.cooldown.is_zero() {
+    if actions
+        .get_actions()
+        .iter()
+        .any(|act| matches!(*act, GameAction::CastSpell(2)))
+        && caster.cooldown.is_zero()
+    {
         caster.cooldown = Duration::from_secs_f32(1.5);
         cmd.push((
             components::Position::new(position.x, position.y),
@@ -83,32 +98,23 @@ pub fn spell_casting(
                 (
                     vec![
                         (e1, GameAction::AddImmunity { other: e2 }),
-                        (e2, GameAction::OtherAction(&area_dmg)),
+                        (
+                            e2,
+                            GameAction::distributed(
+                                components::actions::Distributor::InRange {
+                                    range: 128.,
+                                    limit: Some(10),
+                                    enemies_only: true,
+                                },
+                                GameAction::TakeDamage { dmg: 1 },
+                            ),
+                        ),
                     ],
                     MessageSet::new(),
                 )
             }),
         ));
     }
-}
-
-fn area_dmg(src: Entity, cmd: &mut CommandBuffer) {
-    cmd.exec_mut(move |world, _| {
-        if let Ok(entry) = world.entry_ref(src) {
-            if let Ok(_enemy) = entry.get_component::<Enemy>() {
-                if let Ok(pos) = entry.get_component::<Position>() {
-                    let pos_save = *pos;
-                    for (actions, _enemy2, pos2) in
-                        <(&mut Actions, &Enemy, &Position)>::query().iter_mut(world)
-                    {
-                        if pos_save.distance(*pos2) < 128. {
-                            actions.push(GameAction::TakeDamage { dmg: 1 });
-                        }
-                    }
-                }
-            }
-        }
-    });
 }
 
 fn spawn_icebomb(_: Entity, pos: Position, cmd: &mut CommandBuffer) {

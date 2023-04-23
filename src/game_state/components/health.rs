@@ -1,6 +1,8 @@
 use legion::{systems::CommandBuffer, *};
 use mooeye::sprite::Sprite;
 
+use crate::game_state::game_message::MessageSet;
+
 use super::{Actions, actions::GameAction, LifeDuration, Position};
 
 /// The Health component track wether a unit has a life bar and can take damage.
@@ -43,14 +45,16 @@ impl Enemy {
 /// A struct that contains a closure that can access a command buffer of the world on death.
 /// Preferably, that closure does not mutate world, but uses its state to inform the action queue of taken actions.
 pub struct OnDeath {
-    deathrattle: Box<dyn Fn(&mut CommandBuffer, Entity) + Send + Sync>,
+    death_actions: Vec<GameAction>,
+    death_messages: MessageSet,
 }
 
 impl OnDeath {
     /// Creates a new OnDeath component. The carrying entity will trigger the passed closure when its health reaches 0.
-    pub fn new(deathrattle: impl Fn(&mut CommandBuffer, Entity) + 'static + Send + Sync) -> Self {
+    pub fn new(death_actions: Vec<GameAction>, death_messages: MessageSet) -> Self {
         Self {
-            deathrattle: Box::new(deathrattle),
+            death_actions,
+            death_messages,
         }
     }
 }
@@ -58,7 +62,7 @@ impl OnDeath {
 #[system(for_each)]
 /// Removes entities with zero health or less
 pub fn remove_entities(entity: &Entity, actions: &Actions, cmd: &mut CommandBuffer) {
-    if actions.get_actions().contains(&super::actions::GameAction::Remove) {
+    if actions.get_actions().iter().any(|act| matches!(*act, GameAction::Remove)) {
         cmd.remove(*entity);
     }
 }
@@ -66,7 +70,6 @@ pub fn remove_entities(entity: &Entity, actions: &Actions, cmd: &mut CommandBuff
 #[system(for_each)]
 //
 pub fn destroy_by_health(
-    ent: &Entity,
     health: &Health,
     enemy: Option<&Enemy>,
     sprite: Option<&Sprite>,
@@ -74,6 +77,7 @@ pub fn destroy_by_health(
     on_death: Option<&OnDeath>,
     actions: &mut Actions,
     cmd: &mut CommandBuffer,
+    #[resource] messages: &mut MessageSet,
 ) {
     if health.curr_health <= 0 {
         // in case of enemies
@@ -99,7 +103,8 @@ pub fn destroy_by_health(
 
         // death rattle
         if let Some(on_death) = on_death {
-            (on_death.deathrattle)(cmd, *ent);
+            actions.get_actions_mut().extend(on_death.death_actions.clone());
+            messages.extend(on_death.death_messages.clone());
         }
     }
 }

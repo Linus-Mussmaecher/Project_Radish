@@ -225,7 +225,7 @@ impl GameState {
             action_cons_schedule: Schedule::builder()
                 // systems that consume actions
                 .add_system(components::spell_casting::spell_casting_system())
-                .add_system(components::actions::executive_actions_system())
+                .add_system(components::actions::resolve_executive_actions_system())
                 .add_system(components::position::resolve_move_system())
                 .add_system(components::collision::boundary_collision_system())
                 .add_system(components::collision::resolve_immunities_system())
@@ -257,7 +257,7 @@ impl Scene for GameState {
             .execute(&mut self.world, &mut self.resources);
 
         // transform game actions of this frame
-
+        components::actions::distribution_system(&mut self.world);
         components::aura::aura_sytem(&mut self.world);
 
         // consume game actions of this frame

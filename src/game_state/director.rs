@@ -1,13 +1,14 @@
 use std::time::Duration;
 
 use ggez::{Context, GameError};
-use legion::{IntoQuery, Resources, World};
+use legion::{Resources, World};
 use rand::random;
 
 use mooeye::sprite::SpritePool;
 
 use super::{
-    components::{self, Enemy, actions::GameAction, Actions},
+    components::{self, actions::GameAction},
+    game_message::MessageSet,
 };
 
 #[derive(Clone)]
@@ -135,15 +136,17 @@ pub fn spawn_fast_skeleton(world: &mut World, resources: &mut Resources) -> Resu
             "/sprites/enemies/skeleton_basic",
             Duration::from_secs_f32(0.20),
         )?,
-        components::Aura::new(256., |act| {
-            match act {
-                // speed up nearby allies by 50%
-                GameAction::Move { delta } => {
-                    GameAction::Move { delta: delta * 1.5 }
+        components::Aura::new(
+            256.,
+            |act| {
+                match act {
+                    // speed up nearby allies by 50%
+                    GameAction::Move { delta } => GameAction::Move { delta: delta * 1.5 },
+                    other => other,
                 }
-                other => other,
-            }
-        }, |_| true),
+            },
+            |_| true,
+        ),
         components::Enemy::new(1, 15),
         components::Health::new(3),
         components::Collision::new_basic(64., 64.),
@@ -190,42 +193,38 @@ pub fn spawn_tank_skeleton(world: &mut World, resources: &mut Resources) -> Resu
             "/sprites/enemies/skeleton_sword",
             Duration::from_secs_f32(0.25),
         )?,
-        components::Aura::new(192., |act| {
-            match act {
-                // reduce dmg by 1, but if would be reduced to 0, onyl 50% chance to do so
-                GameAction::TakeDamage { dmg } => GameAction::TakeDamage {
-                    dmg: if dmg == 1 {
-                        if random::<f32>() < 0.5 {
-                            1
+        components::Aura::new(
+            192.,
+            |act| {
+                match act {
+                    // reduce dmg by 1, but if would be reduced to 0, onyl 50% chance to do so
+                    GameAction::TakeDamage { dmg } => GameAction::TakeDamage {
+                        dmg: if dmg == 1 {
+                            if random::<f32>() < 0.5 {
+                                1
+                            } else {
+                                0
+                            }
                         } else {
-                            0
-                        }
-                    } else {
-                    0.max(dmg - 1)
+                            0.max(dmg - 1)
+                        },
                     },
-                },
-                other => other,
-            }
-        }, |_| true),
-        components::OnDeath::new(|cmd, ent| {
-            cmd.exec_mut(move |world, _| {
-                let entry = world.entry(ent.clone()).unwrap();
-                let pos_self = *entry.get_component::<components::Position>().unwrap();
-                for (enti, pos, _, _, actions) in <(
-                    legion::Entity,
-                    &components::Position,
-                    &Enemy,
-                    &components::Health,
-                    &mut Actions,
-                )>::query()
-                .iter_mut(world)
-                {
-                    if pos_self.distance(*pos) < 256. && *enti != ent {
-                        actions.push(GameAction::TakeHealing { heal: 2 });
-                    }
+                    other => other,
                 }
-            });
-        }),
+            },
+            |_| true,
+        ),
+        components::OnDeath::new(
+            vec![GameAction::distributed(
+                components::actions::Distributor::InRange {
+                    range: 256.,
+                    limit: None,
+                    enemies_only: true,
+                },
+                GameAction::TakeHealing { heal: 2 },
+            )],
+            MessageSet::new(),
+        ),
         components::Enemy::new(2, 25),
         components::Health::new(3),
         components::Collision::new_basic(64., 64.),
