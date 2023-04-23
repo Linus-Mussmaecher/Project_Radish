@@ -158,7 +158,7 @@ pub fn distribution_system(world: &mut World) {
                         // if applicable
                         if src_pos.distance(*tar_pos) < range
                             && (!enemies_only || matches!(tar_enemy, Some(_)))
-                            && limit.map_or(false, |lim| lim > count)
+                            && limit.map_or(true, |lim| lim > count)
                         {
                             // remember to push action
                             actions_to_apply.push((*tar, action.clone()));

@@ -7,6 +7,9 @@ use mooeye::sprite::SpritePool;
 
 use super::{actions::GameAction, Actions, Enemy, Position};
 
+mod spell;
+pub mod spell_list;
+
 pub struct SpellCaster {
     //TODO: Implement struct/trait based spells
     cooldown: Duration,
@@ -76,7 +79,12 @@ pub fn spell_casting(
                     vec![
                         (e1, GameAction::Remove),
                         (e2, GameAction::TakeDamage { dmg: 3 }),
-                        (e2, GameAction::Move { delta: Vec2::new(0., -10.) }),
+                        (
+                            e2,
+                            GameAction::Move {
+                                delta: Vec2::new(0., -10.),
+                            },
+                        ),
                         (e1, GameAction::spawn(spawn_icebomb)),
                     ],
                     MessageSet::new(),

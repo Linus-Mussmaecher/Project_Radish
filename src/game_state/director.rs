@@ -65,7 +65,13 @@ impl Director {
             // while credits left to spend
             'outer: loop {
                 // randomly select a spawn among the optionis
-                let mut enemy_ind = random::<usize>() % self.enemies.len();
+                let mut low_ind = 0;
+                for (ind, (cost, _)) in self.enemies.iter().enumerate(){
+                    if to_spend >= *cost{
+                        low_ind = ind;
+                    }
+                }
+                let mut enemy_ind = (random::<usize>() % (self.enemies.len() - low_ind)) + low_ind;
                 let mut enemy = self.enemies.get(enemy_ind);
 
                 // downgrade spawn until affordable
@@ -186,6 +192,8 @@ pub fn spawn_tank_skeleton(world: &mut World, resources: &mut Resources) -> Resu
     let sprites = resources
         .get::<SpritePool>()
         .ok_or_else(|| ggez::GameError::CustomError("Could not unpack sprite pool.".to_owned()))?;
+
+    
     world.push((
         components::Position::new(random::<f32>() * boundaries.w + boundaries.x, -20.),
         components::Velocity::new(0., 10.),
