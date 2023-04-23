@@ -1,5 +1,5 @@
 use ggez::{glam::Vec2, graphics::Rect};
-use legion::{systems::CommandBuffer, world::SubWorld, *};
+use legion::{world::SubWorld, *};
 
 use crate::game_state::{components::Actions, game_message::MessageSet};
 
@@ -11,9 +11,6 @@ pub struct Collision {
     h: f32,
 
     collision_handler: Box<dyn Fn(Entity, Entity) -> (ActionQueue, MessageSet) + Send + Sync>,
-
-    executive_collision_handler:
-        Option<Box<dyn Fn(&mut CommandBuffer, Entity, Entity) + Send + Sync>>,
 
     immunity: Vec<Entity>,
 }
@@ -29,22 +26,6 @@ impl Collision {
             h,
             collision_handler: Box::new(collision_handler),
             immunity: Vec::new(),
-            executive_collision_handler: None,
-        }
-    }
-
-    pub fn new_executive(
-        w: f32,
-        h: f32,
-        collision_handler: impl Fn(Entity, Entity) -> (ActionQueue, MessageSet) + Send + Sync + 'static,
-        executive_collision_handler: impl Fn(&mut CommandBuffer, Entity, Entity) + Send + Sync + 'static,
-    ) -> Self {
-        Self {
-            w,
-            h,
-            collision_handler: Box::new(collision_handler),
-            immunity: Vec::new(),
-            executive_collision_handler: Some(Box::new(executive_collision_handler)),
         }
     }
 
@@ -143,7 +124,6 @@ pub fn boundary_collision(
 pub fn collision(
     world: &mut SubWorld,
     #[resource] messages: &mut MessageSet,
-    cmd: &mut CommandBuffer,
 ) {
     // collision with other entities
 
@@ -159,9 +139,6 @@ pub fn collision(
                 let (n_actions, n_messages) = (col1.collision_handler)(*ent1, *ent2);
                 messages.extend(n_messages.iter());
                 total_actions.extend(n_actions.iter());
-                if let Some(exec) = &col1.executive_collision_handler {
-                    exec(cmd, *ent1, *ent2);
-                }
             }
         }
     }

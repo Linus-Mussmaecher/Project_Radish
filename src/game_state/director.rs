@@ -192,9 +192,17 @@ pub fn spawn_tank_skeleton(world: &mut World, resources: &mut Resources) -> Resu
         )?,
         components::Aura::new(192., |act| {
             match act {
-                // reduce dmg by 1, but not below 1, unless it was already at 0
+                // reduce dmg by 1, but if would be reduced to 0, onyl 50% chance to do so
                 GameAction::TakeDamage { dmg } => GameAction::TakeDamage {
-                    dmg: (1.min(dmg)).max(dmg - 1),
+                    dmg: if dmg == 1 {
+                        if random::<f32>() < 0.5 {
+                            1
+                        } else {
+                            0
+                        }
+                    } else {
+                    0.max(dmg - 1)
+                    },
                 },
                 other => other,
             }
