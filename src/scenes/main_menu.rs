@@ -1,7 +1,10 @@
-use ggez::{graphics::{self, Color, TextFragment}, GameError};
+use ggez::{
+    graphics::{self, Color, TextFragment},
+    GameError,
+};
 use mooeye::{scene_manager::Scene, ui_element::Alignment, UiContent, UiElement};
 
-use crate::{PALETTE, game_state};
+use crate::{game_state, PALETTE};
 
 pub struct MainMenu {
     gui: UiElement<()>,
@@ -15,7 +18,7 @@ impl MainMenu {
             border_width: 3.,
             rounded_corners: 6.,
         };
-        
+
         let box_hover_vis = mooeye::ui_element::Visuals {
             background: Color::from_rgb_u32(PALETTE[1]),
             border: Color::from_rgb_u32(PALETTE[7]),
@@ -141,36 +144,56 @@ impl Scene for MainMenu {
 
         let mut res = mooeye::scene_manager::SceneSwitch::None;
 
-        if messages.contains(&mooeye::UiMessage::Clicked(1)) {
-            res = mooeye::scene_manager::SceneSwitch::replace(
-                game_state::GameState::new(ctx)?, 1,
-            );
+        if messages.contains(&mooeye::UiMessage::Clicked(1))
+            || ctx
+                .keyboard
+                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::P)
+        {
+            res = mooeye::scene_manager::SceneSwitch::replace(game_state::GameState::new(ctx)?, 1);
         }
-        if messages.contains(&mooeye::UiMessage::Clicked(2)) {
-            res = mooeye::scene_manager::SceneSwitch::replace(
-                game_state::GameState::new(ctx)?, 1,
-            );
+        if messages.contains(&mooeye::UiMessage::Clicked(2))
+            || ctx
+                .keyboard
+                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::T)
+        {
+            res = mooeye::scene_manager::SceneSwitch::replace(game_state::GameState::new(ctx)?, 1);
         }
 
-        if messages.contains(&mooeye::UiMessage::Clicked(3)) {
+        if messages.contains(&mooeye::UiMessage::Clicked(3))
+            || ctx
+                .keyboard
+                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::A)
+        {
             res = mooeye::scene_manager::SceneSwitch::push(
                 super::achievement_menu::AchievementMenu::new(ctx)?,
             );
         }
 
-        if messages.contains(&mooeye::UiMessage::Clicked(4)) {
-            res = mooeye::scene_manager::SceneSwitch::push(
-                super::options_menu::OptionsMenu::new(ctx)?,
-            );
+        if messages.contains(&mooeye::UiMessage::Clicked(4))
+            || ctx
+                .keyboard
+                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::O)
+        {
+            res = mooeye::scene_manager::SceneSwitch::push(super::options_menu::OptionsMenu::new(
+                ctx,
+            )?);
         }
 
-        if messages.contains(&mooeye::UiMessage::Clicked(5)) {
-            res = mooeye::scene_manager::SceneSwitch::push(
-                super::credits_menu::CreditsMenu::new(ctx)?,
-            );
+        if messages.contains(&mooeye::UiMessage::Clicked(5))
+            || ctx
+                .keyboard
+                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::C)
+        {
+            res = mooeye::scene_manager::SceneSwitch::push(super::credits_menu::CreditsMenu::new(
+                ctx,
+            )?);
         }
 
-        if messages.contains(&mooeye::UiMessage::Clicked(6)) {
+        if messages.contains(&mooeye::UiMessage::Clicked(6))
+            || ctx
+                .keyboard
+                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::Q)
+        {
             res = mooeye::scene_manager::SceneSwitch::Pop(1);
         }
 

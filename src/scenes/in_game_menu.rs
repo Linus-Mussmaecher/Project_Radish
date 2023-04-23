@@ -101,18 +101,29 @@ impl Scene for InGameMenu {
             || ctx
                 .keyboard
                 .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::F10)
+            || ctx
+                .keyboard
+                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::R)
         {
             res = mooeye::scene_manager::SceneSwitch::pop(1);
         }
 
-        if messages.contains(&mooeye::UiMessage::Clicked(2)) {
+        if messages.contains(&mooeye::UiMessage::Clicked(2))
+            || ctx
+                .keyboard
+                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::M)
+        {
             res = mooeye::scene_manager::SceneSwitch::replace(
                 super::main_menu::MainMenu::new(ctx)?,
                 2,
             );
         }
 
-        if messages.contains(&mooeye::UiMessage::Clicked(3)) {
+        if messages.contains(&mooeye::UiMessage::Clicked(3))
+            || ctx
+                .keyboard
+                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::Q)
+        {
             res = mooeye::scene_manager::SceneSwitch::pop(2);
         }
 
