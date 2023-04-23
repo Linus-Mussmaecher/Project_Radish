@@ -1,3 +1,4 @@
+use ggez::glam::Vec2;
 use legion::{systems::CommandBuffer, *};
 use std::time::Duration;
 
@@ -12,6 +13,7 @@ pub struct SpellCaster {
 }
 
 impl SpellCaster {
+    /// Returns a new spell casting component.
     pub fn new() -> Self {
         Self {
             cooldown: Duration::ZERO,
@@ -20,6 +22,7 @@ impl SpellCaster {
 }
 
 #[system(for_each)]
+/// A system that resolves spell casting actions (most likely sent by the control component) by casting the spells.
 pub fn spell_casting(
     position: &Position,
     caster: &mut SpellCaster,
@@ -73,6 +76,7 @@ pub fn spell_casting(
                     vec![
                         (e1, GameAction::Remove),
                         (e2, GameAction::TakeDamage { dmg: 3 }),
+                        (e2, GameAction::Move { delta: Vec2::new(0., -10.) }),
                         (e1, GameAction::spawn(spawn_icebomb)),
                     ],
                     MessageSet::new(),

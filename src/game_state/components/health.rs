@@ -31,19 +31,22 @@ impl Health {
     }
 }
 
+/// The Enemy struct is both a marker struct for many interactions and contains the damage an enemy deals to the main objective and the bounty it provides on kill.
 pub struct Enemy {
+    /// The damage this enemy deals to the main objective if it reaches the finish line.
     damage: i32,
+    /// The bounty this enemy grants on kill.
     bounty: i32,
 }
 
 impl Enemy {
+    /// Creates a new enemy component.
     pub fn new(damage: i32, bounty: i32) -> Self {
         Self { damage, bounty }
     }
 }
 
-/// A struct that contains a closure that can access a command buffer of the world on death.
-/// Preferably, that closure does not mutate world, but uses its state to inform the action queue of taken actions.
+/// A struct that contains a actions and messages send by an entity on death.
 pub struct OnDeath {
     death_actions: Vec<GameAction>,
     death_messages: MessageSet,
@@ -68,7 +71,7 @@ pub fn remove_entities(entity: &Entity, actions: &Actions, cmd: &mut CommandBuff
 }
 
 #[system(for_each)]
-//
+/// A system that removes entities when reaching 0 health and triggers a variety of death-related effects.
 pub fn destroy_by_health(
     health: &Health,
     enemy: Option<&Enemy>,
@@ -122,6 +125,7 @@ pub fn resolve_damage(health: &mut Health, actions: &Actions) {
 }
 
 #[system(for_each)]
+/// Checks if an enemy has reached the finish and removes it while dealing damage to the main objective if that is the case.
 pub fn enemy(
     enemy: &Enemy,
     pos: Option<&Position>,

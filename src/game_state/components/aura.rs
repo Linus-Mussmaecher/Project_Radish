@@ -2,13 +2,18 @@ use legion::{world::EntryRef, *};
 use tinyvec::TinyVec;
 
 use super::{actions::GameAction, Actions, Position};
+/// A component that continously modifies actions applied to entities around it.
 pub struct Aura {
+    /// The action modification applied.
     transform: Box<dyn Fn(GameAction) -> GameAction + Send + Sync>,
+    /// Manages which entities are affected by this aura.
     predicate: Box<dyn Fn(&EntryRef) -> bool + Send + Sync>,
+    /// The range of the aura.
     range: f32,
 }
 
 impl Aura {
+    /// Creates a new aura with the specified transform and predicate.
     pub fn new(
         range: f32,
         transform: impl Fn(GameAction) -> GameAction + 'static + Send + Sync,
