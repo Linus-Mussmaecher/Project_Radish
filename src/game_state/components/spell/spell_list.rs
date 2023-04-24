@@ -1,6 +1,5 @@
 use std::{time::Duration, vec};
 
-use ggez::glam::Vec2;
 use legion::{systems::CommandBuffer, Entity};
 use mooeye::sprite::SpritePool;
 use tinyvec::tiny_vec;
@@ -14,7 +13,7 @@ use super::Spell;
 
 pub fn construct_fireball(spritepool: &SpritePool) -> Spell {
     Spell {
-        spell_slots: tiny_vec!([f32; MAX_SPELL_SLOTS] => 0.4),
+        spell_slots: tiny_vec!([f32; MAX_SPELL_SLOTS] => 1.5),
         name: "Fireball!".to_owned(),
         icon: spritepool
             .init_sprite("/sprites/fireball", Duration::from_secs_f32(1.))
@@ -44,7 +43,7 @@ pub fn construct_fireball(spritepool: &SpritePool) -> Spell {
 
 pub fn construct_icebomb(spritepool: &SpritePool) -> Spell {
     Spell {
-        spell_slots: tiny_vec!([f32; MAX_SPELL_SLOTS] => 0.6, 2.6),
+        spell_slots: tiny_vec!([f32; MAX_SPELL_SLOTS] => 1.5, 5.),
         name: "Ice Bomb".to_owned(),
         icon: spritepool
             .init_sprite("/sprites/fireball", Duration::from_secs_f32(1.))
@@ -62,12 +61,6 @@ pub fn construct_icebomb(spritepool: &SpritePool) -> Spell {
                             vec![
                                 (e1, GameAction::Remove),
                                 (e2, GameAction::TakeDamage { dmg: 3 }),
-                                (
-                                    e2,
-                                    GameAction::Move {
-                                        delta: Vec2::new(0., -10.),
-                                    },
-                                ),
                                 (e1, GameAction::spawn(spawn_icebomb)),
                             ],
                             MessageSet::new(),
@@ -119,7 +112,7 @@ fn spawn_icebomb(
 
 pub fn construct_electrobomb(spritepool: &SpritePool) -> Spell {
     Spell {
-        spell_slots: tiny_vec!([f32; MAX_SPELL_SLOTS] => 0.5, 0.5, 0.5, 1.8, 3.0),
+        spell_slots: tiny_vec!([f32; MAX_SPELL_SLOTS] => 0.5, 2.5, 2.5, 25.0),
         name: "Ice Bomb".to_owned(),
         icon: spritepool
             .init_sprite("/sprites/fireball", Duration::from_secs_f32(1.))

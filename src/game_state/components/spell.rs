@@ -1,16 +1,16 @@
-use legion::{*};
+use legion::*;
 use std::time::Duration;
 use tinyvec::TinyVec;
 
-use crate::game_state::{controller::Interactions};
-use mooeye::sprite::{Sprite};
+use crate::game_state::{controller::Interactions, game_message::MessageSet};
+use mooeye::sprite::Sprite;
 
 use super::{actions::GameAction, Actions};
 
 pub mod spell_list;
 
 pub struct SpellCaster {
-    spell_slots: TinyVec<[Duration; MAX_SPELL_SLOTS]>,
+    spell_slots: TinyVec<[(Duration, Duration); MAX_SPELL_SLOTS]>,
     spells: Vec<Spell>,
 }
 
@@ -19,7 +19,7 @@ impl SpellCaster {
     pub fn new(spells: Vec<Spell>) -> Self {
         Self {
             spells,
-            spell_slots: TinyVec::from([Duration::ZERO; 6]),
+            spell_slots: TinyVec::from([(Duration::ZERO, Duration::ZERO); 6]),
         }
     }
 }
@@ -30,45 +30,78 @@ pub fn spell_casting(
     caster_ent: &Entity,
     caster: &mut SpellCaster,
     actions: &mut Actions,
+    #[resource] messages: &mut MessageSet,
     #[resource] ix: &Interactions,
 ) {
-        // reduce cooldowns
-        for slot in caster.spell_slots.iter_mut(){
-            *slot = slot.saturating_sub(ix.delta);
+    // reduce cooldowns
+    for slot in caster.spell_slots.iter_mut() {
+        if !slot.0.is_zero() {
+            slot.0 = slot.0.saturating_sub(ix.delta);
+        } else if !slot.1.is_zero(){
+            slot.1 = Duration::ZERO;
         }
+    }
 
-        println!("Free slots: {}", caster.spell_slots.iter().filter(|slot| slot.is_zero()).count());
-
-        // attempt casts
-
-
-        if ix.commands.contains_key(&crate::game_state::controller::Command::Spell0){
-            if let Some(spell) = caster.spells.get(0){
-                actions.get_actions_mut().extend(spell.attempt_cast(*caster_ent, &mut caster.spell_slots));
-            }
+    for i in 0..MAX_SPELL_SLOTS {
+        if i < caster.spell_slots.len() && !caster.spell_slots[i].1.is_zero() {
+            messages.insert(mooeye::UiMessage::Extern(
+                crate::game_state::game_message::GameMessage::UpdateSpellSlots(
+                    i,
+                    (caster.spell_slots[i].0.as_secs_f32() / caster.spell_slots[i].1.as_secs_f32()
+                        * 32.) as u8,
+                ),
+            ));
         }
+    }
 
-        if ix.commands.contains_key(&crate::game_state::controller::Command::Spell1){
-            if let Some(spell) = caster.spells.get(1){
-                actions.get_actions_mut().extend(spell.attempt_cast(*caster_ent, &mut caster.spell_slots));
-            }
-        }
+    // attempt casts
 
-        if ix.commands.contains_key(&crate::game_state::controller::Command::Spell2){
-            if let Some(spell) = caster.spells.get(2){
-                actions.get_actions_mut().extend(spell.attempt_cast(*caster_ent, &mut caster.spell_slots));
-            }
+    if ix
+        .commands
+        .contains_key(&crate::game_state::controller::Command::Spell0)
+    {
+        if let Some(spell) = caster.spells.get(0) {
+            actions
+                .get_actions_mut()
+                .extend(spell.attempt_cast(*caster_ent, &mut caster.spell_slots));
         }
+    }
 
-        if ix.commands.contains_key(&crate::game_state::controller::Command::Spell3){
-            if let Some(spell) = caster.spells.get(3){
-                actions.get_actions_mut().extend(spell.attempt_cast(*caster_ent, &mut caster.spell_slots));
-            }
+    if ix
+        .commands
+        .contains_key(&crate::game_state::controller::Command::Spell1)
+    {
+        if let Some(spell) = caster.spells.get(1) {
+            actions
+                .get_actions_mut()
+                .extend(spell.attempt_cast(*caster_ent, &mut caster.spell_slots));
         }
-    
+    }
+
+    if ix
+        .commands
+        .contains_key(&crate::game_state::controller::Command::Spell2)
+    {
+        if let Some(spell) = caster.spells.get(2) {
+            actions
+                .get_actions_mut()
+                .extend(spell.attempt_cast(*caster_ent, &mut caster.spell_slots));
+        }
+    }
+
+    if ix
+        .commands
+        .contains_key(&crate::game_state::controller::Command::Spell3)
+    {
+        if let Some(spell) = caster.spells.get(3) {
+            actions
+                .get_actions_mut()
+                .extend(spell.attempt_cast(*caster_ent, &mut caster.spell_slots));
+        }
+    }
 }
 
-const MAX_SPELL_SLOTS: usize = 6;
+pub const MAX_SPELL_SLOTS: usize = 6;
 
 pub struct Spell {
     spell_slots: TinyVec<[f32; MAX_SPELL_SLOTS]>,
@@ -97,15 +130,19 @@ impl Spell {
     pub fn attempt_cast(
         &self,
         caster: Entity,
-        available_slots: &mut TinyVec<[Duration; MAX_SPELL_SLOTS]>,
+        available_slots: &mut TinyVec<[(Duration, Duration); MAX_SPELL_SLOTS]>,
     ) -> Vec<GameAction> {
-        let free_slots = available_slots.iter().filter(|slot| slot.is_zero()).count();
+        let free_slots = available_slots
+            .iter()
+            .filter(|slot| slot.0.is_zero())
+            .count();
 
         if free_slots >= self.spell_slots.len() {
             let mut ind = 0;
             for slot in available_slots {
-                if slot.is_zero() && ind < self.spell_slots.len() {
-                    *slot = Duration::from_secs_f32(self.spell_slots[ind]);
+                if slot.0.is_zero() && ind < self.spell_slots.len() {
+                    slot.0 = Duration::from_secs_f32(self.spell_slots[ind]);
+                    slot.1 = slot.0;
                     ind += 1;
                 }
             }

@@ -198,10 +198,10 @@ pub fn spawn_tank_skeleton(world: &mut World, resources: &mut Resources) -> Resu
             192.,
             |act| {
                 match act {
-                    // reduce dmg by 1, but if would be reduced to 0, onyl 50% chance to do so
+                    // reduce dmg by 1, but if would be reduced to 0, onyl 20% chance to do so
                     GameAction::TakeDamage { dmg } => GameAction::TakeDamage {
                         dmg: if dmg == 1 {
-                            if random::<f32>() < 0.5 {
+                            if random::<f32>() < 0.8 {
                                 1
                             } else {
                                 0

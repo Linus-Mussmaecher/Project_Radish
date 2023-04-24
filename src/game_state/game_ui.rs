@@ -1,16 +1,13 @@
-
 use ggez::{graphics::Color, *};
 
-use mooeye::{*};
+use mooeye::*;
 use std::time::Duration;
 
 use crate::PALETTE;
 
 use super::game_message::GameMessage;
 
-
-
-pub fn construct_game_ui(ctx: &Context) -> Result<UiElement<GameMessage>, GameError>{
+pub fn construct_game_ui(ctx: &Context) -> Result<UiElement<GameMessage>, GameError> {
     let box_vis = mooeye::ui_element::Visuals {
         background: Color::from_rgb_u32(PALETTE[0]),
         border: Color::from_rgb_u32(PALETTE[7]),
@@ -158,32 +155,92 @@ pub fn construct_game_ui(ctx: &Context) -> Result<UiElement<GameMessage>, GameEr
 
     main_box.add(city_box)?;
 
+    // Spells
+
+    let mut spell_box = containers::GridBox::new(2, 3);
+
+    for i in 0..6 {
+        let mana = graphics::Image::from_path(ctx, "/sprites/mana.png")?
+            .to_element_builder(0, ctx)
+            .scaled(2., 2.)
+            .build();
+
+        let mut col = graphics::Color::from_rgb_u32(PALETTE[0]);
+        col.a = 0.8;
+
+        let progress = Covering::new(col, 0.)
+            .to_element_builder(0, ctx)
+            .with_message_handler(move |message_set, _layout, transitions| {
+                for message in message_set {
+                    if let ui_element::UiMessage::Extern(GameMessage::UpdateSpellSlots(
+                        index,
+                        value,
+                    )) = message
+                    {
+                        if *index == i as usize {
+                            transitions.push_back(
+                                ui_element::Transition::new(Duration::ZERO).with_new_content(
+                                    Covering::new(
+                                        col,
+                                        *value as f32 / 32.,
+                                    ),
+                                ),
+                            );
+                        }
+                    }
+                }
+            })
+            .as_fill()
+            .build();
+
+        let mut stack = containers::StackBox::new();
+        let mana_layout = mana.get_layout();
+        stack.add(progress)?;
+        stack.add(mana)?;
+
+        let stack = stack
+            .to_element_builder(0, ctx)
+            .with_wrapper_layout(mana_layout)
+            .build();
+        spell_box.add(stack, i % 2, i / 2)?;
+    }
+
+    let spell_box = spell_box
+        .to_element_builder(0, ctx)
+        .with_visuals(box_vis)
+        .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Center)
+        .with_offset(-10., 0.)
+        .build();
+
+    main_box.add(spell_box)?;
+
     Ok(main_box.to_element_builder(0, ctx).as_fill().build())
 }
 
-struct Covering{
+struct Covering {
     covering: f32,
     color: graphics::Color,
 }
 
-impl Covering{
-    pub fn new(color: graphics::Color) -> Self{
-        Self{
-            covering: 1.,
-            color,
-        }
-    }
-
-    pub fn set_covering(&mut self, covering: f32){
-        self.covering = covering;
+impl Covering {
+    pub fn new(color: graphics::Color, covering: f32) -> Self {
+        Self { covering, color }
     }
 }
 
-impl UiContent<GameMessage> for Covering{
-    fn draw_content(&mut self, ctx: &mut Context, canvas: &mut graphics::Canvas, param: ui_element::UiDrawParam) {
+impl UiContent<GameMessage> for Covering {
+    fn draw_content(
+        &mut self,
+        _ctx: &mut Context,
+        canvas: &mut graphics::Canvas,
+        param: ui_element::UiDrawParam,
+    ) {
         let mut target_mod = param.target;
-        target_mod.y += (1.-self.covering) * target_mod.h;
+        target_mod.y += (1. - self.covering) * target_mod.h;
         target_mod.h *= self.covering;
-        canvas.draw(&graphics::Quad, param.param.dest_rect(target_mod).color(self.color));
+        canvas.draw(
+            &graphics::Quad,
+            param.param.dest_rect(target_mod).color(self.color),
+        );
     }
 }
