@@ -20,8 +20,8 @@ pub use collision::BoundaryCollision;
 pub mod duration;
 pub use duration::LifeDuration;
 
-pub mod spells;
-pub use spells::SpellCaster;
+pub mod spell;
+pub use spell::SpellCaster;
 
 pub mod aura;
 pub use aura::Aura;

@@ -29,7 +29,7 @@ pub enum Command {
 pub struct Controller {
     #[serde_as(as = "Vec<(_,_)>")]
     /// Manages which keys are mapped to which in-game commands.
-    command_map: HashMap<VirtualKeyCode, Command>,
+    command_map: HashMap<(VirtualKeyCode, bool), Command>,
 }
 
 impl Controller {
@@ -59,8 +59,8 @@ impl Controller {
             delta: ctx.time.delta(),
         };
 
-        for (key, value) in self.command_map.iter() {
-            if ctx.keyboard.is_key_pressed(*key) {
+        for ((key, held), value) in self.command_map.iter() {
+            if ctx.keyboard.is_key_pressed(*key) && *held || ctx.keyboard.is_key_just_released(*key) && !*held {
                 inter.commands.insert(*value, true);
             }
         }
@@ -73,19 +73,19 @@ impl Controller {
 impl Default for Controller{
     fn default() -> Self {
         Self { command_map: HashMap::from([
-            (VirtualKeyCode::A, Command::MoveLeft),
-            (VirtualKeyCode::D, Command::MoveRight),
-            (VirtualKeyCode::Left, Command::MoveLeft),
-            (VirtualKeyCode::Right, Command::MoveRight),
-            (VirtualKeyCode::Y, Command::Spell0),
-            (VirtualKeyCode::Z, Command::Spell0),
-            (VirtualKeyCode::J, Command::Spell0),
-            (VirtualKeyCode::X, Command::Spell1),
-            (VirtualKeyCode::K, Command::Spell1),
-            (VirtualKeyCode::C, Command::Spell2),
-            (VirtualKeyCode::L, Command::Spell2),
-            (VirtualKeyCode::V, Command::Spell3),
-            (VirtualKeyCode::Semicolon, Command::Spell3),
+            ((VirtualKeyCode::A, true), Command::MoveLeft),
+            ((VirtualKeyCode::D, true), Command::MoveRight),
+            ((VirtualKeyCode::Left,true), Command::MoveLeft),
+            ((VirtualKeyCode::Right, true), Command::MoveRight),
+            ((VirtualKeyCode::Y, false), Command::Spell0),
+            ((VirtualKeyCode::Z, false), Command::Spell0),
+            ((VirtualKeyCode::J, false), Command::Spell0),
+            ((VirtualKeyCode::X, false), Command::Spell1),
+            ((VirtualKeyCode::K, false), Command::Spell1),
+            ((VirtualKeyCode::C, false), Command::Spell2),
+            ((VirtualKeyCode::L, false), Command::Spell2),
+            ((VirtualKeyCode::V, false), Command::Spell3),
+            ((VirtualKeyCode::Semicolon, false), Command::Spell3),
         ]) }
     }
 }

@@ -1,5 +1,6 @@
 use ggez::glam::Vec2;
 use legion::{systems::CommandBuffer, Entity, EntityStore, IntoQuery, World};
+use mooeye::sprite::SpritePool;
 use tinyvec::TinyVec;
 
 use super::{Enemy, Position};
@@ -27,7 +28,7 @@ pub enum GameAction {
     /// Instructs the spell casting component to cast a certain spell
     CastSpell(usize),
     /// Executes a closure that is supposed to spawn an entity into the world. TODO: Closure evil, somehow serialize this?
-    Spawn(Box<fn(Entity, Position, &mut CommandBuffer)>),
+    Spawn(Box<fn(Entity, Position, &SpritePool, &mut CommandBuffer)>),
     /// Executes an arbitrary closure with full access to the command buffer.
     Other(Box<fn(Entity, &mut CommandBuffer)>),
     /// Distributes an action among other entities as described by the distributor
@@ -36,7 +37,7 @@ pub enum GameAction {
 
 impl GameAction {
     /// Helper function to create a [GameAction::Spawn] without having to use Box.
-    pub fn spawn(spawner: fn(Entity, Position, &mut CommandBuffer)) -> Self {
+    pub fn spawn(spawner: fn(Entity, Position, &SpritePool, &mut CommandBuffer)) -> Self {
         Self::Spawn(Box::new(spawner))
     }
 
@@ -107,11 +108,12 @@ pub fn resolve_executive_actions(
     ent: &Entity,
     actions: &Actions,
     pos: Option<&Position>,
+    #[resource] spritepool: &SpritePool,
     cmd: &mut CommandBuffer,
 ) {
     for action in actions.get_actions() {
         match action {
-            GameAction::Spawn(spawner) => (spawner)(*ent, pos.map(|p| *p).unwrap_or_default(), cmd),
+            GameAction::Spawn(spawner) => (spawner)(*ent, pos.map(|p| *p).unwrap_or_default(), spritepool, cmd),
             GameAction::Other(executor) => (executor)(*ent, cmd),
             _ => {}
         }

@@ -1,7 +1,7 @@
 
 use ggez::{graphics::Color, *};
 
-use mooeye::{*, sprite::Sprite};
+use mooeye::{*};
 use std::time::Duration;
 
 use crate::PALETTE;
@@ -161,24 +161,29 @@ pub fn construct_game_ui(ctx: &Context) -> Result<UiElement<GameMessage>, GameEr
     Ok(main_box.to_element_builder(0, ctx).as_fill().build())
 }
 
-struct SpellSlot{
-    icon: graphics::Image,
-    dur_left: Duration,
-    dur_total: Duration,
+struct Covering{
+    covering: f32,
+    color: graphics::Color,
 }
 
-impl SpellSlot{
-    pub fn new(ctx: &Context) -> Self{
+impl Covering{
+    pub fn new(color: graphics::Color) -> Self{
         Self{
-            icon: graphics::Image::from_path(ctx, "/sprites/lock.png").expect("Could not unpack "),
-            dur_left: Duration::ZERO,
-            dur_total: Duration::ZERO,
+            covering: 1.,
+            color,
         }
+    }
+
+    pub fn set_covering(&mut self, covering: f32){
+        self.covering = covering;
     }
 }
 
-impl UiContent<GameMessage> for SpellSlot{
+impl UiContent<GameMessage> for Covering{
     fn draw_content(&mut self, ctx: &mut Context, canvas: &mut graphics::Canvas, param: ui_element::UiDrawParam) {
-        
+        let mut target_mod = param.target;
+        target_mod.y += (1.-self.covering) * target_mod.h;
+        target_mod.h *= self.covering;
+        canvas.draw(&graphics::Quad, param.param.dest_rect(target_mod).color(self.color));
     }
 }

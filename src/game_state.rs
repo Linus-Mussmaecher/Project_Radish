@@ -1,8 +1,8 @@
 use ggez::graphics::Rect;
+use ggez::*;
 use legion::*;
 use mooeye::{scene_manager::Scene, *};
 use std::time::Duration;
-use ggez::{*};
 
 mod game_message;
 use game_message::GameMessage;
@@ -11,6 +11,7 @@ use game_message::MessageSet;
 mod game_data;
 use game_data::GameData;
 mod director;
+use self::components::spell::spell_list;
 pub use self::controller::Controller;
 use self::director::Director;
 
@@ -38,7 +39,6 @@ pub struct GameState {
 
 impl GameState {
     pub fn new(ctx: &Context) -> Result<Self, GameError> {
-
         // Create world
 
         let mut world = World::default();
@@ -55,7 +55,12 @@ impl GameState {
             components::BoundaryCollision::new(true, false, false),
             components::Control::new(150.),
             sprite_pool.init_sprite("/sprites/mage", Duration::from_secs_f32(0.25))?,
-            components::SpellCaster::new(),
+            components::SpellCaster::new(vec![
+                spell_list::construct_fireball(&sprite_pool),
+                spell_list::construct_icebomb(&sprite_pool),
+                spell_list::construct_electrobomb(&sprite_pool),
+                spell_list::construct_fireball(&sprite_pool),
+            ]),
         ));
 
         let mut resources = Resources::default();
@@ -77,8 +82,9 @@ impl GameState {
                 .add_system(components::health::destroy_by_health_system())
                 .build(),
             action_cons_schedule: Schedule::builder()
+                // systems that consume (but may produce) actions
+                .add_system(components::spell::spell_casting_system())
                 // systems that consume actions
-                .add_system(components::spells::spell_casting_system())
                 .add_system(components::actions::resolve_executive_actions_system())
                 .add_system(components::position::resolve_move_system())
                 .add_system(components::collision::boundary_collision_system())
