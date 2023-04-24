@@ -29,8 +29,8 @@ impl Director {
             total: Duration::ZERO,
             credits: 0,
             enemies: vec![
-                (40, &spawn_basic_skeleton),
-                (70, &spawn_fast_skeleton),
+                (040, &spawn_basic_skeleton),
+                (070, &spawn_fast_skeleton),
                 (100, &spawn_loot_skeleton),
                 (150, &spawn_tank_skeleton),
             ],
@@ -64,14 +64,7 @@ impl Director {
 
             // while credits left to spend
             'outer: loop {
-                // randomly select a spawn among the optionis
-                let mut low_ind = 0;
-                for (ind, (cost, _)) in self.enemies.iter().enumerate(){
-                    if to_spend >= *cost{
-                        low_ind = ind;
-                    }
-                }
-                let mut enemy_ind = (random::<usize>() % (self.enemies.len() - low_ind)) + low_ind;
+                let mut enemy_ind = random::<usize>() % self.enemies.len();
                 let mut enemy = self.enemies.get(enemy_ind);
 
                 // downgrade spawn until affordable
