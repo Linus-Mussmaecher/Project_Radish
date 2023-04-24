@@ -1,1 +1,64 @@
-command_map = [["Right", "MoveRight"], ["C", "Spell2"], ["X", "Spell1"], ["A", "MoveLeft"], ["J", "Spell0"], ["K", "Spell1"], ["L", "Spell2"], ["Semicolon", "Spell3"], ["D", "MoveRight"], ["Left", "MoveLeft"], ["Y", "Spell0"], ["V", "Spell3"], ["Z", "Spell0"]]
+[[command_map]]
+keycode = "A"
+held = true
+command = "MoveLeft"
+
+[[command_map]]
+keycode = "D"
+held = true
+command = "MoveRight"
+
+[[command_map]]
+keycode = "Left"
+held = true
+command = "MoveLeft"
+
+[[command_map]]
+keycode = "Right"
+held = true
+command = "MoveRight"
+
+[[command_map]]
+keycode = "Y"
+held = false
+command = "Spell0"
+
+[[command_map]]
+keycode = "Z"
+held = false
+command = "Spell0"
+
+[[command_map]]
+keycode = "J"
+held = false
+command = "Spell0"
+
+[[command_map]]
+keycode = "X"
+held = false
+command = "Spell1"
+
+[[command_map]]
+keycode = "K"
+held = false
+command = "Spell1"
+
+[[command_map]]
+keycode = "C"
+held = false
+command = "Spell2"
+
+[[command_map]]
+keycode = "L"
+held = false
+command = "Spell2"
+
+[[command_map]]
+keycode = "V"
+held = false
+command = "Spell3"
+
+[[command_map]]
+keycode = "Semicolon"
+held = false
+command = "Spell3"

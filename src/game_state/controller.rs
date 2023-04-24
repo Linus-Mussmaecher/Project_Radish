@@ -2,7 +2,6 @@ use ggez::{winit::event::VirtualKeyCode, Context};
 use std::{collections::HashMap, fs, path::Path, time::Duration};
 
 use serde::{Deserialize, Serialize};
-use serde_with::serde_as;
 use toml;
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
@@ -23,17 +22,24 @@ pub enum Command {
 }
 
 
-#[derive(Deserialize, Serialize, Debug, Eq, Hash, PartialEq)]
-struct KeyCode(VirtualKeyCode, bool);
+#[derive(Serialize, Deserialize, Debug, Eq, Hash, PartialEq)]
+struct Mapping{
+    keycode: VirtualKeyCode,
+    held: bool,
+    command: Command,
+}
 
+impl Mapping{
+    pub fn new(keycode: VirtualKeyCode, held: bool, command: Command) -> Self{
+        Self { keycode, held, command }
+    }
+}
 
-#[serde_as]
 #[derive(Serialize, Deserialize, Debug)]
 /// A struct that serves as the interface between the user and the game state.
 pub struct Controller {
-    #[serde_as(as = "Vec<(_,_)>")]
     /// Manages which keys are mapped to which in-game commands.
-    command_map: HashMap<KeyCode, Command>,
+    command_map: Vec<Mapping>,
 }
 
 impl Controller {
@@ -63,9 +69,9 @@ impl Controller {
             delta: ctx.time.delta(),
         };
 
-        for (KeyCode(key, held), value) in self.command_map.iter() {
-            if ctx.keyboard.is_key_pressed(*key) && *held || ctx.keyboard.is_key_just_released(*key) && !*held {
-                inter.commands.insert(*value, true);
+        for Mapping{keycode, held, command} in self.command_map.iter() {
+            if ctx.keyboard.is_key_pressed(*keycode) && *held || ctx.keyboard.is_key_just_released(*keycode) && !*held {
+                inter.commands.insert(*command, true);
             }
         }
 
@@ -76,20 +82,20 @@ impl Controller {
 
 impl Default for Controller{
     fn default() -> Self {
-        Self { command_map: HashMap::from([
-            (KeyCode(VirtualKeyCode::A, true), Command::MoveLeft),
-            (KeyCode(VirtualKeyCode::D, true), Command::MoveRight),
-            (KeyCode(VirtualKeyCode::Left,true), Command::MoveLeft),
-            (KeyCode(VirtualKeyCode::Right, true), Command::MoveRight),
-            (KeyCode(VirtualKeyCode::Y, false), Command::Spell0),
-            (KeyCode(VirtualKeyCode::Z, false), Command::Spell0),
-            (KeyCode(VirtualKeyCode::J, false), Command::Spell0),
-            (KeyCode(VirtualKeyCode::X, false), Command::Spell1),
-            (KeyCode(VirtualKeyCode::K, false), Command::Spell1),
-            (KeyCode(VirtualKeyCode::C, false), Command::Spell2),
-            (KeyCode(VirtualKeyCode::L, false), Command::Spell2),
-            (KeyCode(VirtualKeyCode::V, false), Command::Spell3),
-            (KeyCode(VirtualKeyCode::Semicolon, false), Command::Spell3),
+        Self { command_map: Vec::from([
+            Mapping::new(VirtualKeyCode::A, true, Command::MoveLeft),
+            Mapping::new(VirtualKeyCode::D, true, Command::MoveRight),
+            Mapping::new(VirtualKeyCode::Left,true, Command::MoveLeft),
+            Mapping::new(VirtualKeyCode::Right, true, Command::MoveRight),
+            Mapping::new(VirtualKeyCode::Y, false, Command::Spell0),
+            Mapping::new(VirtualKeyCode::Z, false, Command::Spell0),
+            Mapping::new(VirtualKeyCode::J, false, Command::Spell0),
+            Mapping::new(VirtualKeyCode::X, false, Command::Spell1),
+            Mapping::new(VirtualKeyCode::K, false, Command::Spell1),
+            Mapping::new(VirtualKeyCode::C, false, Command::Spell2),
+            Mapping::new(VirtualKeyCode::L, false, Command::Spell2),
+            Mapping::new(VirtualKeyCode::V, false, Command::Spell3),
+            Mapping::new(VirtualKeyCode::Semicolon, false, Command::Spell3),
         ]) }
     }
 }
