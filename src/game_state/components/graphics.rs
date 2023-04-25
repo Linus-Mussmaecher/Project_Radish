@@ -1,38 +1,85 @@
+use std::time::Duration;
+
 use ggez::{
     glam::Vec2,
     graphics::{self, Canvas, DrawParam, Drawable, MeshBuilder, Rect},
     Context,
 };
-use mooeye::sprite::{self, Sprite};
+use mooeye::sprite::{Sprite};
 
 use legion::*;
-use tinyvec::TinyVec;
 
-use crate::PALETTE;
+use crate::{PALETTE, game_state::controller::Interactions};
 
-use super::{Health, Position, Velocity};
+use super::{Health, Position, Velocity, actions::GameAction};
 
-struct Particle{
-
+#[derive(Debug, Clone)]
+/// A struct that represents a Particle that can be added to a graphics component to be displayed on top of the main sprite.
+pub struct Particle{
+    /// The sprite to be displayed.
+    sprite: Sprite,
+    /// Relative position of the sprites center to the center of the main sprite.
+    rel_pos: Vec2,
+    /// Velocity this particle moves at (in pixels/s).
+    vel: Vec2,
+    /// The remaining duration of this particle. If None, it will stay indefinitely.
+    duration: Option<Duration>,
 }
 
-impl Default for Particle{
-    fn default() -> Self {
-        Self {  }
+impl Particle{
+    /// Creates a new particle with the passed sprite, infinite duration and no velocity or offset.
+    pub fn new(sprite: Sprite) -> Self{
+        Self{
+            sprite,
+            rel_pos: Vec2::ZERO,
+            vel: Vec2::ZERO,
+            duration: None,
+        }
+    }
+
+    /// Sets the duration of this particle and returns it builder-pattern style.
+    pub fn with_duration(mut self, duration: Duration) -> Self{
+        self.duration = Some(duration);
+        self
+    }
+
+/// Sets the relative position of this particle and returns it builder-pattern style.
+    pub fn with_relative_position(mut self, rel_x: f32, rel_y: f32 ) -> Self{
+        self.rel_pos = Vec2::new(rel_x, rel_y);
+        self
+    }
+
+    /// Sets the relative position of this particle and returns it builder-pattern style.
+    pub fn with_relative_position_vec(mut self, rel_pos: Vec2) -> Self{
+        self.rel_pos = rel_pos;
+        self
+    }
+
+    /// Sets the velocity of this particle and returns it builder-pattern style.
+    pub fn with_velocity(mut self, dx: f32, dy: f32) -> Self{
+        self.vel = Vec2::new(dx, dy);
+        self
+    }
+
+    /// Sets the velocity of this particle and returns it builder-pattern style.
+    pub fn with_velocity_vec(mut self, vel: Vec2) -> Self{
+        self.vel = vel;
+        self
     }
 }
+
 pub struct Graphics{
     sprite: Sprite,
-    particles: TinyVec<[Particle; 4]>,
+    particles: Vec<Particle>,
 }
 
 impl Graphics{
-    
+
 }
 
 impl From<Sprite> for Graphics{
     fn from(value: Sprite) -> Self {
-        Self { sprite: value, particles: TinyVec::new() }
+        Self { sprite: value, particles: Vec::new() }
     }
 }
 
@@ -80,8 +127,8 @@ pub fn draw_sprites(
             )
             // move to draw to correct position based on flip
             + Vec2::new(
-                -gfx.sprite.dimensions(ctx).unwrap_or_default().w * PIXEL_SIZE / 2. * factor,
-                -gfx.sprite.dimensions(ctx).unwrap_or_default().w * PIXEL_SIZE / 2.,
+                -gfx.sprite.get_dimensions().0 * PIXEL_SIZE / 2. * factor,
+                -gfx.sprite.get_dimensions().1 * PIXEL_SIZE / 2.,
             );
 
         // draw the sprite
@@ -93,11 +140,20 @@ pub fn draw_sprites(
                 .dest(n_pos)
                 .scale(Vec2::new(PIXEL_SIZE * factor, PIXEL_SIZE)),
         );
-    } else {
-        gfx.sprite.draw(canvas, DrawParam::default()
-        .dest(n_pos)
-        .scale(Vec2::new(PIXEL_SIZE * factor, PIXEL_SIZE)));
-    }
+        } else {
+            gfx.sprite.draw(canvas, DrawParam::default()
+            .dest(n_pos)
+            .scale(Vec2::new(PIXEL_SIZE * factor, PIXEL_SIZE)));
+        }
+
+        for part in gfx.particles.iter(){
+            part.sprite.draw(canvas, DrawParam::default().dest(
+                *pos + part.rel_pos - Vec2::from(part.sprite.get_dimensions()) * PIXEL_SIZE /2. + Vec2::new(
+                    (screen_w - boundaries.w)/2.,
+                    (screen_h - boundaries.h)/2.,
+                )
+            ).scale(Vec2::new(PIXEL_SIZE, PIXEL_SIZE)));
+        }
 
         // draw the health bar
         if let Some(health) = health {
@@ -143,4 +199,28 @@ pub fn draw_sprites(
     }
 
     Ok(())
+}
+
+
+#[system(for_each)]
+/// A system that adds, moves and removes particles from a graphics component
+pub fn handle_particles(gfx: &mut Graphics, actions: &super::Actions, #[resource] ix: &Interactions){
+    // Move particles and reduce their durations.
+    for particle in gfx.particles.iter_mut(){
+        particle.duration = particle.duration.map(|d| d.saturating_sub(ix.delta));
+        particle.rel_pos += particle.vel * ix.delta.as_secs_f32();
+    }
+    
+    // Remove particles that have run out.
+    gfx.particles.retain(|par| match par.duration{
+        Some(dur) => !dur.is_zero(),
+        None => true,
+    } );
+
+    // Add new particles.
+    for action in actions.get_actions(){
+        if let GameAction::AddParticle(particle)  = action{
+            gfx.particles.push(particle.clone());
+        }
+    }
 }

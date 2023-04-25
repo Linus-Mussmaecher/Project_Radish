@@ -7,7 +7,7 @@ use rand::random;
 use mooeye::sprite::SpritePool;
 
 use super::{
-    components::{self, actions::GameAction},
+    components::{self, actions::GameAction, graphics::Particle},
     game_message::MessageSet,
 };
 
@@ -186,7 +186,6 @@ pub fn spawn_tank_skeleton(world: &mut World, resources: &mut Resources) -> Resu
         .get::<SpritePool>()
         .ok_or_else(|| ggez::GameError::CustomError("Could not unpack sprite pool.".to_owned()))?;
 
-    
     world.push((
         components::Position::new(random::<f32>() * boundaries.w + boundaries.x, -20.),
         components::Velocity::new(0., 10.),
@@ -216,14 +215,31 @@ pub fn spawn_tank_skeleton(world: &mut World, resources: &mut Resources) -> Resu
             |_| true,
         ),
         components::OnDeath::new(
-            vec![GameAction::distributed(
-                components::actions::Distributor::InRange {
-                    range: 256.,
-                    limit: None,
-                    enemies_only: true,
-                },
-                GameAction::TakeHealing { heal: 2 },
-            )],
+            vec![
+                GameAction::distributed(
+                    components::actions::Distributor::InRange {
+                        range: 256.,
+                        limit: None,
+                        enemies_only: true,
+                    },
+                    GameAction::TakeHealing { heal: 2 },
+                ),
+                GameAction::distributed(
+                    components::actions::Distributor::InRange {
+                        range: 256.,
+                        limit: None,
+                        enemies_only: true,
+                    },
+                    GameAction::AddParticle(
+                        Particle::new(
+                            sprites.init_sprite("/sprites/heal", Duration::from_secs_f32(0.25))?,
+                        )
+                        .with_duration(Duration::from_secs(1))
+                        .with_velocity(0., -15.)
+                        .with_relative_position(0., -64.),
+                    ),
+                ),
+            ],
             MessageSet::new(),
         ),
         components::Enemy::new(2, 25),

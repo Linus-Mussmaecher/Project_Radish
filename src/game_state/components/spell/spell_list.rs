@@ -46,7 +46,7 @@ pub fn construct_icebomb(spritepool: &SpritePool) -> Spell {
         spell_slots: tiny_vec!([f32; MAX_SPELL_SLOTS] => 1.5, 5.),
         name: "Ice Bomb".to_owned(),
         icon: spritepool
-            .init_sprite("/sprites/fireball", Duration::from_secs_f32(1.))
+            .init_sprite("/sprites/icebomb", Duration::from_secs_f32(1.))
             .expect("Could not initialize this spell."),
         spell_: |_| {
             vec![GameAction::spawn(|_, pos, sp, cmd| {

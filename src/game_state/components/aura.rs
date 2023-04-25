@@ -53,7 +53,7 @@ pub fn aura_sytem(world: &mut World) {
                 curr_act
             });
             // push the new list to the list of changed actions
-            list.push((*ent, actions_new.collect::<TinyVec<[GameAction; 4]>>()))
+            list.push((*ent, actions_new.collect::<TinyVec<[GameAction; 4]>>()));
         }
     }
 
