@@ -3,13 +3,38 @@ use ggez::{
     graphics::{self, Canvas, DrawParam, Drawable, MeshBuilder, Rect},
     Context,
 };
-use mooeye::sprite;
+use mooeye::sprite::{self, Sprite};
 
 use legion::*;
+use tinyvec::TinyVec;
 
 use crate::PALETTE;
 
 use super::{Health, Position, Velocity};
+
+struct Particle{
+
+}
+
+impl Default for Particle{
+    fn default() -> Self {
+        Self {  }
+    }
+}
+pub struct Graphics{
+    sprite: Sprite,
+    particles: TinyVec<[Particle; 4]>,
+}
+
+impl Graphics{
+    
+}
+
+impl From<Sprite> for Graphics{
+    fn from(value: Sprite) -> Self {
+        Self { sprite: value, particles: TinyVec::new() }
+    }
+}
 
 const PIXEL_SIZE: f32 = 4.;
 
@@ -21,9 +46,9 @@ pub fn draw_sprites(
     canvas: &mut Canvas,
     animate: bool,
 ) -> Result<(), ggez::GameError> {
-    for (pos, sprite, vel, health) in <(
+    for (pos, gfx, vel, health) in <(
         &Position,
-        &mut sprite::Sprite,
+        &mut Graphics,
         Option<&Velocity>,
         Option<&Health>,
     )>::query()
@@ -55,13 +80,13 @@ pub fn draw_sprites(
             )
             // move to draw to correct position based on flip
             + Vec2::new(
-                -sprite.dimensions(ctx).unwrap_or_default().w * PIXEL_SIZE / 2. * factor,
-                -sprite.dimensions(ctx).unwrap_or_default().w * PIXEL_SIZE / 2.,
+                -gfx.sprite.dimensions(ctx).unwrap_or_default().w * PIXEL_SIZE / 2. * factor,
+                -gfx.sprite.dimensions(ctx).unwrap_or_default().w * PIXEL_SIZE / 2.,
             );
 
         // draw the sprite
         if animate{
-        sprite.draw_sprite(
+        gfx.sprite.draw_sprite(
             ctx,
             canvas,
             DrawParam::default()
@@ -69,7 +94,7 @@ pub fn draw_sprites(
                 .scale(Vec2::new(PIXEL_SIZE * factor, PIXEL_SIZE)),
         );
     } else {
-        sprite.draw(canvas, DrawParam::default()
+        gfx.sprite.draw(canvas, DrawParam::default()
         .dest(n_pos)
         .scale(Vec2::new(PIXEL_SIZE * factor, PIXEL_SIZE)));
     }
@@ -80,7 +105,7 @@ pub fn draw_sprites(
             // get starting point
             let area = Rect::new(
                 pos.x - (1 + (blip_size + 1) * health.get_max_health()) as f32 * PIXEL_SIZE / 2. + (screen_w - boundaries.w)/2.,
-                pos.y - ((blip_size + 3) as f32 + sprite.dimensions(ctx).expect("Could not unwrap dimension.").h/2.) * PIXEL_SIZE + (screen_h - boundaries.h)/2.,
+                pos.y - ((blip_size + 3) as f32 + gfx.sprite.dimensions(ctx).expect("Could not unwrap dimension.").h/2.) * PIXEL_SIZE + (screen_h - boundaries.h)/2.,
                 (1 + (blip_size + 1) * health.get_max_health()) as f32 * PIXEL_SIZE,
                 (blip_size + 2) as f32 * PIXEL_SIZE,
             );

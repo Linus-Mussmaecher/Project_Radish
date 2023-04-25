@@ -23,8 +23,8 @@ pub fn construct_fireball(spritepool: &SpritePool) -> Spell {
                 cmd.push((
                     pos,
                     components::LifeDuration::new(Duration::from_secs(10)),
-                    sp.init_sprite("/sprites/fireball", Duration::from_secs_f32(0.2))
-                        .expect("Could not load sprite."),
+                    components::Graphics::from(sp.init_sprite("/sprites/fireball", Duration::from_secs_f32(0.2))
+                        .expect("Could not load sprite.")),
                     components::Velocity::new(0., -250.),
                     components::Collision::new(32., 32., |e1, e2| {
                         (
@@ -53,8 +53,8 @@ pub fn construct_icebomb(spritepool: &SpritePool) -> Spell {
                 cmd.push((
                     pos,
                     components::LifeDuration::new(Duration::from_secs(10)),
-                    sp.init_sprite("/sprites/icebomb", Duration::from_secs_f32(0.2))
-                        .expect("Could not load sprite."),
+                    components::Graphics::from(sp.init_sprite("/sprites/icebomb", Duration::from_secs_f32(0.2))
+                        .expect("Could not load sprite.")),
                     components::Velocity::new(0., -520.),
                     components::Collision::new(32., 32., |e1, e2| {
                         (
@@ -87,7 +87,7 @@ fn spawn_icebomb(
                     Duration::from_secs_f32(0.25), )
                 .expect("Could not find sprite.");
             sprite.set_variant(1);
-            sprite
+            components::Graphics::from(sprite)
         },
         components::Aura::new(
             128.,
@@ -122,8 +122,8 @@ pub fn construct_electrobomb(spritepool: &SpritePool) -> Spell {
                 cmd.push((
                     pos,
                     components::LifeDuration::new(Duration::from_secs(10)),
-                    sp.init_sprite("/sprites/electroorb", Duration::from_secs_f32(0.2))
-                        .expect("Could not load sprite."),
+                    components::Graphics::from(sp.init_sprite("/sprites/electroorb", Duration::from_secs_f32(0.2))
+                        .expect("Could not load sprite.")),
                     components::Velocity::new(0., -180.),
                     components::Collision::new(32., 32., |e1, e2| {
                         (

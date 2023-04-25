@@ -108,10 +108,10 @@ pub fn spawn_basic_skeleton(world: &mut World, resources: &mut Resources) -> Res
     world.push((
         components::Position::new(random::<f32>() * boundaries.w + boundaries.x, -20.),
         components::Velocity::new(0., 10.),
-        sprites.init_sprite(
+        components::Graphics::from(sprites.init_sprite(
             "/sprites/enemies/skeleton_basic",
             Duration::from_secs_f32(0.25),
-        )?,
+        )?),
         components::Enemy::new(1, 10),
         components::Health::new(4),
         components::Collision::new_basic(64., 64.),
@@ -131,10 +131,10 @@ pub fn spawn_fast_skeleton(world: &mut World, resources: &mut Resources) -> Resu
         components::Position::new(random::<f32>() * boundaries.w + boundaries.x, -20.),
         components::Velocity::new(35., 15.),
         components::BoundaryCollision::new(true, false, true),
-        sprites.init_sprite(
+        components::Graphics::from(sprites.init_sprite(
             "/sprites/enemies/skeleton_basic",
             Duration::from_secs_f32(0.20),
-        )?,
+        )?),
         components::Aura::new(
             256.,
             |act| {
@@ -165,10 +165,10 @@ pub fn spawn_loot_skeleton(world: &mut World, resources: &mut Resources) -> Resu
         components::Position::new(random::<f32>() * boundaries.w + boundaries.x, 30.),
         components::Velocity::new(50., 0.),
         components::BoundaryCollision::new(true, false, true),
-        sprites.init_sprite(
+        components::Graphics::from(sprites.init_sprite(
             "/sprites/enemies/skeleton_sword",
             Duration::from_secs_f32(0.20),
-        )?,
+        )?),
         components::Enemy::new(0, 100),
         components::Health::new(8),
         components::LifeDuration::new(Duration::from_secs(15)),
@@ -190,10 +190,10 @@ pub fn spawn_tank_skeleton(world: &mut World, resources: &mut Resources) -> Resu
     world.push((
         components::Position::new(random::<f32>() * boundaries.w + boundaries.x, -20.),
         components::Velocity::new(0., 10.),
-        sprites.init_sprite(
+        components::Graphics::from(sprites.init_sprite(
             "/sprites/enemies/skeleton_sword",
             Duration::from_secs_f32(0.25),
-        )?,
+        )?),
         components::Aura::new(
             192.,
             |act| {
