@@ -115,6 +115,12 @@ macro_rules! gameaction_multiple {
 }
 pub(crate) use gameaction_multiple;
 
+impl From<GameAction> for GameActionContainer{
+    fn from(value: GameAction) -> Self {
+        Self::Single(value)
+    }
+}
+
 /// A component that handles an entities interaction with the world via an action queue
 pub struct Actions {
     action_queue: TinyVec<[GameAction; 4]>,
@@ -156,6 +162,10 @@ impl Actions {
 #[legion::system(for_each)]
 /// System that clears all actions queues.
 pub fn clear(actions: &mut Actions) {
+    if actions.action_queue.len() > 4{
+        println!("Cache miss! Queue length: {}", actions.action_queue.len());
+    }
+    
     actions.action_queue.clear();
 }
 
@@ -252,7 +262,7 @@ pub fn distribution_system(world: &mut World) {
                     target_list.sort_by(|(_, d1), (_, d2)| d1.total_cmp(d2));
 
                     for (target, _) in target_list.drain(match distributor.limit {
-                        Some(x) => 0..x,
+                        Some(x) => 0..(x.min(target_list.len())),
                         None => 0..target_list.len(),
                     }) {
                         total_actions.push((target, distributor.action.clone()))
@@ -334,10 +344,13 @@ impl Default for Repeater {
 
 #[legion::system(for_each)]
 /// A system that takes all Repeated actions and add their repeaters to the repeater list.
-pub fn register_repeaters(actions: &mut Actions) {
+pub fn register_repeaters(actions: &mut Actions, #[resource] ix: &Interactions) {
     for action in actions.action_queue.iter() {
         if let GameAction::Repeated(repeater) = action {
-            actions.repeat_actions.push(*repeater.clone());
+            let mut rep = *repeater.clone();
+            rep.alive_duration += ix.delta;
+            rep.last_activation_duration += ix.delta;
+            actions.repeat_actions.push(rep);
         }
     }
 }
@@ -373,4 +386,8 @@ pub fn handle_repeaters(actions: &mut Actions, #[resource] ix: &Interactions) {
             Some(total_dur) => total_dur > rep.alive_duration,
             None => true,
         });
+
+    if actions.action_queue.len() > 4{
+        println!("Cache miss. Queue length: {}", actions.action_queue.len());
+    }
 }

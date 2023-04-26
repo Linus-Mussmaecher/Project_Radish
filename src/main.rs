@@ -29,6 +29,7 @@ const PALETTE: [u32;16] = [
 ];
 
 fn main() -> GameResult {
+    //std::env::set_var("RUST_BACKTRACE", "1");
     //code snippet to fetch and set resource dir
 
     let resource_dir = if let Ok(manifest_dir) = std::env::var("CARGO_MANIFEST_DIR") {

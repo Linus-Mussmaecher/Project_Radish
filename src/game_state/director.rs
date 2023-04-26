@@ -58,9 +58,9 @@ impl Director {
 
             // randomly select an amount of available credits to spend
             let mut to_spend = (random::<f32>().powi(2) * self.credits as f32) as u64;
-            if to_spend >= 40 {
-                println!("Spending {} of {} credits.", to_spend, self.credits);
-            }
+            // if to_spend >= 40 {
+            //     println!("Spending {} of {} credits.", to_spend, self.credits);
+            // }
 
             // while credits left to spend
             'outer: loop {

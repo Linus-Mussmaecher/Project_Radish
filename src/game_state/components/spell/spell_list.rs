@@ -32,15 +32,7 @@ pub fn construct_fireball(spritepool: &SpritePool) -> Spell {
                         (
                             vec![
                                 (e1, GameAction::Remove),
-                                (e2, GameAction::TakeDamage { dmg: 1 }),
-                                (
-                                    e2,
-                                    Repeater::new(GameActionContainer::single(
-                                        GameAction::TakeDamage { dmg: 1 },
-                                    ))
-                                    .with_total_duration(Duration::from_secs_f32(1.5))
-                                    .to_action(),
-                                ),
+                                (e2, GameAction::TakeDamage { dmg: 2 }),
                             ],
                             MessageSet::new(),
                         )
@@ -106,7 +98,7 @@ fn spawn_icebomb(
                 match act {
                     // slow down enemies by 90%
                     GameAction::Move { delta } => *delta *= 0.1,
-                    _ => {},
+                    _ => {}
                 };
             },
             // only enemies
@@ -118,6 +110,21 @@ fn spawn_icebomb(
                 }
             },
         ),
+        {
+            let mut actions = components::actions::Actions::new();
+            actions.push(
+                Repeater::new(
+                    Distributor::new(GameAction::TakeDamage { dmg: 1 }.into())
+                        .with_range(128.)
+                        .with_enemies_only()
+                        .to_action()
+                        .into(),
+                )
+                .with_once_after(Duration::from_secs_f32(5.))
+                .to_action(),
+            );
+            actions
+        },
     ));
 }
 
