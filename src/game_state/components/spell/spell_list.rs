@@ -23,14 +23,24 @@ pub fn construct_fireball(spritepool: &SpritePool) -> Spell {
                 cmd.push((
                     pos,
                     components::LifeDuration::new(Duration::from_secs(10)),
-                    components::Graphics::from(sp.init_sprite("/sprites/fireball", Duration::from_secs_f32(0.2))
-                        .expect("Could not load sprite.")),
+                    components::Graphics::from(
+                        sp.init_sprite("/sprites/fireball", Duration::from_secs_f32(0.2))
+                            .expect("Could not load sprite."),
+                    ),
                     components::Velocity::new(0., -250.),
                     components::Collision::new(32., 32., |e1, e2| {
                         (
                             vec![
                                 (e1, GameAction::Remove),
-                                (e2, GameAction::TakeDamage { dmg: 2 }),
+                                (e2, GameAction::TakeDamage { dmg: 1 }),
+                                (
+                                    e2,
+                                    Repeater::new(GameActionContainer::single(
+                                        GameAction::TakeDamage { dmg: 1 },
+                                    ))
+                                    .with_total_duration(Duration::from_secs_f32(1.5))
+                                    .to_action(),
+                                ),
                             ],
                             MessageSet::new(),
                         )
@@ -53,8 +63,10 @@ pub fn construct_icebomb(spritepool: &SpritePool) -> Spell {
                 cmd.push((
                     pos,
                     components::LifeDuration::new(Duration::from_secs(10)),
-                    components::Graphics::from(sp.init_sprite("/sprites/icebomb", Duration::from_secs_f32(0.2))
-                        .expect("Could not load sprite.")),
+                    components::Graphics::from(
+                        sp.init_sprite("/sprites/icebomb", Duration::from_secs_f32(0.2))
+                            .expect("Could not load sprite."),
+                    ),
                     components::Velocity::new(0., -520.),
                     components::Collision::new(32., 32., |e1, e2| {
                         (
@@ -83,8 +95,7 @@ fn spawn_icebomb(
         components::LifeDuration::new(Duration::from_secs(5)),
         {
             let mut sprite = spritepool
-                .init_sprite("/sprites/icebomb", 
-                    Duration::from_secs_f32(0.25), )
+                .init_sprite("/sprites/icebomb", Duration::from_secs_f32(0.25))
                 .expect("Could not find sprite.");
             sprite.set_variant(1);
             components::Graphics::from(sprite)
@@ -94,9 +105,9 @@ fn spawn_icebomb(
             |act| {
                 match act {
                     // slow down enemies by 90%
-                    GameAction::Move { delta } => GameAction::Move { delta: delta * 0.1 },
-                    other => other,
-                }
+                    GameAction::Move { delta } => *delta *= 0.1,
+                    _ => {},
+                };
             },
             // only enemies
             |entry| {
@@ -122,8 +133,10 @@ pub fn construct_electrobomb(spritepool: &SpritePool) -> Spell {
                 cmd.push((
                     pos,
                     components::LifeDuration::new(Duration::from_secs(10)),
-                    components::Graphics::from(sp.init_sprite("/sprites/electroorb", Duration::from_secs_f32(0.2))
-                        .expect("Could not load sprite.")),
+                    components::Graphics::from(
+                        sp.init_sprite("/sprites/electroorb", Duration::from_secs_f32(0.2))
+                            .expect("Could not load sprite."),
+                    ),
                     components::Velocity::new(0., -180.),
                     components::Collision::new(32., 32., |e1, e2| {
                         (
@@ -131,7 +144,9 @@ pub fn construct_electrobomb(spritepool: &SpritePool) -> Spell {
                                 (e1, GameAction::AddImmunity { other: e2 }),
                                 (
                                     e2,
-                                    Distributor::new(GameActionContainer::single(GameAction::TakeDamage { dmg: 1 }))
+                                    Distributor::new(GameActionContainer::single(
+                                        GameAction::TakeDamage { dmg: 1 },
+                                    ))
                                     .with_range(128.)
                                     .with_enemies_only()
                                     .to_action(),

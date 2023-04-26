@@ -1,9 +1,11 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, time::Duration};
 
 use ggez::glam::Vec2;
 use legion::{systems::CommandBuffer, Entity, EntityStore, IntoQuery, World};
 use mooeye::sprite::SpritePool;
 use tinyvec::TinyVec;
+
+use crate::game_state::controller::Interactions;
 
 use super::{Enemy, Position};
 
@@ -36,22 +38,30 @@ pub enum GameAction {
     /// Executes an arbitrary closure with full access to the command buffer.
     Other(Box<fn(Entity, &mut CommandBuffer)>),
     /// Distributes an action among other entities as described by the distributor
-    Distributed(Distributor),
+    Distributed(Box<Distributor>),
     /// Applies an action repeatedly over a time period
-    Repeated(Repeater),
+    Repeated(Box<Repeater>),
 }
 
-impl Debug for GameAction{
+impl Debug for GameAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::None => write!(f, "None"),
             Self::Remove => write!(f, "Remove"),
             Self::Move { delta } => f.debug_struct("Move").field("delta", delta).finish(),
             Self::TakeDamage { dmg } => f.debug_struct("TakeDamage").field("dmg", dmg).finish(),
-            Self::TakeHealing { heal } => f.debug_struct("TakeHealing").field("heal", heal).finish(),
-            Self::TakeCityDamage { dmg } => f.debug_struct("TakeCityDamage").field("dmg", dmg).finish(),
-            Self::GainGold { amount } => f.debug_struct("GainGold").field("amount", amount).finish(),
-            Self::AddImmunity { other } => f.debug_struct("AddImmunity").field("other", other).finish(),
+            Self::TakeHealing { heal } => {
+                f.debug_struct("TakeHealing").field("heal", heal).finish()
+            }
+            Self::TakeCityDamage { dmg } => {
+                f.debug_struct("TakeCityDamage").field("dmg", dmg).finish()
+            }
+            Self::GainGold { amount } => {
+                f.debug_struct("GainGold").field("amount", amount).finish()
+            }
+            Self::AddImmunity { other } => {
+                f.debug_struct("AddImmunity").field("other", other).finish()
+            }
             Self::AddParticle(arg0) => f.debug_tuple("AddParticle").field(arg0).finish(),
             Self::CastSpell(arg0) => f.debug_tuple("CastSpell").field(arg0).finish(),
             Self::Spawn(_) => f.debug_tuple("Spawn").finish(),
@@ -61,25 +71,6 @@ impl Debug for GameAction{
         }
     }
 }
-
-#[derive(Clone, Debug)]
-pub enum GameActionContainer {
-    Single(Box<GameAction>),
-    Multiple(Vec<GameAction>),
-}
-
-impl GameActionContainer {
-    pub fn single(action: GameAction) -> Self {
-        Self::Single(Box::new(action))
-    }
-}
-
-macro_rules! gameaction_multiple {
-    ($( $x:expr ),* $(,)?) => {
-        crate::game_state::components::actions::GameActionContainer::Multiple(vec![$($x),*])
-    };
-}
-pub(crate) use gameaction_multiple;
 
 impl GameAction {
     /// Helper function to create a [GameAction::Spawn] without having to use Box.
@@ -100,9 +91,34 @@ impl Default for GameAction {
     }
 }
 
+#[derive(Clone, Debug)]
+/// Object that can contain either a single or a vector of GameActions. Mostly used to abstract away boxes and vecs from the user.
+pub enum GameActionContainer {
+    // Contains only a single GameAction.
+    Single(GameAction),
+    // Contains multiple GameActions in a vector.
+    Multiple(Vec<GameAction>),
+}
+
+impl GameActionContainer {
+    /// Creates a new GameActionContainer with only a single element.
+    pub fn single(action: GameAction) -> Self {
+        Self::Single(action)
+    }
+}
+
+/// Contructs a new GameActionContainer with multiple elements, similar to the vec! macro.
+macro_rules! gameaction_multiple {
+    ($( $x:expr ),* $(,)?) => {
+        crate::game_state::components::actions::GameActionContainer::Multiple(vec![$($x),*])
+    };
+}
+pub(crate) use gameaction_multiple;
+
 /// A component that handles an entities interaction with the world via an action queue
 pub struct Actions {
     action_queue: TinyVec<[GameAction; 4]>,
+    repeat_actions: TinyVec<[Repeater; 4]>,
 }
 
 impl Actions {
@@ -110,12 +126,20 @@ impl Actions {
     pub fn new() -> Self {
         Self {
             action_queue: TinyVec::new(),
+            repeat_actions: TinyVec::new(),
         }
     }
 
     /// Adds an action to the action queue.
     pub fn push(&mut self, action: GameAction) {
         self.action_queue.push(action);
+    }
+
+    pub fn add(&mut self, actions: GameActionContainer) {
+        match actions {
+            GameActionContainer::Single(act) => self.action_queue.push(act),
+            GameActionContainer::Multiple(act_vec) => self.action_queue.extend(act_vec),
+        }
     }
 
     /// Returns all currently queued actions
@@ -126,14 +150,6 @@ impl Actions {
     /// Returns a mutable accessor to all currently queued actions.
     pub fn get_actions_mut(&mut self) -> &mut TinyVec<[GameAction; 4]> {
         &mut self.action_queue
-    }
-}
-
-impl From<TinyVec<[GameAction; 4]>> for Actions {
-    fn from(value: TinyVec<[GameAction; 4]>) -> Self {
-        Self {
-            action_queue: value,
-        }
     }
 }
 
@@ -172,39 +188,40 @@ pub struct Distributor {
     action: GameActionContainer,
 }
 
-impl Distributor{
-
+impl Distributor {
     /// Creates a new action distributor with the specified action(s), applying to an unlimited amount of entities (implementing [components::Position]) at unlimited range
-    pub fn new(action: GameActionContainer) -> Self{
-        Self { range: f32::INFINITY, limit: None, enemies_only: false, action }
+    pub fn new(action: GameActionContainer) -> Self {
+        Self {
+            range: f32::INFINITY,
+            limit: None,
+            enemies_only: false,
+            action,
+        }
     }
 
     /// Modifies this distributor to only hit entities with the [components::Enemy] component. Returns self builder pattern style.
-    pub fn with_enemies_only(mut self) -> Self{
+    pub fn with_enemies_only(mut self) -> Self {
         self.enemies_only = true;
         self
     }
 
     /// Modifies this distributor to only hit entities within a certain range. Returns self builder pattern style.
-    pub fn with_range(mut self, range: f32) -> Self{
+    pub fn with_range(mut self, range: f32) -> Self {
         self.range = range;
         self
     }
 
     /// Modifies this distributor to only hit entities a limited amount of entities (sorted by range). Returns self builder pattern style.
-    pub fn with_limit(mut self, limit: usize) -> Self{
+    pub fn with_limit(mut self, limit: usize) -> Self {
         self.limit = Some(limit);
         self
     }
 
     /// Turns this distributor into a [GameAction::Distributed] containing it.
-    pub fn to_action(self) -> GameAction{
-        GameAction::Distributed(self)
+    pub fn to_action(self) -> GameAction {
+        GameAction::Distributed(Box::new(self))
     }
 }
-
-#[derive(Clone, Debug)]
-pub struct Repeater {}
 
 /// A custom system that handles [GameAction::Distributed].
 pub fn distribution_system(world: &mut World) {
@@ -225,7 +242,7 @@ pub fn distribution_system(world: &mut World) {
                         // if applicable
                         if src_pos.distance(*tar_pos) < distributor.range
                             && (!distributor.enemies_only || matches!(tar_enemy, Some(_)))
-                            //&& distributor.limit.map_or(true, |lim| lim > count)
+                        //&& distributor.limit.map_or(true, |lim| lim > count)
                         {
                             // remember to push action
                             target_list.push((*tar, src_pos.distance(*tar_pos)));
@@ -234,10 +251,10 @@ pub fn distribution_system(world: &mut World) {
 
                     target_list.sort_by(|(_, d1), (_, d2)| d1.total_cmp(d2));
 
-                    for (target, _) in target_list.drain(match distributor.limit{
+                    for (target, _) in target_list.drain(match distributor.limit {
                         Some(x) => 0..x,
                         None => 0..target_list.len(),
-                    }){
+                    }) {
                         total_actions.push((target, distributor.action.clone()))
                     }
                 }
@@ -250,13 +267,110 @@ pub fn distribution_system(world: &mut World) {
     for (ent, action) in total_actions.into_iter() {
         if let Ok(mut entry) = world.entry_mut(ent) {
             if let Ok(action_comp) = entry.get_component_mut::<Actions>() {
-                match action {
-                    GameActionContainer::Single(action) => action_comp.push(*action),
-                    GameActionContainer::Multiple(action_vec) => {
-                        action_comp.get_actions_mut().extend(action_vec)
+                action_comp.add(action);
+            }
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+/// A struct that repeatedly or delayed applies a (set of) action(s) to its carrier.
+pub struct Repeater {
+    total_duration: Option<Duration>,
+    alive_duration: Duration,
+    last_activation_duration: Duration,
+    repeat_duration: Duration,
+    action: GameActionContainer,
+}
+
+impl Repeater {
+    /// Creates a new repeater that applies the passed action once every second for ever.
+    pub fn new(action: GameActionContainer) -> Self {
+        Self {
+            total_duration: None,
+            alive_duration: Duration::ZERO,
+            repeat_duration: Duration::from_secs(1),
+            last_activation_duration: Duration::ZERO,
+            action,
+        }
+    }
+
+    /// Modifies this repeater to be removed after a certain duration has passed. Returns itself builder pattern style.
+    pub fn with_total_duration(mut self, total_duration: Duration) -> Self {
+        self.total_duration = Some(total_duration);
+        self
+    }
+
+    /// Modifies this repeater to be repeatedly apply the action. Returns itself builder pattern style.
+    pub fn with_repeat_duration(mut self, repeat_duration: Duration) -> Self {
+        self.repeat_duration = repeat_duration;
+        self
+    }
+
+    /// Modifies the repeater so it applies its action once after the passed duration and then removes itself.
+    pub fn with_once_after(mut self, duration: Duration) -> Self {
+        self.repeat_duration = duration;
+        self.total_duration = Some(duration);
+        self
+    }
+
+    /// Turns this distributor into a [GameAction::Repeated] containing it.
+    pub fn to_action(self) -> GameAction {
+        GameAction::Repeated(Box::new(self))
+    }
+}
+
+impl Default for Repeater {
+    fn default() -> Self {
+        Self {
+            total_duration: Default::default(),
+            alive_duration: Default::default(),
+            repeat_duration: Default::default(),
+            last_activation_duration: Default::default(),
+            action: GameActionContainer::single(GameAction::None),
+        }
+    }
+}
+
+#[legion::system(for_each)]
+/// A system that takes all Repeated actions and add their repeaters to the repeater list.
+pub fn register_repeaters(actions: &mut Actions) {
+    for action in actions.action_queue.iter() {
+        if let GameAction::Repeated(repeater) = action {
+            actions.repeat_actions.push(*repeater.clone());
+        }
+    }
+}
+
+#[legion::system(for_each)]
+/// A system that regularly looks at all repeaters and triggers their actions, progresses their durations and removes them if appropriate.
+pub fn handle_repeaters(actions: &mut Actions, #[resource] ix: &Interactions) {
+    // iterate over repeaters
+    for repeater in actions.repeat_actions.iter_mut() {
+        // Increase counting durations
+        repeater.alive_duration += ix.delta;
+        repeater.last_activation_duration += ix.delta;
+
+        // Check if last activation is longer ago then planned repeat duration
+        while repeater.last_activation_duration >= repeater.repeat_duration {
+            // decrease last activation duration (thus, if the delta was longer than multiple repeat intervalls, the while will trigger again and additional duration will be kept for next frame)
+            repeater.last_activation_duration -= repeater.repeat_duration;
+            // push appropriate action
+            match &repeater.action {
+                GameActionContainer::Single(act) => actions.action_queue.push(act.clone()),
+                GameActionContainer::Multiple(ac_vec) => {
+                    for act in ac_vec {
+                        actions.action_queue.push(act.clone())
                     }
                 }
             }
         }
     }
+
+    actions
+        .repeat_actions
+        .retain(|rep| match rep.total_duration {
+            Some(total_dur) => total_dur > rep.alive_duration,
+            None => true,
+        });
 }

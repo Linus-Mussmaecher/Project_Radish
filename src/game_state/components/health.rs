@@ -106,10 +106,7 @@ pub fn destroy_by_health(
 
         // death rattle
         if let Some(on_death) = on_death {
-            match &on_death.death_actions {
-                GameActionContainer::Single(sing) => actions.get_actions_mut().push((**sing).clone()),
-                GameActionContainer::Multiple(mul) => actions.get_actions_mut().extend(mul.clone()),
-            }
+            actions.add(on_death.death_actions.clone());
             messages.extend(on_death.death_messages.clone());
         }
     }

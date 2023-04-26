@@ -140,9 +140,9 @@ pub fn spawn_fast_skeleton(world: &mut World, resources: &mut Resources) -> Resu
             |act| {
                 match act {
                     // speed up nearby allies by 50%
-                    GameAction::Move { delta } => GameAction::Move { delta: delta * 1.5 },
-                    other => other,
-                }
+                    GameAction::Move { delta } => *delta *= 1.5,
+                    _ => {},
+                };
             },
             |_| true,
         ),
@@ -198,18 +198,17 @@ pub fn spawn_tank_skeleton(world: &mut World, resources: &mut Resources) -> Resu
             |act| {
                 match act {
                     // reduce dmg by 1, but if would be reduced to 0, onyl 20% chance to do so
-                    GameAction::TakeDamage { dmg } => GameAction::TakeDamage {
-                        dmg: if dmg == 1 {
+                    GameAction::TakeDamage { dmg } => 
+                        *dmg = if *dmg == 1 {
                             if random::<f32>() < 0.8 {
                                 1
                             } else {
                                 0
                             }
                         } else {
-                            0.max(dmg - 1)
+                            0.max(*dmg - 1)
                         },
-                    },
-                    other => other,
+                    _ => {},
                 }
             },
             |_| true,
