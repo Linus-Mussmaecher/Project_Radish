@@ -1,4 +1,4 @@
-use crate::game_state::{controller::Interactions, components::actions::GameAction};
+use crate::game_state::{components::actions::GameAction, controller::Interactions};
 use ggez::glam::Vec2;
 use legion::*;
 
@@ -16,7 +16,6 @@ pub struct Velocity {
 }
 
 impl Velocity {
-
     /// Creates a new velocity component.
     pub fn new(dx: f32, dy: f32) -> Self {
         Self { dx, dy }

@@ -115,7 +115,7 @@ macro_rules! gameaction_multiple {
 }
 pub(crate) use gameaction_multiple;
 
-impl From<GameAction> for GameActionContainer{
+impl From<GameAction> for GameActionContainer {
     fn from(value: GameAction) -> Self {
         Self::Single(value)
     }
@@ -162,10 +162,10 @@ impl Actions {
 #[legion::system(for_each)]
 /// System that clears all actions queues.
 pub fn clear(actions: &mut Actions) {
-    if actions.action_queue.len() > 4{
+    if actions.action_queue.len() > 4 {
         println!("Cache miss! Queue length: {}", actions.action_queue.len());
     }
-    
+
     actions.action_queue.clear();
 }
 
@@ -387,7 +387,7 @@ pub fn handle_repeaters(actions: &mut Actions, #[resource] ix: &Interactions) {
             None => true,
         });
 
-    if actions.action_queue.len() > 4{
+    if actions.action_queue.len() > 4 {
         println!("Cache miss. Queue length: {}", actions.action_queue.len());
     }
 }

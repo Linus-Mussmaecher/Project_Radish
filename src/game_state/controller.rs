@@ -21,17 +21,20 @@ pub enum Command {
     Spell3,
 }
 
-
 #[derive(Serialize, Deserialize, Debug, Eq, Hash, PartialEq)]
-struct Mapping{
+struct Mapping {
     keycode: VirtualKeyCode,
     held: bool,
     command: Command,
 }
 
-impl Mapping{
-    pub fn new(keycode: VirtualKeyCode, held: bool, command: Command) -> Self{
-        Self { keycode, held, command }
+impl Mapping {
+    pub fn new(keycode: VirtualKeyCode, held: bool, command: Command) -> Self {
+        Self {
+            keycode,
+            held,
+            command,
+        }
     }
 }
 
@@ -47,16 +50,18 @@ impl Controller {
     pub fn from_path(path: impl AsRef<Path>) -> Result<Self, Box<dyn std::error::Error>> {
         let string = fs::read_to_string(
             path.as_ref()
-                .to_str().ok_or_else(|| ggez::GameError::CustomError("Could not read path.".to_owned()))?,
+                .to_str()
+                .ok_or_else(|| ggez::GameError::CustomError("Could not read path.".to_owned()))?,
         )?;
         Ok(toml::from_str(&string)?)
     }
 
     /// Saves this controllers keymap to the given path.
-    pub fn save_to_file(&self, path: impl AsRef<Path>) -> Result<(), Box<dyn std::error::Error>>{
+    pub fn save_to_file(&self, path: impl AsRef<Path>) -> Result<(), Box<dyn std::error::Error>> {
         fs::write(
             path.as_ref()
-            .to_str().ok_or_else(|| ggez::GameError::CustomError("Could not read path.".to_owned()))?,
+                .to_str()
+                .ok_or_else(|| ggez::GameError::CustomError("Could not read path.".to_owned()))?,
             toml::to_string(&self)?,
         )?;
         Ok(())
@@ -69,8 +74,15 @@ impl Controller {
             delta: ctx.time.delta(),
         };
 
-        for Mapping{keycode, held, command} in self.command_map.iter() {
-            if ctx.keyboard.is_key_pressed(*keycode) && *held || ctx.keyboard.is_key_just_released(*keycode) && !*held {
+        for Mapping {
+            keycode,
+            held,
+            command,
+        } in self.command_map.iter()
+        {
+            if ctx.keyboard.is_key_pressed(*keycode) && *held
+                || ctx.keyboard.is_key_just_released(*keycode) && !*held
+            {
                 inter.commands.insert(*command, true);
             }
         }
@@ -79,24 +91,25 @@ impl Controller {
     }
 }
 
-
-impl Default for Controller{
+impl Default for Controller {
     fn default() -> Self {
-        Self { command_map: Vec::from([
-            Mapping::new(VirtualKeyCode::A, true, Command::MoveLeft),
-            Mapping::new(VirtualKeyCode::D, true, Command::MoveRight),
-            Mapping::new(VirtualKeyCode::Left,true, Command::MoveLeft),
-            Mapping::new(VirtualKeyCode::Right, true, Command::MoveRight),
-            Mapping::new(VirtualKeyCode::Y, false, Command::Spell0),
-            Mapping::new(VirtualKeyCode::Z, false, Command::Spell0),
-            Mapping::new(VirtualKeyCode::J, false, Command::Spell0),
-            Mapping::new(VirtualKeyCode::X, false, Command::Spell1),
-            Mapping::new(VirtualKeyCode::K, false, Command::Spell1),
-            Mapping::new(VirtualKeyCode::C, false, Command::Spell2),
-            Mapping::new(VirtualKeyCode::L, false, Command::Spell2),
-            Mapping::new(VirtualKeyCode::V, false, Command::Spell3),
-            Mapping::new(VirtualKeyCode::Semicolon, false, Command::Spell3),
-        ]) }
+        Self {
+            command_map: Vec::from([
+                Mapping::new(VirtualKeyCode::A, true, Command::MoveLeft),
+                Mapping::new(VirtualKeyCode::D, true, Command::MoveRight),
+                Mapping::new(VirtualKeyCode::Left, true, Command::MoveLeft),
+                Mapping::new(VirtualKeyCode::Right, true, Command::MoveRight),
+                Mapping::new(VirtualKeyCode::Y, false, Command::Spell0),
+                Mapping::new(VirtualKeyCode::Z, false, Command::Spell0),
+                Mapping::new(VirtualKeyCode::J, false, Command::Spell0),
+                Mapping::new(VirtualKeyCode::X, false, Command::Spell1),
+                Mapping::new(VirtualKeyCode::K, false, Command::Spell1),
+                Mapping::new(VirtualKeyCode::C, false, Command::Spell2),
+                Mapping::new(VirtualKeyCode::L, false, Command::Spell2),
+                Mapping::new(VirtualKeyCode::V, false, Command::Spell3),
+                Mapping::new(VirtualKeyCode::Semicolon, false, Command::Spell3),
+            ]),
+        }
     }
 }
 

@@ -138,10 +138,7 @@ pub fn boundary_collision(
 #[read_component(Collision)]
 #[write_component(Actions)]
 /// A system that manages collisions of entities with each other.
-pub fn collision(
-    world: &mut SubWorld,
-    #[resource] messages: &mut MessageSet,
-) {
+pub fn collision(world: &mut SubWorld, #[resource] messages: &mut MessageSet) {
     // Create a list of all actions triggered by collisions.
     let mut total_actions: Vec<(Entity, GameAction)> = Vec::new();
 
@@ -162,9 +159,9 @@ pub fn collision(
     }
 
     // Apply all remembered actions.
-    for (ent, action) in total_actions{
-        if let Ok(mut entry) = world.entry_mut(ent){
-            if let Ok(actions) = entry.get_component_mut::<Actions>(){
+    for (ent, action) in total_actions {
+        if let Ok(mut entry) = world.entry_mut(ent) {
+            if let Ok(actions) = entry.get_component_mut::<Actions>() {
                 actions.push(action);
             }
         }
