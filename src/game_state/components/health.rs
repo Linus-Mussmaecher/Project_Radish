@@ -3,7 +3,7 @@ use mooeye::sprite::Sprite;
 
 use crate::game_state::game_message::MessageSet;
 
-use super::{Actions, actions::GameAction, LifeDuration, Position};
+use super::{Actions, actions::{*}, LifeDuration, Position};
 
 /// The Health component track wether a unit has a life bar and can take damage.
 pub struct Health {
@@ -48,13 +48,13 @@ impl Enemy {
 
 /// A struct that contains a actions and messages send by an entity on death.
 pub struct OnDeath {
-    death_actions: Vec<GameAction>,
+    death_actions: GameActionContainer,
     death_messages: MessageSet,
 }
 
 impl OnDeath {
     /// Creates a new OnDeath component. The carrying entity will trigger the passed closure when its health reaches 0.
-    pub fn new(death_actions: Vec<GameAction>, death_messages: MessageSet) -> Self {
+    pub fn new(death_actions: GameActionContainer, death_messages: MessageSet) -> Self {
         Self {
             death_actions,
             death_messages,
@@ -106,7 +106,10 @@ pub fn destroy_by_health(
 
         // death rattle
         if let Some(on_death) = on_death {
-            actions.get_actions_mut().extend(on_death.death_actions.clone());
+            match &on_death.death_actions {
+                GameActionContainer::Single(sing) => actions.get_actions_mut().push((**sing).clone()),
+                GameActionContainer::Multiple(mul) => actions.get_actions_mut().extend(mul.clone()),
+            }
             messages.extend(on_death.death_messages.clone());
         }
     }

@@ -26,6 +26,7 @@ pub struct Particle{
     duration: Option<Duration>,
 }
 
+#[allow(dead_code)]
 impl Particle{
     /// Creates a new particle with the passed sprite, infinite duration and no velocity or offset.
     pub fn new(sprite: Sprite) -> Self{

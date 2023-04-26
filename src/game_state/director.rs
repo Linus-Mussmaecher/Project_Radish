@@ -7,7 +7,7 @@ use rand::random;
 use mooeye::sprite::SpritePool;
 
 use super::{
-    components::{self, actions::GameAction, graphics::Particle},
+    components::{self, actions::*, graphics::Particle},
     game_message::MessageSet,
 };
 
@@ -215,21 +215,9 @@ pub fn spawn_tank_skeleton(world: &mut World, resources: &mut Resources) -> Resu
             |_| true,
         ),
         components::OnDeath::new(
-            vec![
-                GameAction::distributed(
-                    components::actions::Distributor::InRange {
-                        range: 256.,
-                        limit: None,
-                        enemies_only: true,
-                    },
+            GameActionContainer::single(
+                Distributor::new(gameaction_multiple![
                     GameAction::TakeHealing { heal: 2 },
-                ),
-                GameAction::distributed(
-                    components::actions::Distributor::InRange {
-                        range: 256.,
-                        limit: None,
-                        enemies_only: true,
-                    },
                     GameAction::AddParticle(
                         Particle::new(
                             sprites.init_sprite("/sprites/heal", Duration::from_secs_f32(0.25))?,
@@ -238,8 +226,12 @@ pub fn spawn_tank_skeleton(world: &mut World, resources: &mut Resources) -> Resu
                         .with_velocity(0., -15.)
                         .with_relative_position(0., -64.),
                     ),
-                ),
-            ],
+                ])
+                .with_enemies_only()
+                .with_limit(5)
+                .with_range(256.)
+                .to_action(),
+            ),
             MessageSet::new(),
         ),
         components::Enemy::new(2, 25),

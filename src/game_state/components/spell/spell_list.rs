@@ -5,7 +5,7 @@ use mooeye::sprite::SpritePool;
 use tinyvec::tiny_vec;
 
 use crate::game_state::{
-    components::{self, actions::GameAction, spell::MAX_SPELL_SLOTS},
+    components::{self, actions::*, spell::MAX_SPELL_SLOTS},
     game_message::MessageSet,
 };
 
@@ -131,14 +131,10 @@ pub fn construct_electrobomb(spritepool: &SpritePool) -> Spell {
                                 (e1, GameAction::AddImmunity { other: e2 }),
                                 (
                                     e2,
-                                    GameAction::distributed(
-                                        components::actions::Distributor::InRange {
-                                            range: 128.,
-                                            limit: Some(10),
-                                            enemies_only: true,
-                                        },
-                                        GameAction::TakeDamage { dmg: 1 },
-                                    ),
+                                    Distributor::new(GameActionContainer::single(GameAction::TakeDamage { dmg: 1 }))
+                                    .with_range(128.)
+                                    .with_enemies_only()
+                                    .to_action(),
                                 ),
                             ],
                             MessageSet::new(),

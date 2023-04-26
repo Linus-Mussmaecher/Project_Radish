@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use ggez::glam::Vec2;
 use legion::{systems::CommandBuffer, Entity, EntityStore, IntoQuery, World};
 use mooeye::sprite::SpritePool;
@@ -5,7 +7,7 @@ use tinyvec::TinyVec;
 
 use super::{Enemy, Position};
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 #[allow(dead_code)]
 /// This enum contains all possible ways for entities to affect the world around them.
 pub enum GameAction {
@@ -34,7 +36,30 @@ pub enum GameAction {
     /// Executes an arbitrary closure with full access to the command buffer.
     Other(Box<fn(Entity, &mut CommandBuffer)>),
     /// Distributes an action among other entities as described by the distributor
-    Distributed(Distributor, GameActionContainer),
+    Distributed(Distributor),
+    /// Applies an action repeatedly over a time period
+    Repeated(Repeater),
+}
+
+impl Debug for GameAction{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::None => write!(f, "None"),
+            Self::Remove => write!(f, "Remove"),
+            Self::Move { delta } => f.debug_struct("Move").field("delta", delta).finish(),
+            Self::TakeDamage { dmg } => f.debug_struct("TakeDamage").field("dmg", dmg).finish(),
+            Self::TakeHealing { heal } => f.debug_struct("TakeHealing").field("heal", heal).finish(),
+            Self::TakeCityDamage { dmg } => f.debug_struct("TakeCityDamage").field("dmg", dmg).finish(),
+            Self::GainGold { amount } => f.debug_struct("GainGold").field("amount", amount).finish(),
+            Self::AddImmunity { other } => f.debug_struct("AddImmunity").field("other", other).finish(),
+            Self::AddParticle(arg0) => f.debug_tuple("AddParticle").field(arg0).finish(),
+            Self::CastSpell(arg0) => f.debug_tuple("CastSpell").field(arg0).finish(),
+            Self::Spawn(_) => f.debug_tuple("Spawn").finish(),
+            Self::Other(_) => f.debug_tuple("Other").finish(),
+            Self::Distributed(arg0) => f.debug_tuple("Distributed").field(arg0).finish(),
+            Self::Repeated(arg0) => f.debug_tuple("Repeated").field(arg0).finish(),
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -49,12 +74,12 @@ impl GameActionContainer {
     }
 }
 
-#[macro_export]
 macro_rules! gameaction_multiple {
-    ($all:expr) => {
-        GameAction::Multiple(vec![$all])
+    ($( $x:expr ),* $(,)?) => {
+        crate::game_state::components::actions::GameActionContainer::Multiple(vec![$($x),*])
     };
 }
+pub(crate) use gameaction_multiple;
 
 impl GameAction {
     /// Helper function to create a [GameAction::Spawn] without having to use Box.
@@ -139,51 +164,81 @@ pub fn resolve_executive_actions(
 }
 
 #[derive(Clone, Debug)]
-/// An enum that contains multiple ways to distribute an action among entities.
-pub enum Distributor {
-    /// Applies the action to all entities within a certain range of the original entity, possible only the first few entities and possibly restrited to only enemies.
-    InRange {
-        range: f32,
-        limit: Option<usize>,
-        enemies_only: bool,
-    },
+/// Applies the action to all entities within a certain range of the original entity, possible only the first few entities and possibly restrited to only enemies.
+pub struct Distributor {
+    range: f32,
+    limit: Option<usize>,
+    enemies_only: bool,
+    action: GameActionContainer,
 }
+
+impl Distributor{
+
+    /// Creates a new action distributor with the specified action(s), applying to an unlimited amount of entities (implementing [components::Position]) at unlimited range
+    pub fn new(action: GameActionContainer) -> Self{
+        Self { range: f32::INFINITY, limit: None, enemies_only: false, action }
+    }
+
+    /// Modifies this distributor to only hit entities with the [components::Enemy] component. Returns self builder pattern style.
+    pub fn with_enemies_only(mut self) -> Self{
+        self.enemies_only = true;
+        self
+    }
+
+    /// Modifies this distributor to only hit entities within a certain range. Returns self builder pattern style.
+    pub fn with_range(mut self, range: f32) -> Self{
+        self.range = range;
+        self
+    }
+
+    /// Modifies this distributor to only hit entities a limited amount of entities (sorted by range). Returns self builder pattern style.
+    pub fn with_limit(mut self, limit: usize) -> Self{
+        self.limit = Some(limit);
+        self
+    }
+
+    /// Turns this distributor into a [GameAction::Distributed] containing it.
+    pub fn to_action(self) -> GameAction{
+        GameAction::Distributed(self)
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Repeater {}
 
 /// A custom system that handles [GameAction::Distributed].
 pub fn distribution_system(world: &mut World) {
     // create a list of all new actions
-    let mut actions_to_apply = Vec::new();
+    let mut total_actions = Vec::new();
 
     // for every action distributor
     for (src_pos, actions) in <(&Position, &Actions)>::query().iter(world) {
         for act in actions.get_actions() {
             // get all distributor actions
             match act {
-                GameAction::Distributed(distributor, action) => {
-                    // get parameters of distributor
-                    let (range, limit, enemies_only) = match *distributor {
-                        Distributor::InRange {
-                            range,
-                            limit,
-                            enemies_only,
-                        } => (range, limit, enemies_only),
-                    };
-
-                    // keep track of applied actions
-                    let mut count = 0;
+                GameAction::Distributed(distributor) => {
+                    let mut target_list = Vec::new();
                     // iterate over possible target
                     for (tar, tar_pos, tar_enemy) in
                         <(Entity, &Position, Option<&Enemy>)>::query().iter(world)
                     {
                         // if applicable
-                        if src_pos.distance(*tar_pos) < range
-                            && (!enemies_only || matches!(tar_enemy, Some(_)))
-                            && limit.map_or(true, |lim| lim > count)
+                        if src_pos.distance(*tar_pos) < distributor.range
+                            && (!distributor.enemies_only || matches!(tar_enemy, Some(_)))
+                            //&& distributor.limit.map_or(true, |lim| lim > count)
                         {
                             // remember to push action
-                            actions_to_apply.push((*tar, action.clone()));
-                            count += 1;
+                            target_list.push((*tar, src_pos.distance(*tar_pos)));
                         }
+                    }
+
+                    target_list.sort_by(|(_, d1), (_, d2)| d1.total_cmp(d2));
+
+                    for (target, _) in target_list.drain(match distributor.limit{
+                        Some(x) => 0..x,
+                        None => 0..target_list.len(),
+                    }){
+                        total_actions.push((target, distributor.action.clone()))
                     }
                 }
                 _ => {}
@@ -192,12 +247,14 @@ pub fn distribution_system(world: &mut World) {
     }
 
     // now, push all remembered actions to their respective lists
-    for (ent, action) in actions_to_apply.into_iter() {
+    for (ent, action) in total_actions.into_iter() {
         if let Ok(mut entry) = world.entry_mut(ent) {
             if let Ok(action_comp) = entry.get_component_mut::<Actions>() {
                 match action {
                     GameActionContainer::Single(action) => action_comp.push(*action),
-                    GameActionContainer::Multiple(action_vec) => action_comp.get_actions_mut().extend(action_vec),
+                    GameActionContainer::Multiple(action_vec) => {
+                        action_comp.get_actions_mut().extend(action_vec)
+                    }
                 }
             }
         }
