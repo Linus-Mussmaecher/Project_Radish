@@ -5,7 +5,7 @@ use tinyvec::TinyVec;
 
 use super::{Enemy, Position};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[allow(dead_code)]
 /// This enum contains all possible ways for entities to affect the world around them.
 pub enum GameAction {
@@ -32,18 +32,32 @@ pub enum GameAction {
     /// Executes an arbitrary closure with full access to the command buffer.
     Other(Box<fn(Entity, &mut CommandBuffer)>),
     /// Distributes an action among other entities as described by the distributor
-    Distributed(Distributor, Box<GameAction>),
+    Distributed(Distributor, GameActionContainer),
+}
+
+#[derive(Clone, Debug)]
+pub enum GameActionContainer {
+    Single(Box<GameAction>),
+    Multiple(Vec<GameAction>),
+}
+
+impl GameActionContainer {
+    pub fn single(action: GameAction) -> Self {
+        Self::Single(Box::new(action))
+    }
+}
+
+#[macro_export]
+macro_rules! gameaction_multiple {
+    ($all:expr) => {
+        GameAction::Multiple(vec![$all])
+    };
 }
 
 impl GameAction {
     /// Helper function to create a [GameAction::Spawn] without having to use Box.
     pub fn spawn(spawner: fn(Entity, Position, &SpritePool, &mut CommandBuffer)) -> Self {
         Self::Spawn(Box::new(spawner))
-    }
-
-    /// Helper function to create a [GameAction::Distributed] without having to use Box.
-    pub fn distributed(distributor: Distributor, action: GameAction) -> Self {
-        Self::Distributed(distributor, Box::new(action))
     }
 
     #[allow(dead_code)]
@@ -83,7 +97,7 @@ impl Actions {
     }
 
     /// Returns a mutable accessor to all currently queued actions.
-    pub fn get_actions_mut(&mut self) -> &mut TinyVec<[GameAction; 4]>{
+    pub fn get_actions_mut(&mut self) -> &mut TinyVec<[GameAction; 4]> {
         &mut self.action_queue
     }
 }
@@ -113,7 +127,9 @@ pub fn resolve_executive_actions(
 ) {
     for action in actions.get_actions() {
         match action {
-            GameAction::Spawn(spawner) => (spawner)(*ent, pos.map(|p| *p).unwrap_or_default(), spritepool, cmd),
+            GameAction::Spawn(spawner) => {
+                (spawner)(*ent, pos.map(|p| *p).unwrap_or_default(), spritepool, cmd)
+            }
             GameAction::Other(executor) => (executor)(*ent, cmd),
             _ => {}
         }
@@ -176,10 +192,12 @@ pub fn distribution_system(world: &mut World) {
     // now, push all remembered actions to their respective lists
     for (ent, action) in actions_to_apply.into_iter() {
         if let Ok(mut entry) = world.entry_mut(ent) {
-            entry
-                .get_component_mut::<Actions>()
-                .expect("Every element should have an actions component.")
-                .push(*action);
+            if let Ok(action_comp) = entry.get_component_mut::<Actions>() {
+                match action {
+                    GameActionContainer::Single(action) => action_comp.push(*action),
+                    GameActionContainer::Multiple(action_vec) => action_comp.get_actions_mut().extend(action_vec),
+                }
+            }
         }
     }
 }
