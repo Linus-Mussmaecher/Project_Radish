@@ -75,7 +75,9 @@ pub struct Graphics{
 }
 
 impl Graphics{
-
+    pub fn get_sprite(&self) -> &Sprite{
+        &self.sprite
+    }
 }
 
 impl From<Sprite> for Graphics{

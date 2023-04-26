@@ -1,9 +1,8 @@
 use legion::{systems::CommandBuffer, *};
-use mooeye::sprite::Sprite;
 
 use crate::game_state::game_message::MessageSet;
 
-use super::{Actions, actions::{*}, LifeDuration, Position};
+use super::{Actions, actions::{*}, LifeDuration, Position, Graphics};
 
 /// The Health component track wether a unit has a life bar and can take damage.
 pub struct Health {
@@ -75,7 +74,7 @@ pub fn remove_entities(entity: &Entity, actions: &Actions, cmd: &mut CommandBuff
 pub fn destroy_by_health(
     health: &Health,
     enemy: Option<&Enemy>,
-    sprite: Option<&Sprite>,
+    gfx: Option<&Graphics>,
     pos: Option<&Position>,
     on_death: Option<&OnDeath>,
     actions: &mut Actions,
@@ -89,14 +88,15 @@ pub fn destroy_by_health(
             actions.push(GameAction::GainGold {
                 amount: enemy.bounty,
             });
-            if let Some(sprite) = sprite {
+            // add death animation
+            if let Some(gfx) = gfx {
                 cmd.push((
                     pos.map(|p| *p).unwrap_or_default(),
-                    LifeDuration::new(sprite.get_cycle_time() - sprite.get_frame_time()),
+                    LifeDuration::new(gfx.get_sprite().get_cycle_time() - gfx.get_sprite().get_frame_time()),
                     {
-                        let mut death_sprite = sprite.clone();
+                        let mut death_sprite = gfx.get_sprite().clone();
                         death_sprite.set_variant(1);
-                        death_sprite
+                        Graphics::from(death_sprite)
                     },
                 ));
             }
