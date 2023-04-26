@@ -2,8 +2,9 @@ pub mod position;
 pub use position::Position;
 pub use position::Velocity;
 
-pub mod sprite;
+pub mod graphics;
 pub use mooeye::sprite::Sprite;
+pub use graphics::Graphics;
 
 pub mod health;
 pub use health::Health;

@@ -19,7 +19,7 @@ impl SpellCaster {
     pub fn new(spells: Vec<Spell>) -> Self {
         Self {
             spells,
-            spell_slots: TinyVec::from([(Duration::ZERO, Duration::ZERO); 6]),
+            spell_slots: TinyVec::from([(Duration::ZERO, Duration::ZERO); MAX_SPELL_SLOTS]),
         }
     }
 }
