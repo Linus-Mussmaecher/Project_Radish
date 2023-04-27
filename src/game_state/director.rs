@@ -132,7 +132,7 @@ pub fn spawn_fast_skeleton(world: &mut World, resources: &mut Resources) -> Resu
         components::Velocity::new(35., 15.),
         components::BoundaryCollision::new(true, false, true),
         components::Graphics::from(sprites.init_sprite(
-            "/sprites/enemies/skeleton_basic",
+            "/sprites/enemies/skeleton_sword",
             Duration::from_secs_f32(0.20),
         )?),
         components::Aura::new(
@@ -141,7 +141,7 @@ pub fn spawn_fast_skeleton(world: &mut World, resources: &mut Resources) -> Resu
                 match act {
                     // speed up nearby allies by 50%
                     GameAction::Move { delta } => *delta *= 1.5,
-                    _ => {},
+                    _ => {}
                 };
             },
             |_| true,
@@ -166,7 +166,7 @@ pub fn spawn_loot_skeleton(world: &mut World, resources: &mut Resources) -> Resu
         components::Velocity::new(50., 0.),
         components::BoundaryCollision::new(true, false, true),
         components::Graphics::from(sprites.init_sprite(
-            "/sprites/enemies/skeleton_sword",
+            "/sprites/enemies/skeleton_loot",
             Duration::from_secs_f32(0.20),
         )?),
         components::Enemy::new(0, 100),
@@ -190,7 +190,7 @@ pub fn spawn_tank_skeleton(world: &mut World, resources: &mut Resources) -> Resu
         components::Position::new(random::<f32>() * boundaries.w + boundaries.x, -20.),
         components::Velocity::new(0., 10.),
         components::Graphics::from(sprites.init_sprite(
-            "/sprites/enemies/skeleton_sword",
+            "/sprites/enemies/skeleton_tank",
             Duration::from_secs_f32(0.25),
         )?),
         components::Aura::new(
@@ -198,7 +198,7 @@ pub fn spawn_tank_skeleton(world: &mut World, resources: &mut Resources) -> Resu
             |act| {
                 match act {
                     // reduce dmg by 1, but if would be reduced to 0, onyl 20% chance to do so
-                    GameAction::TakeDamage { dmg } => 
+                    GameAction::TakeDamage { dmg } => {
                         *dmg = if *dmg == 1 {
                             if random::<f32>() < 0.8 {
                                 1
@@ -207,8 +207,9 @@ pub fn spawn_tank_skeleton(world: &mut World, resources: &mut Resources) -> Resu
                             }
                         } else {
                             0.max(*dmg - 1)
-                        },
-                    _ => {},
+                        }
+                    }
+                    _ => {}
                 }
             },
             |_| true,
