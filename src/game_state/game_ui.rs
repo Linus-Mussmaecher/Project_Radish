@@ -32,7 +32,7 @@ pub fn construct_game_ui(ctx: &Context) -> Result<UiElement<GameMessage>, GameEr
 
     // gold display
     let gold_icon = sprite::Sprite::from_path_fmt(
-        "/sprites/coin_16_16.png",
+        "/sprites/ui/coin_16_16.png",
         ctx,
         Duration::from_secs_f32(0.25),
     )?
@@ -94,7 +94,7 @@ pub fn construct_game_ui(ctx: &Context) -> Result<UiElement<GameMessage>, GameEr
     // city health display
 
     let city_display = sprite::Sprite::from_path_fmt(
-        "/sprites/city_16_16.png",
+        "/sprites/ui/city_16_16.png",
         ctx,
         Duration::from_secs_f32(0.25),
     )?
