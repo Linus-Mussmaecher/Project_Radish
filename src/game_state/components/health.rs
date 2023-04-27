@@ -2,7 +2,7 @@ use legion::{systems::CommandBuffer, *};
 
 use crate::game_state::game_message::MessageSet;
 
-use super::{actions::*, Actions, Graphics, LifeDuration, Position};
+use super::{actions::*, Actions, Graphics, LifeDuration, Position, Velocity};
 
 /// The Health component track wether a unit has a life bar and can take damage.
 pub struct Health {
@@ -80,6 +80,7 @@ pub fn destroy_by_health(
     enemy: Option<&Enemy>,
     gfx: Option<&Graphics>,
     pos: Option<&Position>,
+    vel: Option<&Velocity>,
     on_death: Option<&OnDeath>,
     actions: &mut Actions,
     cmd: &mut CommandBuffer,
@@ -96,6 +97,8 @@ pub fn destroy_by_health(
             if let Some(gfx) = gfx {
                 cmd.push((
                     pos.map(|p| *p).unwrap_or_default(),
+                    vel.map(|v| Velocity::new((f32::EPSILON).copysign(v.get_dx()), 0.))
+                        .unwrap_or(Velocity::new(0., 0.)),
                     LifeDuration::new(
                         gfx.get_sprite().get_cycle_time() - gfx.get_sprite().get_frame_time(),
                     ),

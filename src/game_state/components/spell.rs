@@ -5,7 +5,10 @@ use tinyvec::TinyVec;
 use crate::game_state::{controller::Interactions, game_message::MessageSet};
 use mooeye::sprite::Sprite;
 
-use super::{actions::GameAction, Actions};
+use super::{
+    actions::{GameAction, GameActionContainer},
+    Actions,
+};
 
 pub mod spell_list;
 
@@ -27,7 +30,6 @@ impl SpellCaster {
 #[system(for_each)]
 /// A system that resolves spell casting actions (most likely sent by the control component) by casting the spells.
 pub fn spell_casting(
-    caster_ent: &Entity,
     caster: &mut SpellCaster,
     actions: &mut Actions,
     #[resource] messages: &mut MessageSet,
@@ -56,47 +58,38 @@ pub fn spell_casting(
 
     // attempt casts
 
+    let mut cast = None;
+
     if ix
         .commands
         .contains_key(&crate::game_state::controller::Command::Spell0)
     {
-        if let Some(spell) = caster.spells.get(0) {
-            actions
-                .get_actions_mut()
-                .extend(spell.attempt_cast(*caster_ent, &mut caster.spell_slots));
-        }
+        cast = Some(0);
     }
 
     if ix
         .commands
         .contains_key(&crate::game_state::controller::Command::Spell1)
     {
-        if let Some(spell) = caster.spells.get(1) {
-            actions
-                .get_actions_mut()
-                .extend(spell.attempt_cast(*caster_ent, &mut caster.spell_slots));
-        }
+        cast = Some(1);
     }
 
     if ix
         .commands
         .contains_key(&crate::game_state::controller::Command::Spell2)
     {
-        if let Some(spell) = caster.spells.get(2) {
-            actions
-                .get_actions_mut()
-                .extend(spell.attempt_cast(*caster_ent, &mut caster.spell_slots));
-        }
+        cast = Some(2);
     }
 
     if ix
         .commands
         .contains_key(&crate::game_state::controller::Command::Spell3)
     {
-        if let Some(spell) = caster.spells.get(3) {
-            actions
-                .get_actions_mut()
-                .extend(spell.attempt_cast(*caster_ent, &mut caster.spell_slots));
+        cast = Some(3);
+    }
+    if let Some(cast) = cast {
+        if let Some(spell) = caster.spells.get(cast) {
+            actions.add(spell.attempt_cast(&mut caster.spell_slots));
         }
     }
 }
@@ -110,7 +103,7 @@ pub struct Spell {
 
     icon: Sprite,
 
-    spell_: fn(Entity) -> Vec<GameAction>,
+    spell_: GameActionContainer,
 }
 
 #[allow(dead_code)]
@@ -129,9 +122,8 @@ impl Spell {
 
     pub fn attempt_cast(
         &self,
-        caster: Entity,
         available_slots: &mut TinyVec<[(Duration, Duration); MAX_SPELL_SLOTS]>,
-    ) -> Vec<GameAction> {
+    ) -> GameActionContainer {
         let free_slots = available_slots
             .iter()
             .filter(|slot| slot.0.is_zero())
@@ -146,9 +138,9 @@ impl Spell {
                     ind += 1;
                 }
             }
-            (self.spell_)(caster)
+            self.spell_.clone()
         } else {
-            Vec::new()
+            GameActionContainer::Single(GameAction::None)
         }
     }
 }

@@ -61,7 +61,7 @@ impl GameState {
                 spell_list::construct_fireball(&sprite_pool),
                 spell_list::construct_icebomb(&sprite_pool),
                 spell_list::construct_electrobomb(&sprite_pool),
-                spell_list::construct_fireball(&sprite_pool),
+                spell_list::construct_conflagrate(&sprite_pool),
             ]),
         ));
 
@@ -83,10 +83,10 @@ impl GameState {
                 .add_system(components::duration::manage_durations_system())
                 .add_system(components::health::destroy_by_health_system())
                 .add_system(components::actions::handle_repeaters_system())
-                .build(),
-            action_cons_schedule: Schedule::builder()
                 // systems that consume (but may produce) actions
                 .add_system(components::spell::spell_casting_system())
+                .build(),
+            action_cons_schedule: Schedule::builder()
                 // systems that consume actions
                 .add_system(components::actions::resolve_executive_actions_system())
                 .add_system(components::actions::register_repeaters_system())

@@ -96,9 +96,10 @@ pub fn draw_sprites(
 
         // draw the sprites particles
 
-        for part in gfx.particles.iter() {
-            if let Some(sprite) = &part.sprite {
-                sprite.draw(
+        for part in gfx.particles.iter_mut() {
+            if let Some(sprite) = &mut part.sprite {
+                sprite.draw_sprite(
+                    ctx,
                     canvas,
                     DrawParam::default()
                         .dest(

@@ -5,7 +5,7 @@ use mooeye::sprite::SpritePool;
 use tinyvec::tiny_vec;
 
 use crate::game_state::{
-    components::{self, actions::*, spell::MAX_SPELL_SLOTS},
+    components::{self, actions::*, graphics::Particle, spell::MAX_SPELL_SLOTS},
     game_message::MessageSet,
 };
 
@@ -18,28 +18,26 @@ pub fn construct_fireball(spritepool: &SpritePool) -> Spell {
         icon: spritepool
             .init_sprite("/sprites/fireball", Duration::from_secs_f32(1.))
             .expect("Could not initialize this spell."),
-        spell_: |_| {
-            vec![GameAction::spawn(|_, pos, sp, cmd| {
-                cmd.push((
-                    pos,
-                    components::LifeDuration::new(Duration::from_secs(10)),
-                    components::Graphics::from(
-                        sp.init_sprite("/sprites/fireball", Duration::from_secs_f32(0.2))
-                            .expect("Could not load sprite."),
-                    ),
-                    components::Velocity::new(0., -250.),
-                    components::Collision::new(32., 32., |e1, e2| {
-                        (
-                            vec![
-                                (e1, GameAction::Remove),
-                                (e2, GameAction::TakeDamage { dmg: 2 }),
-                            ],
-                            MessageSet::new(),
-                        )
-                    }),
-                ));
-            })]
-        },
+        spell_: GameActionContainer::single(GameAction::spawn(|_, pos, sp, cmd| {
+            cmd.push((
+                pos,
+                components::LifeDuration::new(Duration::from_secs(10)),
+                components::Graphics::from(
+                    sp.init_sprite("/sprites/fireball", Duration::from_secs_f32(0.2))
+                        .expect("Could not load sprite."),
+                ),
+                components::Velocity::new(0., -250.),
+                components::Collision::new(32., 32., |e1, e2| {
+                    (
+                        vec![
+                            (e1, GameAction::Remove),
+                            (e2, GameAction::TakeDamage { dmg: 2 }),
+                        ],
+                        MessageSet::new(),
+                    )
+                }),
+            ));
+        })),
     }
 }
 
@@ -50,29 +48,27 @@ pub fn construct_icebomb(spritepool: &SpritePool) -> Spell {
         icon: spritepool
             .init_sprite("/sprites/icebomb", Duration::from_secs_f32(1.))
             .expect("Could not initialize this spell."),
-        spell_: |_| {
-            vec![GameAction::spawn(|_, pos, sp, cmd| {
-                cmd.push((
-                    pos,
-                    components::LifeDuration::new(Duration::from_secs(10)),
-                    components::Graphics::from(
-                        sp.init_sprite("/sprites/icebomb", Duration::from_secs_f32(0.2))
-                            .expect("Could not load sprite."),
-                    ),
-                    components::Velocity::new(0., -520.),
-                    components::Collision::new(32., 32., |e1, e2| {
-                        (
-                            vec![
-                                (e1, GameAction::Remove),
-                                (e2, GameAction::TakeDamage { dmg: 3 }),
-                                (e1, GameAction::spawn(spawn_icebomb)),
-                            ],
-                            MessageSet::new(),
-                        )
-                    }),
-                ));
-            })]
-        },
+        spell_: GameActionContainer::single(GameAction::spawn(|_, pos, sp, cmd| {
+            cmd.push((
+                pos,
+                components::LifeDuration::new(Duration::from_secs(10)),
+                components::Graphics::from(
+                    sp.init_sprite("/sprites/icebomb", Duration::from_secs_f32(0.2))
+                        .expect("Could not load sprite."),
+                ),
+                components::Velocity::new(0., -520.),
+                components::Collision::new(32., 32., |e1, e2| {
+                    (
+                        vec![
+                            (e1, GameAction::Remove),
+                            (e2, GameAction::TakeDamage { dmg: 3 }),
+                            (e1, GameAction::spawn(spawn_icebomb)),
+                        ],
+                        MessageSet::new(),
+                    )
+                }),
+            ));
+        })),
     }
 }
 
@@ -135,35 +131,61 @@ pub fn construct_electrobomb(spritepool: &SpritePool) -> Spell {
         icon: spritepool
             .init_sprite("/sprites/fireball", Duration::from_secs_f32(1.))
             .expect("Could not initialize this spell."),
-        spell_: |_| {
-            vec![GameAction::spawn(|_, pos, sp, cmd| {
-                cmd.push((
-                    pos,
-                    components::LifeDuration::new(Duration::from_secs(10)),
-                    components::Graphics::from(
-                        sp.init_sprite("/sprites/electroorb", Duration::from_secs_f32(0.2))
-                            .expect("Could not load sprite."),
-                    ),
-                    components::Velocity::new(0., -180.),
-                    components::Collision::new(32., 32., |e1, e2| {
-                        (
-                            vec![
-                                (e1, GameAction::AddImmunity { other: e2 }),
-                                (
-                                    e2,
-                                    Distributor::new(GameActionContainer::single(
-                                        GameAction::TakeDamage { dmg: 1 },
-                                    ))
-                                    .with_range(128.)
-                                    .with_enemies_only()
-                                    .to_action(),
-                                ),
-                            ],
-                            MessageSet::new(),
-                        )
-                    }),
-                ));
-            })]
-        },
+        spell_: GameActionContainer::single(GameAction::spawn(|_, pos, sp, cmd| {
+            cmd.push((
+                pos,
+                components::LifeDuration::new(Duration::from_secs(10)),
+                components::Graphics::from(
+                    sp.init_sprite("/sprites/electroorb", Duration::from_secs_f32(0.2))
+                        .expect("Could not load sprite."),
+                ),
+                components::Velocity::new(0., -180.),
+                components::Collision::new(32., 32., |e1, e2| {
+                    (
+                        vec![
+                            (e1, GameAction::AddImmunity { other: e2 }),
+                            (
+                                e2,
+                                Distributor::new(GameActionContainer::single(
+                                    GameAction::TakeDamage { dmg: 1 },
+                                ))
+                                .with_range(128.)
+                                .with_enemies_only()
+                                .to_action(),
+                            ),
+                        ],
+                        MessageSet::new(),
+                    )
+                }),
+            ));
+        })),
+    }
+}
+
+pub fn construct_conflagrate(spritepool: &SpritePool) -> Spell {
+    Spell {
+        spell_slots: tiny_vec!([f32; MAX_SPELL_SLOTS] => 4., 4., 10., 10.),
+        name: "Conflagrate".to_owned(),
+        icon: spritepool
+            .init_sprite("/sprites/fireball", Duration::from_secs(1))
+            .expect("Sprite not there"),
+        spell_: Distributor::new(gameaction_multiple![
+            Repeater::new(GameAction::TakeDamage { dmg: 1 }.into())
+                .with_total_duration(Duration::from_secs(5))
+                .with_repeat_duration(Duration::from_secs(1))
+                .to_action(),
+            GameAction::AddParticle(
+                Particle::new(
+                    spritepool
+                        .init_sprite("/sprites/burning", Duration::from_secs_f32(0.25))
+                        .expect("Sprite."),
+                )
+                .with_duration(Duration::from_secs(5))
+            )
+        ])
+        .with_limit(3)
+        .with_enemies_only()
+        .to_action()
+        .into(),
     }
 }

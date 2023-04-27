@@ -244,6 +244,7 @@ pub fn distribution_system(world: &mut World) {
             // get all distributor actions
             match act {
                 GameAction::Distributed(distributor) => {
+                    println!("Distributor!");
                     let mut target_list = Vec::new();
                     // iterate over possible target
                     for (tar, tar_pos, tar_enemy) in
@@ -252,12 +253,13 @@ pub fn distribution_system(world: &mut World) {
                         // if applicable
                         if src_pos.distance(*tar_pos) < distributor.range
                             && (!distributor.enemies_only || matches!(tar_enemy, Some(_)))
-                        //&& distributor.limit.map_or(true, |lim| lim > count)
                         {
                             // remember to push action
                             target_list.push((*tar, src_pos.distance(*tar_pos)));
                         }
                     }
+
+                    println!("Found {} targets.", target_list.len());
 
                     target_list.sort_by(|(_, d1), (_, d2)| d1.total_cmp(d2));
 
