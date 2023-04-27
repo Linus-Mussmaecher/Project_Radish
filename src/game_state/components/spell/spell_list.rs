@@ -16,14 +16,14 @@ pub fn construct_fireball(spritepool: &SpritePool) -> Spell {
         spell_slots: tiny_vec!([f32; MAX_SPELL_SLOTS] => 1.5),
         name: "Fireball!".to_owned(),
         icon: spritepool
-            .init_sprite("/sprites/fireball", Duration::from_secs_f32(1.))
+            .init_sprite("/sprites/spells/fireball", Duration::from_secs_f32(1.))
             .expect("Could not initialize this spell."),
         spell_: GameActionContainer::single(GameAction::spawn(|_, pos, sp, cmd| {
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(10)),
                 components::Graphics::from(
-                    sp.init_sprite("/sprites/fireball", Duration::from_secs_f32(0.2))
+                    sp.init_sprite("/sprites/spells/fireball", Duration::from_secs_f32(0.2))
                         .expect("Could not load sprite."),
                 ),
                 components::Velocity::new(0., -250.),
@@ -46,14 +46,14 @@ pub fn construct_icebomb(spritepool: &SpritePool) -> Spell {
         spell_slots: tiny_vec!([f32; MAX_SPELL_SLOTS] => 1.5, 5.),
         name: "Ice Bomb".to_owned(),
         icon: spritepool
-            .init_sprite("/sprites/icebomb", Duration::from_secs_f32(1.))
+            .init_sprite("/sprites/spells/icebomb", Duration::from_secs_f32(1.))
             .expect("Could not initialize this spell."),
         spell_: GameActionContainer::single(GameAction::spawn(|_, pos, sp, cmd| {
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(10)),
                 components::Graphics::from(
-                    sp.init_sprite("/sprites/icebomb", Duration::from_secs_f32(0.2))
+                    sp.init_sprite("/sprites/spells/icebomb", Duration::from_secs_f32(0.2))
                         .expect("Could not load sprite."),
                 ),
                 components::Velocity::new(0., -520.),
@@ -83,7 +83,7 @@ fn spawn_icebomb(
         components::LifeDuration::new(Duration::from_secs(5)),
         {
             let mut sprite = spritepool
-                .init_sprite("/sprites/icebomb", Duration::from_secs_f32(0.25))
+                .init_sprite("/sprites/spells/icebomb", Duration::from_secs_f32(0.25))
                 .expect("Could not find sprite.");
             sprite.set_variant(1);
             components::Graphics::from(sprite)
@@ -129,14 +129,14 @@ pub fn construct_electrobomb(spritepool: &SpritePool) -> Spell {
         spell_slots: tiny_vec!([f32; MAX_SPELL_SLOTS] => 0.5, 2.5, 2.5, 25.0),
         name: "Ice Bomb".to_owned(),
         icon: spritepool
-            .init_sprite("/sprites/fireball", Duration::from_secs_f32(1.))
+            .init_sprite("/sprites/spells/fireball", Duration::from_secs_f32(1.))
             .expect("Could not initialize this spell."),
         spell_: GameActionContainer::single(GameAction::spawn(|_, pos, sp, cmd| {
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(10)),
                 components::Graphics::from(
-                    sp.init_sprite("/sprites/electroorb", Duration::from_secs_f32(0.2))
+                    sp.init_sprite("/sprites/spells/electroorb", Duration::from_secs_f32(0.2))
                         .expect("Could not load sprite."),
                 ),
                 components::Velocity::new(0., -180.),
@@ -167,7 +167,7 @@ pub fn construct_conflagrate(spritepool: &SpritePool) -> Spell {
         spell_slots: tiny_vec!([f32; MAX_SPELL_SLOTS] => 4., 4., 10., 10.),
         name: "Conflagrate".to_owned(),
         icon: spritepool
-            .init_sprite("/sprites/fireball", Duration::from_secs(1))
+            .init_sprite("/sprites/spells/fireball", Duration::from_secs(1))
             .expect("Sprite not there"),
         spell_: Distributor::new(gameaction_multiple![
             Repeater::new(GameAction::TakeDamage { dmg: 1 }.into())
@@ -177,7 +177,7 @@ pub fn construct_conflagrate(spritepool: &SpritePool) -> Spell {
             GameAction::AddParticle(
                 Particle::new(
                     spritepool
-                        .init_sprite("/sprites/burning", Duration::from_secs_f32(0.25))
+                        .init_sprite("/sprites/spells/burning", Duration::from_secs_f32(0.25))
                         .expect("Sprite."),
                 )
                 .with_duration(Duration::from_secs(5))

@@ -38,7 +38,7 @@ impl AchievementMenu {
 
         let mut achievements = mooeye::containers::GridBox::new(4, 4);
         for index in 0..16 {
-            let achievement = ggez::graphics::Image::from_path(ctx, "/sprites/lock.png")
+            let achievement = ggez::graphics::Image::from_path(ctx, "/sprites/ui/lock.png")
                 .expect("Loading of lock.png failed.")
                 .to_element_builder(0, ctx)
                 .with_visuals(box_vis)
