@@ -69,6 +69,7 @@ pub fn remove_entities(entity: &Entity, actions: &Actions, cmd: &mut CommandBuff
         .iter()
         .any(|act| matches!(*act, GameAction::Remove))
     {
+        println!("Its also dead, Jim");
         cmd.remove(*entity);
     }
 }
@@ -78,12 +79,8 @@ pub fn remove_entities(entity: &Entity, actions: &Actions, cmd: &mut CommandBuff
 pub fn destroy_by_health(
     health: &Health,
     enemy: Option<&Enemy>,
-    gfx: Option<&Graphics>,
-    pos: Option<&Position>,
-    vel: Option<&Velocity>,
     on_death: Option<&OnDeath>,
     actions: &mut Actions,
-    cmd: &mut CommandBuffer,
     #[resource] messages: &mut MessageSet,
 ) {
     if health.curr_health <= 0 {
@@ -93,22 +90,6 @@ pub fn destroy_by_health(
             actions.push(GameAction::GainGold {
                 amount: enemy.bounty,
             });
-            // add death animation
-            if let Some(gfx) = gfx {
-                cmd.push((
-                    pos.map(|p| *p).unwrap_or_default(),
-                    vel.map(|v| Velocity::new((f32::EPSILON).copysign(v.get_dx()), 0.))
-                        .unwrap_or(Velocity::new(0., 0.)),
-                    LifeDuration::new(
-                        gfx.get_sprite().get_cycle_time() - gfx.get_sprite().get_frame_time(),
-                    ),
-                    {
-                        let mut death_sprite = gfx.get_sprite().clone();
-                        death_sprite.set_variant(1);
-                        Graphics::from(death_sprite)
-                    },
-                ));
-            }
         }
 
         actions.push(GameAction::Remove);
@@ -118,6 +99,37 @@ pub fn destroy_by_health(
             actions.add(on_death.death_actions.clone());
             messages.extend(on_death.death_messages.clone());
         }
+    }
+}
+
+#[system(for_each)]
+pub fn enemy_death_sprite(
+    _enemy: &Enemy,
+    pos: &Position,
+    vel: Option<&Velocity>,
+    gfx: &Graphics,
+    actions: &Actions,
+    cmd: &mut CommandBuffer,
+) {
+    // add death animation
+    if actions
+        .get_actions()
+        .iter()
+        .any(|act| matches!(*act, GameAction::Remove))
+    {
+        cmd.push((
+            *pos,
+            vel.map(|v| Velocity::new((f32::EPSILON).copysign(v.get_dx()), 0.))
+                .unwrap_or(Velocity::new(0., 0.)),
+            LifeDuration::new(
+                gfx.get_sprite().get_cycle_time() - gfx.get_sprite().get_frame_time(),
+            ),
+            {
+                let mut death_sprite = gfx.get_sprite().clone();
+                death_sprite.set_variant(1);
+                Graphics::from(death_sprite)
+            },
+        ));
     }
 }
 

@@ -162,9 +162,9 @@ impl Actions {
 #[legion::system(for_each)]
 /// System that clears all actions queues.
 pub fn clear(actions: &mut Actions) {
-    if actions.action_queue.len() > 4 {
-        println!("Cache miss! Queue length: {}", actions.action_queue.len());
-    }
+    // if actions.action_queue.len() > 4 {
+    //     println!("Cache miss! Queue length: {}", actions.action_queue.len());
+    // }
 
     actions.action_queue.clear();
 }
@@ -244,7 +244,6 @@ pub fn distribution_system(world: &mut World) {
             // get all distributor actions
             match act {
                 GameAction::Distributed(distributor) => {
-                    println!("Distributor!");
                     let mut target_list = Vec::new();
                     // iterate over possible target
                     for (tar, tar_pos, tar_enemy) in
@@ -258,8 +257,6 @@ pub fn distribution_system(world: &mut World) {
                             target_list.push((*tar, src_pos.distance(*tar_pos)));
                         }
                     }
-
-                    println!("Found {} targets.", target_list.len());
 
                     target_list.sort_by(|(_, d1), (_, d2)| d1.total_cmp(d2));
 
@@ -388,8 +385,4 @@ pub fn handle_repeaters(actions: &mut Actions, #[resource] ix: &Interactions) {
             Some(total_dur) => total_dur > rep.alive_duration,
             None => true,
         });
-
-    if actions.action_queue.len() > 4 {
-        println!("Cache miss. Queue length: {}", actions.action_queue.len());
-    }
 }
