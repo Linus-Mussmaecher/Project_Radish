@@ -1,7 +1,7 @@
 use legion::*;
 use std::time::Duration;
 
-use crate::game_state::{controller::Interactions};
+use crate::game_state::controller::Interactions;
 
 use super::{actions::GameAction, Actions};
 

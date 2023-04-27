@@ -2,7 +2,7 @@ use legion::{systems::CommandBuffer, *};
 
 use crate::game_state::game_message::MessageSet;
 
-use super::{Actions, actions::{*}, LifeDuration, Position, Graphics};
+use super::{actions::*, Actions, Graphics, LifeDuration, Position};
 
 /// The Health component track wether a unit has a life bar and can take damage.
 pub struct Health {
@@ -64,7 +64,11 @@ impl OnDeath {
 #[system(for_each)]
 /// Removes entities with zero health or less
 pub fn remove_entities(entity: &Entity, actions: &Actions, cmd: &mut CommandBuffer) {
-    if actions.get_actions().iter().any(|act| matches!(*act, GameAction::Remove)) {
+    if actions
+        .get_actions()
+        .iter()
+        .any(|act| matches!(*act, GameAction::Remove))
+    {
         cmd.remove(*entity);
     }
 }
@@ -92,7 +96,9 @@ pub fn destroy_by_health(
             if let Some(gfx) = gfx {
                 cmd.push((
                     pos.map(|p| *p).unwrap_or_default(),
-                    LifeDuration::new(gfx.get_sprite().get_cycle_time() - gfx.get_sprite().get_frame_time()),
+                    LifeDuration::new(
+                        gfx.get_sprite().get_cycle_time() - gfx.get_sprite().get_frame_time(),
+                    ),
                     {
                         let mut death_sprite = gfx.get_sprite().clone();
                         death_sprite.set_variant(1);
@@ -119,7 +125,7 @@ pub fn resolve_damage(health: &mut Health, actions: &Actions) {
         if let GameAction::TakeDamage { dmg } = action {
             health.curr_health -= *dmg;
         } else if let GameAction::TakeHealing { heal } = action {
-            health.curr_health =  (health.curr_health + *heal).min(health.max_health);
+            health.curr_health = (health.curr_health + *heal).min(health.max_health);
         }
     }
 }

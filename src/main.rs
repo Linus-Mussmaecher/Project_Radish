@@ -1,4 +1,4 @@
-use ggez::{ContextBuilder, conf, graphics, GameResult};
+use ggez::{conf, graphics, ContextBuilder, GameResult};
 use mooeye::scene_manager::SceneManager;
 
 mod scenes;
@@ -9,23 +9,9 @@ mod game_state;
 const WIDTH: f32 = 1200.;
 const HEIGHT: f32 = 900.;
 
-const PALETTE: [u32;16] = [
-    0x385074,
-    0x4670a2,
-    0x70819d,
-    0x86a2b8,
-    0xc0d1de,
-    0xb2a08a,
-    0xd9b48a,
-    0xfeeb9f,
-    0xffebbc,
-    0xf0d1a5,
-    0x968981,
-    0x7f7574,
-    0x484850,
-    0x313848,
-    0x1c283e,
-    0x0b1321,
+const PALETTE: [u32; 16] = [
+    0x385074, 0x4670a2, 0x70819d, 0x86a2b8, 0xc0d1de, 0xb2a08a, 0xd9b48a, 0xfeeb9f, 0xffebbc,
+    0xf0d1a5, 0x968981, 0x7f7574, 0x484850, 0x313848, 0x1c283e, 0x0b1321,
 ];
 
 fn main() -> GameResult {

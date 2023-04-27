@@ -37,7 +37,7 @@ pub fn spell_casting(
     for slot in caster.spell_slots.iter_mut() {
         if !slot.0.is_zero() {
             slot.0 = slot.0.saturating_sub(ix.delta);
-        } else if !slot.1.is_zero(){
+        } else if !slot.1.is_zero() {
             slot.1 = Duration::ZERO;
         }
     }

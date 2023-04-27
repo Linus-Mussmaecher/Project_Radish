@@ -87,12 +87,22 @@ impl Scene for OptionsMenu {
     ) -> Result<mooeye::scene_manager::SceneSwitch, ggez::GameError> {
         let messages = self.gui.manage_messages(ctx, None);
 
-        if messages.contains(&mooeye::UiMessage::Clicked(1)) || ctx.keyboard.is_key_just_pressed(ggez::winit::event::VirtualKeyCode::R) {
+        if messages.contains(&mooeye::UiMessage::Clicked(1))
+            || ctx
+                .keyboard
+                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::R)
+        {
             self.controller = Controller::default();
         }
 
-        if messages.contains(&mooeye::UiMessage::Clicked(2)) || ctx.keyboard.is_key_just_pressed(ggez::winit::event::VirtualKeyCode::C){
-            self.controller.save_to_file("./data/keymap.toml").expect("Could not save keybindings.");
+        if messages.contains(&mooeye::UiMessage::Clicked(2))
+            || ctx
+                .keyboard
+                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::C)
+        {
+            self.controller
+                .save_to_file("./data/keymap.toml")
+                .expect("Could not save keybindings.");
             Ok(mooeye::scene_manager::SceneSwitch::Pop(1))
         } else {
             Ok(mooeye::scene_manager::SceneSwitch::None)

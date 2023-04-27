@@ -64,7 +64,7 @@ impl AchievementMenu {
                     .to_element_builder(0, ctx)
                     .with_visuals(box_vis)
                     .with_tooltip_layout()
-                    .build()
+                    .build(),
                 )
                 .build();
 
@@ -95,12 +95,13 @@ impl AchievementMenu {
         credits_box.add(achievements)?;
         credits_box.add(back)?;
         credits_box.spacing = 25.;
-        let credits_box = credits_box.to_element_builder(0, ctx)
-        .with_visuals(box_vis)
-        .with_alignment(Alignment::Min, Alignment::Min)
-        .with_offset(25., 25.)
-        .with_padding((25., 25., 25., 25.))
-        .build();
+        let credits_box = credits_box
+            .to_element_builder(0, ctx)
+            .with_visuals(box_vis)
+            .with_alignment(Alignment::Min, Alignment::Min)
+            .with_offset(25., 25.)
+            .with_padding((25., 25., 25., 25.))
+            .build();
 
         Ok(Self { gui: credits_box })
     }
@@ -113,7 +114,11 @@ impl Scene for AchievementMenu {
     ) -> Result<mooeye::scene_manager::SceneSwitch, ggez::GameError> {
         let messages = self.gui.manage_messages(ctx, None);
 
-        if messages.contains(&mooeye::UiMessage::Clicked(1)) || ctx.keyboard.is_key_just_pressed(ggez::winit::event::VirtualKeyCode::C) {
+        if messages.contains(&mooeye::UiMessage::Clicked(1))
+            || ctx
+                .keyboard
+                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::C)
+        {
             Ok(mooeye::scene_manager::SceneSwitch::Pop(1))
         } else {
             Ok(mooeye::scene_manager::SceneSwitch::None)

@@ -4,7 +4,6 @@ use legion::*;
 
 use super::Actions;
 
-
 /// A component that allows an entity to be controlled by a player.
 pub struct Control {
     /// The speed at which movement orders move this entity.
@@ -19,11 +18,7 @@ impl Control {
 
 #[system(for_each)]
 /// A system that manages the translation of orders coming from the controller (via the interactions resource) to actions of control components.
-pub fn control(
-    control: &Control,
-    actions: &mut Actions,
-    #[resource] ix: &Interactions,
-) {
+pub fn control(control: &Control, actions: &mut Actions, #[resource] ix: &Interactions) {
     // Movement
 
     let mut del = Vec2::ZERO;

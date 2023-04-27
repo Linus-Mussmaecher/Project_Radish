@@ -179,12 +179,8 @@ pub fn construct_game_ui(ctx: &Context) -> Result<UiElement<GameMessage>, GameEr
                     {
                         if *index == i as usize {
                             transitions.push_back(
-                                ui_element::Transition::new(Duration::ZERO).with_new_content(
-                                    Covering::new(
-                                        col,
-                                        *value as f32 / 32.,
-                                    ),
-                                ),
+                                ui_element::Transition::new(Duration::ZERO)
+                                    .with_new_content(Covering::new(col, *value as f32 / 32.)),
                             );
                         }
                     }

@@ -54,7 +54,9 @@ impl GameState {
             components::Position::new(boundaries.w / 2., boundaries.h),
             components::BoundaryCollision::new(true, false, false),
             components::Control::new(150.),
-            components::Graphics::from(sprite_pool.init_sprite("/sprites/mage", Duration::from_secs_f32(0.25))?),
+            components::Graphics::from(
+                sprite_pool.init_sprite("/sprites/mage", Duration::from_secs_f32(0.25))?,
+            ),
             components::SpellCaster::new(vec![
                 spell_list::construct_fireball(&sprite_pool),
                 spell_list::construct_icebomb(&sprite_pool),
