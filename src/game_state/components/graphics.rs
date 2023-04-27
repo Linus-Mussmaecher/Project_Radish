@@ -121,15 +121,7 @@ pub fn draw_sprites(
             let area = Rect::new(
                 pos.x - (1 + (blip_size + 1) * health.get_max_health()) as f32 * PIXEL_SIZE / 2.
                     + (screen_w - boundaries.w) / 2.,
-                pos.y
-                    - ((blip_size + 3) as f32
-                        + gfx
-                            .sprite
-                            .dimensions(ctx)
-                            .expect("Could not unwrap dimension.")
-                            .h
-                            / 2.)
-                        * PIXEL_SIZE
+                pos.y - ((blip_size + 3) as f32 + gfx.sprite.get_dimensions().1 / 2.) * PIXEL_SIZE
                     + (screen_h - boundaries.h) / 2.,
                 (1 + (blip_size + 1) * health.get_max_health()) as f32 * PIXEL_SIZE,
                 (blip_size + 2) as f32 * PIXEL_SIZE,
