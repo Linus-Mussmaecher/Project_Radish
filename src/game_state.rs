@@ -48,6 +48,52 @@ impl GameState {
 
         let sprite_pool = sprite::SpritePool::new().with_folder(ctx, "/sprites", true);
 
+        // add grass sprites
+
+        for _i in 0..16 {
+            world.push((
+                components::Position::new(
+                    boundaries.w * rand::random::<f32>(),
+                    boundaries.h * rand::random::<f32>(),
+                ),
+                components::Graphics::from({
+                    let mut grass =
+                        sprite_pool.init_sprite("/sprites/brush", Duration::from_secs(1))?;
+                    grass.set_variant(rand::random::<u32>());
+                    grass
+                }),
+            ));
+        }
+
+        // add buildings
+
+        let building_size = 4. * 32.;
+        let building_spacing = 4. * 8.;
+
+        for x in [
+            -1.5 * (building_size + building_spacing),
+            -0.5 * (building_size + building_spacing),
+            boundaries.w + 1.5 * (building_size + building_spacing),
+            boundaries.w + 0.5 * (building_size + building_spacing),
+        ] {
+            for y in 0..((boundaries.h / (building_size + building_spacing)) as usize) {
+                world.push((
+                    components::Position::new(
+                        x + building_spacing * (rand::random::<f32>() - 0.5),
+                        building_size / 2.
+                            + y as f32 * (building_size + building_spacing)
+                            + building_spacing * (rand::random::<f32>() - 0.5),
+                    ),
+                    components::Graphics::from({
+                        let mut grass =
+                            sprite_pool.init_sprite("/sprites/building", Duration::from_secs(1))?;
+                        grass.set_variant(rand::random::<u32>());
+                        grass
+                    }),
+                ));
+            }
+        }
+
         // add player
 
         world.push((
