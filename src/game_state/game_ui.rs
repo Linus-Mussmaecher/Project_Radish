@@ -157,7 +157,7 @@ pub fn construct_game_ui(ctx: &Context) -> Result<UiElement<GameMessage>, GameEr
 
     // Spells
 
-    let mut spell_box = containers::GridBox::new(2, 3);
+    let mut spell_box = containers::GridBox::new(6, 1);
 
     for i in 0..6 {
         let mana = graphics::Image::from_path(ctx, "/sprites/mana.png")?
@@ -198,13 +198,13 @@ pub fn construct_game_ui(ctx: &Context) -> Result<UiElement<GameMessage>, GameEr
             .to_element_builder(0, ctx)
             .with_wrapper_layout(mana_layout)
             .build();
-        spell_box.add(stack, i % 2, i / 2)?;
+        spell_box.add(stack, i, 0)?;
     }
 
     let spell_box = spell_box
         .to_element_builder(0, ctx)
         .with_visuals(box_vis)
-        .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Center)
+        .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Min)
         .with_offset(-10., 0.)
         .build();
 

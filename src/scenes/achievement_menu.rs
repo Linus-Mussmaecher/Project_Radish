@@ -38,8 +38,7 @@ impl AchievementMenu {
 
         let mut achievements = mooeye::containers::GridBox::new(4, 4);
         for index in 0..16 {
-            let achievement = ggez::graphics::Image::from_path(ctx, "/sprites/ui/lock.png")
-                .expect("Loading of lock.png failed.")
+            let achievement = ggez::graphics::Image::from_path(ctx, "/sprites/ui/lock.png")?
                 .to_element_builder(0, ctx)
                 .with_visuals(box_vis)
                 .scaled(4., 4.)
@@ -69,8 +68,7 @@ impl AchievementMenu {
                 .build();
 
             achievements
-                .add(achievement, index % 4, index / 4)
-                .expect("Adding achievement to grid failed horribly!");
+                .add(achievement, index % 4, index / 4)?;
         }
         achievements.vertical_spacing = 10.;
         achievements.horizontal_spacing = 10.;

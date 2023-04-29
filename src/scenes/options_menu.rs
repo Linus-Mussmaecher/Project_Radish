@@ -100,9 +100,9 @@ impl Scene for OptionsMenu {
                 .keyboard
                 .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::C)
         {
-            self.controller
-                .save_to_file("./data/keymap.toml")
-                .expect("Could not save keybindings.");
+            if self.controller.save_to_file("./data/keymap.toml").is_err() {
+                println!("[WARNING] Could not save keybindings.")
+            }
             Ok(mooeye::scene_manager::SceneSwitch::Pop(1))
         } else {
             Ok(mooeye::scene_manager::SceneSwitch::None)

@@ -67,8 +67,8 @@ pub fn draw_sprites(
         let n_pos = *pos
             // move as the world is positioned on screen
             + Vec2::new(
-                (screen_w - boundaries.w)/2.,
-                (screen_h - boundaries.h)/2.,
+                ((screen_w - boundaries.w)/2.).floor(),
+                ((screen_h - boundaries.h)/2.).floor(),
             )
             // move to draw to correct position based on flip
             + Vec2::new(

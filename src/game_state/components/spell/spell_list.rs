@@ -126,7 +126,7 @@ fn spawn_icebomb(
 
 pub fn construct_electrobomb(spritepool: &SpritePool) -> Spell {
     Spell {
-        spell_slots: tiny_vec!([f32; MAX_SPELL_SLOTS] => 0.5, 2.5, 2.5, 25.0),
+        spell_slots: tiny_vec!([f32; MAX_SPELL_SLOTS] => 2.5, 30.0),
         name: "Ice Bomb".to_owned(),
         icon: spritepool
             .init_sprite("/sprites/spells/fireball", Duration::from_secs_f32(1.))
