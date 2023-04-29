@@ -69,7 +69,6 @@ pub fn remove_entities(entity: &Entity, actions: &Actions, cmd: &mut CommandBuff
         .iter()
         .any(|act| matches!(*act, GameAction::Remove))
     {
-        println!("Its also dead, Jim");
         cmd.remove(*entity);
     }
 }
