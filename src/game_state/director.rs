@@ -1,13 +1,14 @@
 use std::time::Duration;
 
-use ggez::{Context, GameError};
-use legion::{Resources, World};
+use ggez::{graphics::Rect, GameError};
+use legion::{system, systems::CommandBuffer};
 use rand::random;
 
 use mooeye::sprite::SpritePool;
 
 use super::{
-    components::{self, actions::*, graphics::Particle},
+    components::{self, actions::*, graphics::Particle, Position},
+    controller::Interactions,
     game_message::MessageSet,
 };
 
@@ -18,7 +19,7 @@ pub struct Director {
     credits: u64,
     enemies: Vec<(
         u64,
-        &'static dyn Fn(&mut World, &mut Resources) -> Result<(), GameError>,
+        fn(&mut CommandBuffer, &SpritePool, Position) -> Result<(), GameError>,
     )>,
 }
 
@@ -29,86 +30,89 @@ impl Director {
             total: Duration::ZERO,
             credits: 0,
             enemies: vec![
-                (040, &spawn_basic_skeleton),
-                (070, &spawn_fast_skeleton),
-                (100, &spawn_loot_skeleton),
-                (150, &spawn_tank_skeleton),
+                (040, spawn_basic_skeleton),
+                (070, spawn_fast_skeleton),
+                (100, spawn_loot_skeleton),
+                (150, spawn_tank_skeleton),
             ],
         }
     }
+}
 
-    pub fn progress(
-        &mut self,
-        ctx: &Context,
-        world: &mut World,
-        resources: &mut Resources,
-    ) -> Result<(), GameError> {
-        // add time since last frame to counters
+#[system]
+pub fn direct(
+    cmd: &mut CommandBuffer,
+    #[resource] spritepool: &SpritePool,
+    #[resource] boundaries: &Rect,
+    #[resource] director: &mut Director,
+    #[resource] ix: &Interactions,
+) {
+    // add time since last frame to counters
 
-        self.intervall += ctx.time.delta();
-        self.total += ctx.time.delta();
+    director.intervall += ix.delta;
+    director.total += ix.delta;
 
-        // if a 1-second intervall has passed, attempt a spawn
+    // if a 1-second intervall has passed, attempt a spawn
 
-        if self.intervall >= Duration::from_secs(1) {
-            // grant credits
-            self.credits += 25 + self.total.as_secs() / 5;
-            // reset intervall
-            self.intervall = Duration::ZERO;
+    if director.intervall >= Duration::from_secs(1) {
+        // grant credits
+        director.credits += 25 + director.total.as_secs() / 5;
+        // reset intervall
+        director.intervall = Duration::ZERO;
 
-            // randomly select an amount of available credits to spend
-            let mut to_spend = (random::<f32>().powi(2) * self.credits as f32) as u64;
-            // if to_spend >= 40 {
-            //     println!("Spending {} of {} credits.", to_spend, self.credits);
-            // }
+        // randomly select an amount of available credits to spend
+        let mut to_spend = (random::<f32>().powi(2) * director.credits as f32) as u64;
+        // if to_spend >= 40 {
+        //     println!("Spending {} of {} credits.", to_spend, director.credits);
+        // }
 
-            // while credits left to spend
-            'outer: loop {
-                let mut enemy_ind = random::<usize>() % self.enemies.len();
-                let mut enemy = self.enemies.get(enemy_ind);
+        // while credits left to spend
+        'outer: loop {
+            let mut enemy_ind = random::<usize>() % director.enemies.len();
+            let mut enemy = director.enemies.get(enemy_ind);
 
-                // downgrade spawn until affordable
-                while match enemy {
-                    Some((cost, _)) => *cost > to_spend,
-                    None => true,
-                } {
-                    // if no downgrade possible, end this spending round
-                    if enemy_ind == 0 {
-                        break 'outer;
-                    }
-                    // otherwise, downgrade and try next enemy
-                    enemy_ind -= 1;
-                    enemy = self.enemies.get(enemy_ind);
+            // downgrade spawn until affordable
+            while match enemy {
+                Some((cost, _)) => *cost > to_spend,
+                None => true,
+            } {
+                // if no downgrade possible, end this spending round
+                if enemy_ind == 0 {
+                    break 'outer;
                 }
+                // otherwise, downgrade and try next enemy
+                enemy_ind -= 1;
+                enemy = director.enemies.get(enemy_ind);
+            }
 
-                // unpack enemy
-                if let Some((cost, spawner)) = enemy {
-                    // reduce available credits
+            // unpack enemy
+            if let Some((cost, spawner)) = enemy {
+                // spawn
+                if spawner(
+                    cmd,
+                    spritepool,
+                    ggez::glam::Vec2::new(rand::random::<f32>() * boundaries.w, -20.),
+                )
+                .is_ok()
+                {
+                    // if spawning threw no error, reduce available credits
                     to_spend -= cost;
-                    self.credits -= cost;
-
-                    // spawn
-                    spawner(world, resources)?;
+                    director.credits -= cost;
                 }
             }
         }
-
-        Ok(())
     }
 }
 
-pub fn spawn_basic_skeleton(world: &mut World, resources: &mut Resources) -> Result<(), GameError> {
-    // get boundaries for random x
-    let boundaries = *resources
-        .get::<ggez::graphics::Rect>()
-        .ok_or_else(|| ggez::GameError::CustomError("Could not unpack boundaries.".to_owned()))?;
-    let sprites = resources
-        .get::<SpritePool>()
-        .ok_or_else(|| ggez::GameError::CustomError("Could not unpack sprite pool.".to_owned()))?;
-    world.push((
-        components::Position::new(random::<f32>() * boundaries.w + boundaries.x, -20.),
+pub fn spawn_basic_skeleton(
+    cmd: &mut CommandBuffer,
+    sprite_pool: &SpritePool,
+    pos: Position,
+) -> Result<(), GameError> {
+    cmd.push((
+        pos,
         components::Velocity::new(0., 10.),
-        components::Graphics::from(sprites.init_sprite(
+        components::Graphics::from(sprite_pool.init_sprite(
             "/sprites/enemies/skeleton_basic",
             Duration::from_secs_f32(0.25),
         )?),
@@ -119,19 +123,16 @@ pub fn spawn_basic_skeleton(world: &mut World, resources: &mut Resources) -> Res
     Ok(())
 }
 
-pub fn spawn_fast_skeleton(world: &mut World, resources: &mut Resources) -> Result<(), GameError> {
-    // get boundaries for random x
-    let boundaries = *resources
-        .get::<ggez::graphics::Rect>()
-        .ok_or_else(|| ggez::GameError::CustomError("Could not unpack boundaries.".to_owned()))?;
-    let sprites = resources
-        .get::<SpritePool>()
-        .ok_or_else(|| ggez::GameError::CustomError("Could not unpack sprite pool.".to_owned()))?;
-    world.push((
-        components::Position::new(random::<f32>() * boundaries.w + boundaries.x, -20.),
+pub fn spawn_fast_skeleton(
+    cmd: &mut CommandBuffer,
+    sprite_pool: &SpritePool,
+    pos: Position,
+) -> Result<(), GameError> {
+    cmd.push((
+        pos,
         components::Velocity::new(35., 15.),
         components::BoundaryCollision::new(true, false, true),
-        components::Graphics::from(sprites.init_sprite(
+        components::Graphics::from(sprite_pool.init_sprite(
             "/sprites/enemies/skeleton_sword",
             Duration::from_secs_f32(0.20),
         )?),
@@ -153,19 +154,16 @@ pub fn spawn_fast_skeleton(world: &mut World, resources: &mut Resources) -> Resu
     Ok(())
 }
 
-pub fn spawn_loot_skeleton(world: &mut World, resources: &mut Resources) -> Result<(), GameError> {
-    // get boundaries for random x
-    let boundaries = *resources
-        .get::<ggez::graphics::Rect>()
-        .ok_or_else(|| ggez::GameError::CustomError("Could not unpack boundaries.".to_owned()))?;
-    let sprites = resources
-        .get::<SpritePool>()
-        .ok_or_else(|| ggez::GameError::CustomError("Could not unpack sprite pool.".to_owned()))?;
-    world.push((
-        components::Position::new(random::<f32>() * boundaries.w + boundaries.x, 30.),
+pub fn spawn_loot_skeleton(
+    cmd: &mut CommandBuffer,
+    sprite_pool: &SpritePool,
+    pos: Position,
+) -> Result<(), GameError> {
+    cmd.push((
+        pos,
         components::Velocity::new(50., 0.),
         components::BoundaryCollision::new(true, false, true),
-        components::Graphics::from(sprites.init_sprite(
+        components::Graphics::from(sprite_pool.init_sprite(
             "/sprites/enemies/skeleton_loot",
             Duration::from_secs_f32(0.20),
         )?),
@@ -177,19 +175,15 @@ pub fn spawn_loot_skeleton(world: &mut World, resources: &mut Resources) -> Resu
     Ok(())
 }
 
-pub fn spawn_tank_skeleton(world: &mut World, resources: &mut Resources) -> Result<(), GameError> {
-    // get boundaries for random x
-    let boundaries = *resources
-        .get::<ggez::graphics::Rect>()
-        .ok_or_else(|| ggez::GameError::CustomError("Could not unpack boundaries.".to_owned()))?;
-    let sprites = resources
-        .get::<SpritePool>()
-        .ok_or_else(|| ggez::GameError::CustomError("Could not unpack sprite pool.".to_owned()))?;
-
-    world.push((
-        components::Position::new(random::<f32>() * boundaries.w + boundaries.x, -20.),
+pub fn spawn_tank_skeleton(
+    cmd: &mut CommandBuffer,
+    sprite_pool: &SpritePool,
+    pos: Position,
+) -> Result<(), GameError> {
+    cmd.push((
+        pos,
         components::Velocity::new(0., 10.),
-        components::Graphics::from(sprites.init_sprite(
+        components::Graphics::from(sprite_pool.init_sprite(
             "/sprites/enemies/skeleton_tank",
             Duration::from_secs_f32(0.25),
         )?),
@@ -220,7 +214,8 @@ pub fn spawn_tank_skeleton(world: &mut World, resources: &mut Resources) -> Resu
                     GameAction::TakeHealing { heal: 2 },
                     GameAction::AddParticle(
                         Particle::new(
-                            sprites.init_sprite("/sprites/heal", Duration::from_secs_f32(0.25))?,
+                            sprite_pool
+                                .init_sprite("/sprites/heal", Duration::from_secs_f32(0.25))?,
                         )
                         .with_duration(Duration::from_secs(1))
                         .with_velocity(0., -15.)

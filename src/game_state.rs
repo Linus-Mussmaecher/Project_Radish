@@ -33,8 +33,6 @@ pub struct GameState {
     action_cons_schedule: Schedule,
 
     gui: UiElement<GameMessage>,
-
-    director: Director,
 }
 
 impl GameState {
@@ -116,11 +114,14 @@ impl GameState {
         resources.insert(GameData::default());
         resources.insert(boundaries);
         resources.insert(sprite_pool);
+        resources.insert(Director::new());
 
         Ok(Self {
             world,
             gui: game_ui::construct_game_ui(ctx)?,
             action_prod_schedule: Schedule::builder()
+                // director
+                .add_system(director::direct_system())
                 // sytems that produce actions
                 .add_system(components::collision::collision_system())
                 .add_system(components::position::velocity_system())
@@ -148,7 +149,6 @@ impl GameState {
                 .build(),
             resources,
             controller: Controller::from_path("./data/keymap.toml").unwrap_or_default(),
-            director: Director::new(),
         })
     }
 }
@@ -176,11 +176,6 @@ impl Scene for GameState {
 
         self.action_cons_schedule
             .execute(&mut self.world, &mut self.resources);
-
-        // director
-
-        self.director
-            .progress(ctx, &mut self.world, &mut self.resources)?;
 
         // message handling
 
