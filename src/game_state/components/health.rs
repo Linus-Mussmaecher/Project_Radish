@@ -67,7 +67,7 @@ pub fn remove_entities(entity: &Entity, actions: &Actions, cmd: &mut CommandBuff
     if actions
         .get_actions()
         .iter()
-        .any(|act| matches!(*act, GameAction::Remove))
+        .any(|act| matches!(*act, GameAction::Remove(_)))
     {
         cmd.remove(*entity);
     }
@@ -91,7 +91,7 @@ pub fn destroy_by_health(
             });
         }
 
-        actions.push(GameAction::Remove);
+        actions.push(GameAction::Remove(RemoveSource::HealthLoss));
 
         // death rattle
         if let Some(on_death) = on_death {
@@ -114,7 +114,7 @@ pub fn enemy_death_sprite(
     if actions
         .get_actions()
         .iter()
-        .any(|act| matches!(*act, GameAction::Remove))
+        .any(|act| matches!(*act, GameAction::Remove(RemoveSource::HealthLoss)))
     {
         cmd.push((
             *pos,
@@ -158,6 +158,6 @@ pub fn enemy(
         Some(pos) => pos.y >= boundaries.h,
     } {
         actions.push(GameAction::TakeCityDamage { dmg: enemy.damage });
-        actions.push(GameAction::Remove);
+        actions.push(GameAction::Remove(RemoveSource::Other));
     }
 }

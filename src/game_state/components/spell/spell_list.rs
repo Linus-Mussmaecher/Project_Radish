@@ -30,7 +30,7 @@ pub fn construct_fireball(spritepool: &SpritePool) -> Spell {
                 components::Collision::new(32., 32., |e1, e2| {
                     (
                         vec![
-                            (e1, GameAction::Remove),
+                            (e1, GameAction::Remove(RemoveSource::Other)),
                             (e2, GameAction::TakeDamage { dmg: 2 }),
                         ],
                         MessageSet::new(),
@@ -60,7 +60,7 @@ pub fn construct_icebomb(spritepool: &SpritePool) -> Spell {
                 components::Collision::new(32., 32., |e1, e2| {
                     (
                         vec![
-                            (e1, GameAction::Remove),
+                            (e1, GameAction::Remove(RemoveSource::Other)),
                             (e2, GameAction::TakeDamage { dmg: 3 }),
                             (e1, GameAction::spawn(spawn_icebomb)),
                         ],

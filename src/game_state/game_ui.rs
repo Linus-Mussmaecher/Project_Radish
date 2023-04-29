@@ -19,7 +19,7 @@ pub fn construct_game_ui(ctx: &Context) -> Result<UiElement<GameMessage>, GameEr
     let mut main_box = containers::StackBox::new();
 
     // options icon
-    let cog_icon = graphics::Image::from_path(ctx, "/sprites/cog.png")?
+    let cog_icon = graphics::Image::from_path(ctx, "/sprites/ui/cog.png")?
         .to_element_builder(1, ctx)
         .with_visuals(box_vis)
         .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Max)
@@ -160,13 +160,13 @@ pub fn construct_game_ui(ctx: &Context) -> Result<UiElement<GameMessage>, GameEr
     let mut spell_box = containers::GridBox::new(6, 1);
 
     for i in 0..6 {
-        let mana = graphics::Image::from_path(ctx, "/sprites/mana.png")?
+        let mana = graphics::Image::from_path(ctx, "/sprites/spells/mana.png")?
             .to_element_builder(0, ctx)
             .scaled(2., 2.)
             .build();
 
         let mut col = graphics::Color::from_rgb_u32(PALETTE[0]);
-        col.a = 0.8;
+        col.a = 0.96;
 
         let progress = Covering::new(col, 0.)
             .to_element_builder(0, ctx)

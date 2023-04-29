@@ -36,6 +36,6 @@ pub fn manage_durations(
 ) {
     duration.life_duration += ix.delta;
     if duration.life_duration >= duration.max_duration {
-        actions.push(GameAction::Remove)
+        actions.push(GameAction::Remove(super::actions::RemoveSource::TimedOut))
     }
 }
