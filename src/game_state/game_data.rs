@@ -25,6 +25,10 @@ impl GameData {
             false
         }
     }
+
+    pub fn get_score(&self) -> i32{
+        self.score
+    }
 }
 
 impl Default for GameData {
@@ -32,7 +36,7 @@ impl Default for GameData {
         Self {
             score: 0,
             gold: 0,
-            city_health: 100,
+            city_health: 10,
         }
     }
 }

@@ -14,6 +14,8 @@ use game_message::MessageSet;
 mod game_data;
 use game_data::GameData;
 mod director;
+use crate::scenes::in_game_menu;
+
 use self::components::spell::spell_list;
 pub use self::controller::Controller;
 use self::director::Director;
@@ -71,8 +73,11 @@ impl GameState {
         // --- RESOURCE INITIALIZATION
 
         let mut resources = Resources::default();
-        resources.insert(MessageSet::new());
-        resources.insert(GameData::default());
+        let game_data = GameData::default();
+        let mut message_set = MessageSet::new();
+        message_set.insert(UiMessage::Extern(GameMessage::UpdateCityHealth(game_data.city_health)));
+        resources.insert(game_data);
+        resources.insert(message_set);
         resources.insert(boundaries);
         resources.insert(sprite_pool);
         resources.insert(Director::new());
@@ -252,6 +257,14 @@ impl Scene for GameState {
                 return Ok(scene_manager::SceneSwitch::push(
                     crate::scenes::in_game_menu::InGameMenu::new(ctx)?,
                 ));
+            }
+        }
+
+        // check for game over condition
+
+        if let Some(game_data) = self.resources.get::<GameData>(){
+            if game_data.city_health <= 0{
+                return Ok(scene_manager::SceneSwitch::push(in_game_menu::GameOverMenu::new(game_data.get_score(), ctx)?));
             }
         }
 

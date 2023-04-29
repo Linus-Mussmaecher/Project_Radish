@@ -2,7 +2,7 @@ use ggez::{
     graphics::{self, Color, TextFragment},
     GameError,
 };
-use mooeye::{scene_manager::Scene, ui_element::Alignment, UiContent, UiElement};
+use mooeye::{*};
 
 use crate::PALETTE;
 
@@ -12,14 +12,14 @@ pub struct InGameMenu {
 
 impl InGameMenu {
     pub fn new(ctx: &ggez::Context) -> Result<Self, GameError> {
-        let box_vis = mooeye::ui_element::Visuals {
+        let box_vis = ui_element::Visuals {
             background: Color::from_rgb_u32(PALETTE[0]),
             border: Color::from_rgb_u32(PALETTE[7]),
             border_width: 3.,
             rounded_corners: 6.,
         };
 
-        let box_hover_vis = mooeye::ui_element::Visuals {
+        let box_hover_vis = ui_element::Visuals {
             background: Color::from_rgb_u32(PALETTE[1]),
             border: Color::from_rgb_u32(PALETTE[7]),
             border_width: 3.,
@@ -71,7 +71,7 @@ impl InGameMenu {
 
         // Container
 
-        let mut menu_box = mooeye::containers::VerticalBox::new();
+        let mut menu_box: containers::VerticalBox<()> = containers::VerticalBox::new();
         menu_box.add(pause)?;
         menu_box.add(resume)?;
         menu_box.add(main_menu)?;
@@ -80,7 +80,7 @@ impl InGameMenu {
         let menu_box = menu_box
             .to_element_builder(0, ctx)
             .with_visuals(box_vis)
-            .with_alignment(Alignment::Center, Alignment::Center)
+            .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Center)
             .with_padding((25., 25., 25., 25.))
             .build();
 
@@ -88,16 +88,16 @@ impl InGameMenu {
     }
 }
 
-impl Scene for InGameMenu {
+impl scene_manager::Scene for InGameMenu {
     fn update(
         &mut self,
         ctx: &mut ggez::Context,
-    ) -> Result<mooeye::scene_manager::SceneSwitch, ggez::GameError> {
+    ) -> Result<scene_manager::SceneSwitch, ggez::GameError> {
         let messages = self.gui.manage_messages(ctx, None);
 
-        let mut res = mooeye::scene_manager::SceneSwitch::None;
+        let mut res = scene_manager::SceneSwitch::None;
 
-        if messages.contains(&mooeye::UiMessage::Clicked(1))
+        if messages.contains(&UiMessage::Clicked(1))
             || ctx
                 .keyboard
                 .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::F10)
@@ -105,26 +105,26 @@ impl Scene for InGameMenu {
                 .keyboard
                 .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::R)
         {
-            res = mooeye::scene_manager::SceneSwitch::pop(1);
+            res = scene_manager::SceneSwitch::pop(1);
         }
 
-        if messages.contains(&mooeye::UiMessage::Clicked(2))
+        if messages.contains(&UiMessage::Clicked(2))
             || ctx
                 .keyboard
                 .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::M)
         {
-            res = mooeye::scene_manager::SceneSwitch::replace(
+            res = scene_manager::SceneSwitch::replace(
                 super::main_menu::MainMenu::new(ctx)?,
                 2,
             );
         }
 
-        if messages.contains(&mooeye::UiMessage::Clicked(3))
+        if messages.contains(&UiMessage::Clicked(3))
             || ctx
                 .keyboard
                 .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::Q)
         {
-            res = mooeye::scene_manager::SceneSwitch::pop(2);
+            res = scene_manager::SceneSwitch::pop(2);
         }
 
         Ok(res)
@@ -135,6 +135,111 @@ impl Scene for InGameMenu {
         canvas.set_sampler(graphics::Sampler::nearest_clamp());
 
         self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);
+
+        canvas.finish(ctx)?;
+        Ok(())
+    }
+}
+
+
+pub struct GameOverMenu {
+    ui: UiElement<()>,
+}
+
+impl GameOverMenu {
+    pub fn new(score: i32, ctx: &ggez::Context) -> Result<Self, GameError> {
+        let box_vis = ui_element::Visuals {
+            background: Color::from_rgb_u32(PALETTE[0]),
+            border: Color::from_rgb_u32(PALETTE[7]),
+            border_width: 3.,
+            rounded_corners: 6.,
+        };
+        let box_hover_vis = ui_element::Visuals {
+            background: Color::from_rgb_u32(PALETTE[1]),
+            border: Color::from_rgb_u32(PALETTE[7]),
+            border_width: 3.,
+            rounded_corners: 6.,
+        };
+
+        let mut main_box = containers::VerticalBox::new();
+        main_box.spacing = 25.;
+
+        let restart = ggez::graphics::Text::new(
+            graphics::TextFragment::new(format!("Your score was {}!", score)).color(Color::from_rgb_u32(PALETTE[6])),
+        )
+        .set_font("Retro")
+        .set_scale(32.)
+        .to_owned()
+        .to_element_builder(1, ctx)
+        .build();
+        main_box.add(restart)?;
+
+        let restart = ggez::graphics::Text::new(
+            graphics::TextFragment::new("Restart").color(Color::from_rgb_u32(PALETTE[6])),
+        )
+        .set_font("Retro")
+        .set_scale(32.)
+        .to_owned()
+        .to_element_builder(1, ctx)
+        .with_visuals(box_vis)
+        .with_hover_visuals(box_hover_vis)
+        .build();
+        main_box.add(restart)?;
+
+        let main_menu = ggez::graphics::Text::new(
+            graphics::TextFragment::new("Return to Main Menu").color(Color::from_rgb_u32(PALETTE[6])),
+        )
+        .set_font("Retro")
+        .set_scale(32.)
+        .to_owned()
+        .to_element_builder(2, ctx)
+        .with_visuals(box_vis)
+        .with_hover_visuals(box_hover_vis)
+        .build();
+        main_box.add(main_menu)?;
+
+        let main_box = main_box.to_element_builder(0, ctx)
+        .with_visuals(box_vis)
+        .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Center)
+        .with_padding((25., 25., 25., 25.))
+        .build();
+
+        Ok(Self {
+            ui: main_box,
+        })
+    }
+}
+
+impl scene_manager::Scene for GameOverMenu {
+    fn update(&mut self, ctx: &mut ggez::Context) -> Result<scene_manager::SceneSwitch, GameError> {
+        let messages = self.ui.manage_messages(ctx, None);
+
+        if messages.contains(&mooeye::UiMessage::Clicked(1))
+            || ctx
+                .keyboard
+                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::R)
+        {
+            return Ok(mooeye::scene_manager::SceneSwitch::replace(
+                crate::game_state::GameState::new(ctx)?,
+                2,
+            ));
+        }
+
+        if messages.contains(&mooeye::UiMessage::Clicked(2))
+            || ctx
+                .keyboard
+                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::M)
+        {
+            return Ok(mooeye::scene_manager::SceneSwitch::replace(super::main_menu::MainMenu::new(ctx)? , 2));
+        }
+        Ok(mooeye::scene_manager::SceneSwitch::None)
+    }
+
+    fn draw(&mut self, ctx: &mut ggez::Context, mouse_listen: bool) -> Result<(), GameError> {
+        let mut canvas = graphics::Canvas::from_frame(ctx, None);
+        canvas.set_sampler(graphics::Sampler::nearest_clamp());
+
+        self.ui.draw_to_screen(ctx, &mut canvas, mouse_listen);
 
         canvas.finish(ctx)?;
         Ok(())

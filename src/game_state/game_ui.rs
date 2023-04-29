@@ -1,11 +1,11 @@
 use ggez::{graphics::Color, *};
 
-use mooeye::*;
+use mooeye::{*};
 use std::time::Duration;
 
-use crate::PALETTE;
+use crate::{PALETTE};
 
-use super::game_message::GameMessage;
+use super::{game_message::GameMessage};
 
 pub fn construct_game_ui(ctx: &Context) -> Result<UiElement<GameMessage>, GameError> {
     let box_vis = mooeye::ui_element::Visuals {
