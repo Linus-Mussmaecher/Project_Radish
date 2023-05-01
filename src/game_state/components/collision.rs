@@ -75,15 +75,15 @@ pub fn boundary_collision(
     pos: &mut Position,
     bcol: &BoundaryCollision,
     col: Option<&Collision>,
-    sprite: Option<&super::Sprite>,
+    gfx: Option<&super::Graphics>,
     vel: Option<&mut super::Velocity>,
     #[resource] boundaries: &Rect,
 ) {
     //try to get a reasonable height
     let (w, h) = if let Some(col) = col {
         (col.w, col.h)
-    } else if let Some(sprite) = sprite {
-        sprite.get_dimensions()
+    } else if let Some(gfx) = gfx {
+        gfx.get_sprite().get_dimensions()
     } else {
         (0., 0.)
     };
@@ -103,17 +103,17 @@ pub fn boundary_collision(
                 if bcol.x_boundaries
                     && (pos.x < mod_boundaries.x || pos.x > mod_boundaries.x + mod_boundaries.w)
                 {
-                    -vel.get_dx()
+                    -1.
                 } else {
-                    vel.get_dx()
-                },
+                    1.
+                } * vel.get_dx(),
                 if bcol.y_boundaries
                     && (pos.y < mod_boundaries.y || pos.y > mod_boundaries.y + mod_boundaries.h)
                 {
-                    -vel.get_dy()
+                    -1.
                 } else {
-                    vel.get_dy()
-                },
+                    1.
+                } * vel.get_dy(),
             );
         }
     }
@@ -122,14 +122,14 @@ pub fn boundary_collision(
     if bcol.x_boundaries {
         pos.x = pos
             .x
-            .clamp(boundaries.x + w / 2., boundaries.x + boundaries.w - w / 2.);
+            .clamp(mod_boundaries.x, mod_boundaries.x + mod_boundaries.w);
     }
 
     // clamp y-position
     if bcol.y_boundaries {
         pos.y = pos
             .y
-            .clamp(boundaries.y + h / 2., boundaries.y + boundaries.h - w / 2.);
+            .clamp(mod_boundaries.y, mod_boundaries.y + mod_boundaries.h);
     }
 }
 
