@@ -164,15 +164,25 @@ impl GameOverMenu {
         let mut main_box = containers::VerticalBox::new();
         main_box.spacing = 25.;
 
-        let restart = ggez::graphics::Text::new(
-            graphics::TextFragment::new(format!("Your score was {}!", score)).color(Color::from_rgb_u32(PALETTE[6])),
+        let game_over = ggez::graphics::Text::new(
+            graphics::TextFragment::new("Game Over!").color(Color::from_rgb_u32(PALETTE[8])),
+        )
+        .set_font("Retro")
+        .set_scale(54.)
+        .to_owned()
+        .to_element_builder(0, ctx)
+        .build();
+        main_box.add(game_over)?;
+
+        let score = ggez::graphics::Text::new(
+            graphics::TextFragment::new(format!("Score: {}", score)).color(Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
         .set_scale(32.)
         .to_owned()
-        .to_element_builder(1, ctx)
+        .to_element_builder(0, ctx)
         .build();
-        main_box.add(restart)?;
+        main_box.add(score)?;
 
         let restart = ggez::graphics::Text::new(
             graphics::TextFragment::new("Restart").color(Color::from_rgb_u32(PALETTE[6])),

@@ -83,7 +83,7 @@ pub fn boundary_collision(
     let (w, h) = if let Some(col) = col {
         (col.w, col.h)
     } else if let Some(gfx) = gfx {
-        gfx.get_sprite().get_dimensions()
+        gfx.get_size()
     } else {
         (0., 0.)
     };
