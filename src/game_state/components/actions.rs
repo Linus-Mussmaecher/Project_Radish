@@ -271,11 +271,11 @@ pub fn distribution_system(world: &mut legion::World) {
 
                     target_list.sort_by(|(_, d1), (_, d2)| d1.total_cmp(d2));
 
-                    for (target, _) in target_list.drain(match distributor.limit {
-                        Some(x) => 0..(x.min(target_list.len())),
-                        None => 0..target_list.len(),
-                    }) {
-                        total_actions.push((target, distributor.action.clone()))
+                    for (target, _) in target_list
+                        .iter()
+                        .take(distributor.limit.unwrap_or(target_list.len()))
+                    {
+                        total_actions.push((*target, distributor.action.clone()))
                     }
                 }
                 _ => {}
