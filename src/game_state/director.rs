@@ -1,10 +1,10 @@
 use std::time::Duration;
 
-use ggez::{graphics::Rect, GameError};
+use ggez::{graphics, GameError};
 use legion::{system, systems::CommandBuffer};
 use rand::random;
 
-use mooeye::sprite::SpritePool;
+use mooeye::sprite;
 
 use super::{
     components::{self, actions::*, graphics::Particle, Position},
@@ -19,7 +19,7 @@ pub struct Director {
     credits: u64,
     enemies: Vec<(
         u64,
-        fn(&mut CommandBuffer, &SpritePool, Position) -> Result<(), GameError>,
+        fn(&mut CommandBuffer, &sprite::SpritePool, Position) -> Result<(), GameError>,
     )>,
 }
 
@@ -42,8 +42,8 @@ impl Director {
 #[system]
 pub fn direct(
     cmd: &mut CommandBuffer,
-    #[resource] spritepool: &SpritePool,
-    #[resource] boundaries: &Rect,
+    #[resource] spritepool: &sprite::SpritePool,
+    #[resource] boundaries: &graphics::Rect,
     #[resource] director: &mut Director,
     #[resource] ix: &Interactions,
 ) {
@@ -106,7 +106,7 @@ pub fn direct(
 
 pub fn spawn_basic_skeleton(
     cmd: &mut CommandBuffer,
-    sprite_pool: &SpritePool,
+    sprite_pool: &sprite::SpritePool,
     pos: Position,
 ) -> Result<(), GameError> {
     cmd.push((
@@ -125,7 +125,7 @@ pub fn spawn_basic_skeleton(
 
 pub fn spawn_fast_skeleton(
     cmd: &mut CommandBuffer,
-    sprite_pool: &SpritePool,
+    sprite_pool: &sprite::SpritePool,
     pos: Position,
 ) -> Result<(), GameError> {
     cmd.push((
@@ -156,7 +156,7 @@ pub fn spawn_fast_skeleton(
 
 pub fn spawn_loot_skeleton(
     cmd: &mut CommandBuffer,
-    sprite_pool: &SpritePool,
+    sprite_pool: &sprite::SpritePool,
     pos: Position,
 ) -> Result<(), GameError> {
     cmd.push((
@@ -177,7 +177,7 @@ pub fn spawn_loot_skeleton(
 
 pub fn spawn_tank_skeleton(
     cmd: &mut CommandBuffer,
-    sprite_pool: &SpritePool,
+    sprite_pool: &sprite::SpritePool,
     pos: Position,
 ) -> Result<(), GameError> {
     cmd.push((

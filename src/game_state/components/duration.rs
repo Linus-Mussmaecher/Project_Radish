@@ -1,4 +1,4 @@
-use legion::*;
+use legion::system;
 use std::time::Duration;
 
 use crate::game_state::controller::Interactions;

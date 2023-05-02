@@ -1,8 +1,5 @@
-use ggez::{
-    graphics::{self, Color, TextFragment},
-    GameError,
-};
-use mooeye::{scene_manager::Scene, ui_element::Alignment, UiContent, UiElement};
+use ggez::{graphics, GameError};
+use mooeye::*;
 
 use crate::{game_state, PALETTE};
 
@@ -14,8 +11,9 @@ impl MainMenu {
     pub fn new(ctx: &ggez::Context) -> Result<Self, GameError> {
         // title
 
-        let title = ggez::graphics::Text::new(
-            TextFragment::new("PowerDefense").color(Color::from_rgb_u32(PALETTE[14])),
+        let title = graphics::Text::new(
+            graphics::TextFragment::new("PowerDefense")
+                .color(graphics::Color::from_rgb_u32(PALETTE[14])),
         )
         .set_font("Retro")
         .set_scale(48.)
@@ -23,8 +21,8 @@ impl MainMenu {
         .to_element(1, ctx);
 
         // play
-        let play = ggez::graphics::Text::new(
-            TextFragment::new("Play").color(Color::from_rgb_u32(PALETTE[6])),
+        let play = graphics::Text::new(
+            graphics::TextFragment::new("Play").color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
         .set_scale(32.)
@@ -34,8 +32,9 @@ impl MainMenu {
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
 
-        let tutorial = ggez::graphics::Text::new(
-            TextFragment::new("Tutorial").color(Color::from_rgb_u32(PALETTE[6])),
+        let tutorial = graphics::Text::new(
+            graphics::TextFragment::new("Tutorial")
+                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
         .set_scale(32.)
@@ -47,8 +46,9 @@ impl MainMenu {
 
         // highscores
 
-        let highscores = ggez::graphics::Text::new(
-            TextFragment::new("Highscores").color(Color::from_rgb_u32(PALETTE[6])),
+        let highscores = graphics::Text::new(
+            graphics::TextFragment::new("Highscores")
+                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
         .set_scale(32.)
@@ -60,8 +60,9 @@ impl MainMenu {
 
         // achievement
 
-        let achievements = ggez::graphics::Text::new(
-            TextFragment::new("Achievements").color(Color::from_rgb_u32(PALETTE[6])),
+        let achievements = graphics::Text::new(
+            graphics::TextFragment::new("Achievements")
+                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
         .set_scale(32.)
@@ -71,8 +72,8 @@ impl MainMenu {
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
 
-        let options = ggez::graphics::Text::new(
-            TextFragment::new("Options").color(Color::from_rgb_u32(PALETTE[6])),
+        let options = graphics::Text::new(
+            graphics::TextFragment::new("Options").color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
         .set_scale(32.)
@@ -82,8 +83,8 @@ impl MainMenu {
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
 
-        let credits = ggez::graphics::Text::new(
-            TextFragment::new("Credits").color(Color::from_rgb_u32(PALETTE[6])),
+        let credits = graphics::Text::new(
+            graphics::TextFragment::new("Credits").color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
         .set_scale(32.)
@@ -93,8 +94,8 @@ impl MainMenu {
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
 
-        let quit = ggez::graphics::Text::new(
-            TextFragment::new("Quit").color(Color::from_rgb_u32(PALETTE[6])),
+        let quit = graphics::Text::new(
+            graphics::TextFragment::new("Quit").color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
         .set_scale(32.)
@@ -118,7 +119,7 @@ impl MainMenu {
         let menu_box = menu_box
             .to_element_builder(0, ctx)
             .with_visuals(super::BUTTON_VIS)
-            .with_alignment(Alignment::Center, Alignment::Min)
+            .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Min)
             .with_padding((25., 25., 25., 25.))
             .build();
 
@@ -127,7 +128,7 @@ impl MainMenu {
         big_box.add(menu_box)?;
         let big_box = big_box
             .to_element_builder(0, ctx)
-            .with_alignment(Alignment::Max, Alignment::Min)
+            .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Min)
             .with_padding((25., 25., 25., 25.))
             .build();
 
@@ -135,7 +136,7 @@ impl MainMenu {
     }
 }
 
-impl Scene for MainMenu {
+impl scene_manager::Scene for MainMenu {
     fn update(
         &mut self,
         ctx: &mut ggez::Context,
@@ -211,7 +212,8 @@ impl Scene for MainMenu {
     }
 
     fn draw(&mut self, ctx: &mut ggez::Context, mouse_listen: bool) -> Result<(), ggez::GameError> {
-        let mut canvas = graphics::Canvas::from_frame(ctx, Color::from_rgb_u32(PALETTE[5]));
+        let mut canvas =
+            graphics::Canvas::from_frame(ctx, graphics::Color::from_rgb_u32(PALETTE[5]));
         canvas.set_sampler(graphics::Sampler::nearest_clamp());
 
         self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);

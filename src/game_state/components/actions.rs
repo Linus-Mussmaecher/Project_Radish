@@ -1,11 +1,11 @@
 use std::{fmt::Debug, time::Duration};
 
 use ggez::glam::Vec2;
-use legion::{systems::CommandBuffer, Entity, EntityStore, IntoQuery, World};
-use mooeye::sprite::SpritePool;
+use legion::{system, systems::CommandBuffer, Entity, EntityStore, IntoQuery};
+use mooeye::sprite;
 use tinyvec::TinyVec;
 
-use crate::game_state::controller::Interactions;
+use crate::game_state::controller;
 
 use super::{Enemy, Position};
 
@@ -34,7 +34,7 @@ pub enum GameAction {
     /// Instructs the spell casting component to cast a certain spell
     CastSpell(usize),
     /// Executes a closure that is supposed to spawn an entity into the world. TODO: Closure evil, somehow serialize this?
-    Spawn(Box<fn(Entity, Position, &SpritePool, &mut CommandBuffer)>),
+    Spawn(Box<fn(Entity, Position, &sprite::SpritePool, &mut CommandBuffer)>),
     /// Executes an arbitrary closure with full access to the command buffer.
     Other(Box<fn(Entity, &mut CommandBuffer)>),
     /// Distributes an action among other entities as described by the distributor
@@ -74,7 +74,7 @@ impl Debug for GameAction {
 
 impl GameAction {
     /// Helper function to create a [GameAction::Spawn] without having to use Box.
-    pub fn spawn(spawner: fn(Entity, Position, &SpritePool, &mut CommandBuffer)) -> Self {
+    pub fn spawn(spawner: fn(Entity, Position, &sprite::SpritePool, &mut CommandBuffer)) -> Self {
         Self::Spawn(Box::new(spawner))
     }
 
@@ -180,13 +180,13 @@ pub fn clear(actions: &mut Actions) {
     actions.action_queue.clear();
 }
 
-#[legion::system(for_each)]
+#[system(for_each)]
 /// System that handles all spawn and other actions by executing their closures.
 pub fn resolve_executive_actions(
     ent: &Entity,
     actions: &Actions,
     pos: Option<&Position>,
-    #[resource] spritepool: &SpritePool,
+    #[resource] spritepool: &sprite::SpritePool,
     cmd: &mut CommandBuffer,
 ) {
     for action in actions.get_actions() {
@@ -245,7 +245,7 @@ impl Distributor {
 }
 
 /// A custom system that handles [GameAction::Distributed].
-pub fn distribution_system(world: &mut World) {
+pub fn distribution_system(world: &mut legion::World) {
     // create a list of all new actions
     let mut total_actions = Vec::new();
 
@@ -352,9 +352,9 @@ impl Default for Repeater {
     }
 }
 
-#[legion::system(for_each)]
+#[system(for_each)]
 /// A system that takes all Repeated actions and add their repeaters to the repeater list.
-pub fn register_repeaters(actions: &mut Actions, #[resource] ix: &Interactions) {
+pub fn register_repeaters(actions: &mut Actions, #[resource] ix: &controller::Interactions) {
     for action in actions.action_queue.iter() {
         if let GameAction::Repeated(repeater) = action {
             let mut rep = *repeater.clone();
@@ -365,9 +365,9 @@ pub fn register_repeaters(actions: &mut Actions, #[resource] ix: &Interactions) 
     }
 }
 
-#[legion::system(for_each)]
+#[system(for_each)]
 /// A system that regularly looks at all repeaters and triggers their actions, progresses their durations and removes them if appropriate.
-pub fn handle_repeaters(actions: &mut Actions, #[resource] ix: &Interactions) {
+pub fn handle_repeaters(actions: &mut Actions, #[resource] ix: &controller::Interactions) {
     // iterate over repeaters
     for repeater in actions.repeat_actions.iter_mut() {
         // Increase counting durations

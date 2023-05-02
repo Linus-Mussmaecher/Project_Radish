@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use legion::{world::EntryRef, *};
+use legion::{world::EntryRef, Entity, EntityStore, IntoQuery};
 
 use super::{actions::GameAction, Actions, Position};
 /// A component that continously modifies actions applied to entities around it.
@@ -29,7 +29,7 @@ impl Aura {
 }
 
 /// A special system that applies all aura-components that transform actions of other entities
-pub fn aura_system(world: &mut World) {
+pub fn aura_system(world: &mut legion::World) {
     // compile a list of all auras affecting entities
     let mut auras = Vec::new();
 

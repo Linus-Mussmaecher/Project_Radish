@@ -1,7 +1,4 @@
-use ggez::{
-    graphics::{self, Color},
-    GameError,
-};
+use ggez::{graphics, GameError};
 use mooeye::*;
 use serde::{Deserialize, Serialize};
 
@@ -81,8 +78,9 @@ impl GameOverMenu {
         let mut main_box = containers::VerticalBox::new();
         main_box.spacing = 25.;
 
-        let game_over = ggez::graphics::Text::new(
-            graphics::TextFragment::new("Game Over!").color(Color::from_rgb_u32(PALETTE[8])),
+        let game_over = graphics::Text::new(
+            graphics::TextFragment::new("Game Over!")
+                .color(graphics::Color::from_rgb_u32(PALETTE[8])),
         )
         .set_font("Retro")
         .set_scale(54.)
@@ -94,14 +92,14 @@ impl GameOverMenu {
         let mut score_box = containers::HorizontalBox::new();
         score_box.spacing = 35.;
 
-        let score_disp = ggez::graphics::Text::new(
+        let score_disp = graphics::Text::new(
             graphics::TextFragment::new("Your score:\n")
-                .color(Color::from_rgb_u32(PALETTE[7]))
+                .color(graphics::Color::from_rgb_u32(PALETTE[7]))
                 .scale(36.),
         )
         .add(
             graphics::TextFragment::new(format!("  {:>5}", score))
-                .color(Color::from_rgb_u32(PALETTE[6]))
+                .color(graphics::Color::from_rgb_u32(PALETTE[6]))
                 .scale(32.),
         )
         .set_font("Retro")
@@ -111,20 +109,22 @@ impl GameOverMenu {
         .build();
         score_box.add(score_disp)?;
 
-        let mut highscore_disp = ggez::graphics::Text::new(
+        let mut highscore_disp = graphics::Text::new(
             graphics::TextFragment::new("Highscores:\n")
-                .color(Color::from_rgb_u32(PALETTE[7]))
+                .color(graphics::Color::from_rgb_u32(PALETTE[7]))
                 .scale(36.),
         );
 
         for (index, value) in highscores.iter().enumerate().take(5) {
             highscore_disp.add(
                 graphics::TextFragment::new(format!("  {:02}.{:>5}\n", index + 1, value.score))
-                    .color(Color::from_rgb_u32(if index == own_index.unwrap_or(128) {
-                        PALETTE[8]
-                    } else {
-                        PALETTE[6]
-                    }))
+                    .color(graphics::Color::from_rgb_u32(
+                        if index == own_index.unwrap_or(128) {
+                            PALETTE[8]
+                        } else {
+                            PALETTE[6]
+                        },
+                    ))
                     .scale(32.),
             );
         }
@@ -140,8 +140,8 @@ impl GameOverMenu {
 
         main_box.add(score_box.to_element(0, ctx))?;
 
-        let restart = ggez::graphics::Text::new(
-            graphics::TextFragment::new("Restart").color(Color::from_rgb_u32(PALETTE[6])),
+        let restart = graphics::Text::new(
+            graphics::TextFragment::new("Restart").color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
         .set_scale(32.)
@@ -152,9 +152,9 @@ impl GameOverMenu {
         .build();
         main_box.add(restart)?;
 
-        let main_menu = ggez::graphics::Text::new(
+        let main_menu = graphics::Text::new(
             graphics::TextFragment::new("Return to Main Menu")
-                .color(Color::from_rgb_u32(PALETTE[6])),
+                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
         .set_scale(32.)

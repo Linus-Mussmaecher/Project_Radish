@@ -1,8 +1,5 @@
-use ggez::{
-    graphics::{self, Color, TextFragment},
-    Context, GameError,
-};
-use mooeye::{scene_manager::Scene, ui_element::Alignment, UiContent, UiElement};
+use ggez::{graphics, GameError};
+use mooeye::*;
 
 use crate::PALETTE;
 
@@ -13,11 +10,12 @@ pub struct HighscoreMenu {
 }
 
 impl HighscoreMenu {
-    pub fn new(ctx: &Context) -> Result<Self, GameError> {
+    pub fn new(ctx: &ggez::Context) -> Result<Self, GameError> {
         // title
 
-        let title = ggez::graphics::Text::new(
-            TextFragment::new("Highscores").color(Color::from_rgb_u32(PALETTE[8])),
+        let title = graphics::Text::new(
+            graphics::TextFragment::new("Highscores")
+                .color(graphics::Color::from_rgb_u32(PALETTE[8])),
         )
         .set_font("Retro")
         .set_scale(48.)
@@ -26,12 +24,12 @@ impl HighscoreMenu {
 
         // Score display
 
-        let mut highscore_disp = ggez::graphics::Text::new("");
+        let mut highscore_disp = graphics::Text::new("");
 
         for (index, value) in game_over_menu::load_highscores().iter().enumerate().take(5) {
             highscore_disp.add(
                 graphics::TextFragment::new(format!("  {:02}.{:>5}\n", index + 1, *value))
-                    .color(Color::from_rgb_u32(PALETTE[6]))
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6]))
                     .scale(32.),
             );
         }
@@ -46,8 +44,8 @@ impl HighscoreMenu {
             )
             .build();
 
-        let back = ggez::graphics::Text::new(
-            TextFragment::new("Close").color(Color::from_rgb_u32(PALETTE[6])),
+        let back = graphics::Text::new(
+            graphics::TextFragment::new("Close").color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
         .set_scale(32.)
@@ -67,7 +65,7 @@ impl HighscoreMenu {
         let credits_box = hs_box
             .to_element_builder(0, ctx)
             .with_visuals(super::BUTTON_VIS)
-            .with_alignment(Alignment::Min, Alignment::Min)
+            .with_alignment(ui_element::Alignment::Min, ui_element::Alignment::Min)
             .with_offset(25., 25.)
             .with_padding((25., 25., 25., 25.))
             .build();
@@ -76,7 +74,7 @@ impl HighscoreMenu {
     }
 }
 
-impl Scene for HighscoreMenu {
+impl scene_manager::Scene for HighscoreMenu {
     fn update(
         &mut self,
         ctx: &mut ggez::Context,

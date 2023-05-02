@@ -1,10 +1,11 @@
-use ggez::graphics::DrawParam;
-use ggez::graphics::Rect;
-use ggez::*;
-use legion::systems::CommandBuffer;
-use legion::*;
-use mooeye::sprite::SpritePool;
-use mooeye::{scene_manager::Scene, *};
+use ggez::{
+    graphics,
+    GameError,
+    glam::Vec2,
+};
+use legion::{component, systems::CommandBuffer, Entity, IntoQuery, Resources, Schedule, World};
+use mooeye::*;
+
 use std::time::Duration;
 
 mod game_message;
@@ -38,14 +39,14 @@ pub struct GameState {
 }
 
 impl GameState {
-    pub fn new(ctx: &Context) -> Result<Self, GameError> {
+    pub fn new(ctx: &ggez::Context) -> Result<Self, GameError> {
         // --- WORLD CREATION ---
 
         // Create world
         let mut world = World::default();
 
         // Create some resources neccessary for world init
-        let boundaries = Rect::new(0., 0., 600., 800.);
+        let boundaries = graphics::Rect::new(0., 0., 600., 800.);
         let sprite_pool = sprite::SpritePool::new().with_folder(ctx, "/sprites", true);
 
         Self::initalize_environment(&boundaries, &sprite_pool, &mut world)?;
@@ -119,8 +120,8 @@ impl GameState {
     }
 
     fn initalize_environment(
-        boundaries: &Rect,
-        sprite_pool: &SpritePool,
+        boundaries: &graphics::Rect,
+        sprite_pool: &sprite::SpritePool,
         world: &mut World,
     ) -> Result<(), GameError> {
         // Create cobble sprites
@@ -216,8 +217,8 @@ impl GameState {
     }
 }
 
-impl Scene for GameState {
-    fn update(&mut self, ctx: &mut Context) -> Result<scene_manager::SceneSwitch, GameError> {
+impl scene_manager::Scene for GameState {
+    fn update(&mut self, ctx: &mut ggez::Context) -> Result<scene_manager::SceneSwitch, GameError> {
         // --- PREPARATION ---
 
         // create interaction struct and insert as resource
@@ -254,7 +255,7 @@ impl Scene for GameState {
             if messages.contains(&UiMessage::Clicked(1))
                 || ctx
                     .keyboard
-                    .is_key_just_pressed(winit::event::VirtualKeyCode::F10)
+                    .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::F10)
             {
                 return Ok(scene_manager::SceneSwitch::push(
                     crate::scenes::in_game_menu::InGameMenu::new(ctx)?,
@@ -275,7 +276,7 @@ impl Scene for GameState {
         Ok(scene_manager::SceneSwitch::none())
     }
 
-    fn draw(&mut self, ctx: &mut Context, mouse_listen: bool) -> Result<(), GameError> {
+    fn draw(&mut self, ctx: &mut ggez::Context, mouse_listen: bool) -> Result<(), GameError> {
         // Get canvas & set sampler
         let mut canvas =
             graphics::Canvas::from_frame(ctx, graphics::Color::from_rgb_u32(crate::PALETTE[11]));
@@ -284,30 +285,34 @@ impl Scene for GameState {
         // Draw background
         {
             // Draw street
-            let boundaries = self.resources.get::<Rect>().map(|r| *r).unwrap_or_default();
+            let boundaries = self
+                .resources
+                .get::<graphics::Rect>()
+                .map(|r| *r)
+                .unwrap_or_default();
 
             let (screen_w, screen_h) = ctx.gfx.drawable_size();
             canvas.draw(
-                &ggez::graphics::Quad,
-                DrawParam::new()
+                &graphics::Quad,
+                graphics::DrawParam::new()
                     .color(graphics::Color::from_rgb_u32(crate::PALETTE[10]))
-                    .scale(glam::Vec2::new(boundaries.w, screen_h))
-                    .dest(glam::Vec2::new((screen_w - boundaries.w) / 2., 0.)),
+                    .scale(Vec2::new(boundaries.w, screen_h))
+                    .dest(Vec2::new((screen_w - boundaries.w) / 2., 0.)),
             );
             // street edges
             canvas.draw(
-                &ggez::graphics::Quad,
-                DrawParam::new()
+                &graphics::Quad,
+                graphics::DrawParam::new()
                     .color(graphics::Color::from_rgb_u32(crate::PALETTE[12]))
-                    .scale(glam::Vec2::new(8., screen_h))
-                    .dest(glam::Vec2::new((screen_w - boundaries.w) / 2. - 4., 0.)),
+                    .scale(Vec2::new(8., screen_h))
+                    .dest(Vec2::new((screen_w - boundaries.w) / 2. - 4., 0.)),
             );
             canvas.draw(
-                &ggez::graphics::Quad,
-                DrawParam::new()
+                &graphics::Quad,
+                graphics::DrawParam::new()
                     .color(graphics::Color::from_rgb_u32(crate::PALETTE[12]))
-                    .scale(glam::Vec2::new(8., screen_h))
-                    .dest(glam::Vec2::new((screen_w + boundaries.w) / 2. - 4., 0.)),
+                    .scale(Vec2::new(8., screen_h))
+                    .dest(Vec2::new((screen_w + boundaries.w) / 2. - 4., 0.)),
             );
         }
 

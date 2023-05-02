@@ -1,6 +1,6 @@
 use crate::game_state::controller::Interactions;
 use ggez::glam::Vec2;
-use legion::*;
+use legion::system;
 
 use super::Actions;
 

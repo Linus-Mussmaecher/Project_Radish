@@ -1,8 +1,6 @@
-use ggez::{conf, graphics, ContextBuilder, GameResult};
-use mooeye::scene_manager::SceneManager;
+use ggez::*;
 
 mod scenes;
-use scenes::main_menu::MainMenu;
 
 mod game_state;
 
@@ -49,9 +47,9 @@ fn main() -> GameResult {
 
     // create Start Scene
 
-    let start_scene = MainMenu::new(&ctx)?;
+    let start_scene = scenes::main_menu::MainMenu::new(&ctx)?;
 
     //create Scene Manager
 
-    SceneManager::new_and_run(event_loop, ctx, start_scene);
+    mooeye::scene_manager::SceneManager::new_and_run(event_loop, ctx, start_scene);
 }

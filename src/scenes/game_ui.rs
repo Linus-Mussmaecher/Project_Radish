@@ -1,13 +1,15 @@
-use ggez::{graphics::Color, *};
+use ggez::{graphics, GameError};
 
 use mooeye::*;
 use std::time::Duration;
 
 use crate::PALETTE;
 
-use crate::game_state::GameMessage;
+use crate::game_state;
 
-pub fn construct_game_ui(ctx: &Context) -> Result<UiElement<GameMessage>, GameError> {
+pub fn construct_game_ui(
+    ctx: &ggez::Context,
+) -> Result<UiElement<game_state::GameMessage>, GameError> {
     // main box
     let mut main_box = containers::StackBox::new();
 
@@ -34,7 +36,7 @@ pub fn construct_game_ui(ctx: &Context) -> Result<UiElement<GameMessage>, GameEr
     .build();
 
     let gold_text = graphics::Text::new(
-        graphics::TextFragment::new("0000").color(Color::from_rgb_u32(PALETTE[6])),
+        graphics::TextFragment::new("0000").color(graphics::Color::from_rgb_u32(PALETTE[6])),
     )
     .set_scale(32.)
     .set_font("Retro")
@@ -42,12 +44,14 @@ pub fn construct_game_ui(ctx: &Context) -> Result<UiElement<GameMessage>, GameEr
     .to_element_builder(0, ctx)
     .with_message_handler(|message_set, _, transitions| {
         for message in message_set {
-            if let ui_element::UiMessage::Extern(GameMessage::UpdateGold(new_gold)) = message {
+            if let ui_element::UiMessage::Extern(game_state::GameMessage::UpdateGold(new_gold)) =
+                message
+            {
                 transitions.push_back(
                     ui_element::Transition::new(Duration::ZERO).with_new_content(
                         graphics::Text::new(
                             graphics::TextFragment::new(format!("{:04}", *new_gold))
-                                .color(Color::from_rgb_u32(PALETTE[6])),
+                                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
                         )
                         .set_scale(32.)
                         .set_font("Retro")
@@ -70,7 +74,7 @@ pub fn construct_game_ui(ctx: &Context) -> Result<UiElement<GameMessage>, GameEr
         .with_tooltip(
             graphics::Text::new(
                 graphics::TextFragment::new("Your current amount of gold.")
-                    .color(Color::from_rgb_u32(PALETTE[6])),
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6])),
             )
             .set_scale(24.)
             .set_font("Retro")
@@ -96,7 +100,7 @@ pub fn construct_game_ui(ctx: &Context) -> Result<UiElement<GameMessage>, GameEr
     .build();
 
     let city_text = graphics::Text::new(
-        graphics::TextFragment::new("100").color(Color::from_rgb_u32(PALETTE[6])),
+        graphics::TextFragment::new("100").color(graphics::Color::from_rgb_u32(PALETTE[6])),
     )
     .set_scale(32.)
     .set_font("Retro")
@@ -104,14 +108,15 @@ pub fn construct_game_ui(ctx: &Context) -> Result<UiElement<GameMessage>, GameEr
     .to_element_builder(0, ctx)
     .with_message_handler(|message_set, _, transitions| {
         for message in message_set {
-            if let ui_element::UiMessage::Extern(GameMessage::UpdateCityHealth(new_health)) =
-                message
+            if let ui_element::UiMessage::Extern(game_state::GameMessage::UpdateCityHealth(
+                new_health,
+            )) = message
             {
                 transitions.push_back(
                     ui_element::Transition::new(Duration::ZERO).with_new_content(
                         graphics::Text::new(
                             graphics::TextFragment::new(format!("{:03}", *new_health))
-                                .color(Color::from_rgb_u32(PALETTE[6])),
+                                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
                         )
                         .set_scale(32.)
                         .set_font("Retro")
@@ -134,7 +139,7 @@ pub fn construct_game_ui(ctx: &Context) -> Result<UiElement<GameMessage>, GameEr
         .with_tooltip(
             graphics::Text::new(
                 graphics::TextFragment::new("The health your city currently has left.")
-                    .color(Color::from_rgb_u32(PALETTE[6])),
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6])),
             )
             .set_scale(24.)
             .set_font("Retro")
@@ -165,10 +170,9 @@ pub fn construct_game_ui(ctx: &Context) -> Result<UiElement<GameMessage>, GameEr
             .to_element_builder(0, ctx)
             .with_message_handler(move |message_set, _layout, transitions| {
                 for message in message_set {
-                    if let ui_element::UiMessage::Extern(GameMessage::UpdateSpellSlots(
-                        index,
-                        value,
-                    )) = message
+                    if let ui_element::UiMessage::Extern(
+                        game_state::GameMessage::UpdateSpellSlots(index, value),
+                    ) = message
                     {
                         if *index == i as usize {
                             transitions.push_back(
@@ -217,10 +221,10 @@ impl Covering {
     }
 }
 
-impl UiContent<GameMessage> for Covering {
+impl UiContent<game_state::GameMessage> for Covering {
     fn draw_content(
         &mut self,
-        _ctx: &mut Context,
+        _ctx: &mut ggez::Context,
         canvas: &mut graphics::Canvas,
         param: ui_element::UiDrawParam,
     ) {

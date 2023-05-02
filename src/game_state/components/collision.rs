@@ -1,5 +1,5 @@
 use ggez::{glam::Vec2, graphics::Rect};
-use legion::{world::SubWorld, *};
+use legion::{system, Entity, EntityStore, IntoQuery};
 
 use crate::game_state::{components::Actions, game_message::MessageSet};
 
@@ -138,7 +138,7 @@ pub fn boundary_collision(
 #[read_component(Collision)]
 #[write_component(Actions)]
 /// A system that manages collisions of entities with each other.
-pub fn collision(world: &mut SubWorld, #[resource] messages: &mut MessageSet) {
+pub fn collision(world: &mut legion::world::SubWorld, #[resource] messages: &mut MessageSet) {
     // Create a list of all actions triggered by collisions.
     let mut total_actions: Vec<(Entity, GameAction)> = Vec::new();
 

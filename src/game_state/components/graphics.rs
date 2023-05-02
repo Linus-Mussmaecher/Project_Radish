@@ -2,12 +2,12 @@ use std::time::Duration;
 
 use ggez::{
     glam::Vec2,
-    graphics::{self, Canvas, DrawParam, Drawable, MeshBuilder, Rect},
+    graphics::{self, Canvas, DrawParam, MeshBuilder, Rect},
     Context,
 };
 use mooeye::sprite::Sprite;
 
-use legion::*;
+use legion::{system, IntoQuery};
 use tinyvec::TinyVec;
 
 use crate::{game_state::controller::Interactions, PALETTE};
@@ -50,8 +50,8 @@ impl From<Sprite> for Graphics {
 
 /// Draws all the sprites in the world to their respective positions on the canvas.
 pub fn draw_sprites(
-    world: &mut World,
-    resources: &mut Resources,
+    world: &mut legion::World,
+    resources: &mut legion::Resources,
     ctx: &Context,
     canvas: &mut Canvas,
     animate: bool,
@@ -98,7 +98,8 @@ pub fn draw_sprites(
                     .scale(Vec2::new(PIXEL_SIZE * factor, PIXEL_SIZE)),
             );
         } else {
-            gfx.sprite.draw(
+            graphics::Drawable::draw(
+                &gfx.sprite,
                 canvas,
                 DrawParam::default()
                     .dest(n_pos)

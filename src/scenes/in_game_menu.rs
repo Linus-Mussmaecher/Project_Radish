@@ -1,7 +1,4 @@
-use ggez::{
-    graphics::{self, Color, TextFragment},
-    GameError,
-};
+use ggez::{graphics, GameError};
 use mooeye::*;
 
 use crate::PALETTE;
@@ -13,8 +10,8 @@ pub struct InGameMenu {
 impl InGameMenu {
     pub fn new(ctx: &ggez::Context) -> Result<Self, GameError> {
         // title
-        let pause = ggez::graphics::Text::new(
-            TextFragment::new("PAUSED").color(Color::from_rgb_u32(PALETTE[6])),
+        let pause = graphics::Text::new(
+            graphics::TextFragment::new("PAUSED").color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
         .set_scale(32.)
@@ -22,8 +19,8 @@ impl InGameMenu {
         .to_element_builder(0, ctx)
         .build();
 
-        let resume = ggez::graphics::Text::new(
-            TextFragment::new("Resume").color(Color::from_rgb_u32(PALETTE[6])),
+        let resume = graphics::Text::new(
+            graphics::TextFragment::new("Resume").color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
         .set_scale(32.)
@@ -33,8 +30,9 @@ impl InGameMenu {
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
 
-        let main_menu = ggez::graphics::Text::new(
-            TextFragment::new("Return to Main Menu").color(Color::from_rgb_u32(PALETTE[6])),
+        let main_menu = graphics::Text::new(
+            graphics::TextFragment::new("Return to Main Menu")
+                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
         .set_scale(32.)
@@ -44,8 +42,9 @@ impl InGameMenu {
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
 
-        let quit = ggez::graphics::Text::new(
-            TextFragment::new("Quit Game").color(Color::from_rgb_u32(PALETTE[6])),
+        let quit = graphics::Text::new(
+            graphics::TextFragment::new("Quit Game")
+                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
         .set_scale(32.)

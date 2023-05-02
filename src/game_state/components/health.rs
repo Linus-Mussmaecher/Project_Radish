@@ -1,8 +1,8 @@
-use legion::{systems::CommandBuffer, *};
+use legion::{system, systems::CommandBuffer, Entity};
 
 use crate::game_state::game_message::MessageSet;
 
-use super::{actions::*, Actions, Graphics, LifeDuration, Position, Velocity};
+use super::*;
 
 /// The Health component track wether a unit has a life bar and can take damage.
 pub struct Health {
@@ -47,13 +47,13 @@ impl Enemy {
 
 /// A struct that contains a actions and messages send by an entity on death.
 pub struct OnDeath {
-    death_actions: GameActionContainer,
+    death_actions: actions::GameActionContainer,
     death_messages: MessageSet,
 }
 
 impl OnDeath {
     /// Creates a new OnDeath component. The carrying entity will trigger the passed closure when its health reaches 0.
-    pub fn new(death_actions: GameActionContainer, death_messages: MessageSet) -> Self {
+    pub fn new(death_actions: actions::GameActionContainer, death_messages: MessageSet) -> Self {
         Self {
             death_actions,
             death_messages,
@@ -67,7 +67,7 @@ pub fn remove_entities(entity: &Entity, actions: &Actions, cmd: &mut CommandBuff
     if actions
         .get_actions()
         .iter()
-        .any(|act| matches!(*act, GameAction::Remove(_)))
+        .any(|act| matches!(*act, actions::GameAction::Remove(_)))
     {
         cmd.remove(*entity);
     }
@@ -86,12 +86,14 @@ pub fn destroy_by_health(
         // in case of enemies
         if let Some(enemy) = enemy {
             // gain gold
-            actions.push(GameAction::GainGold {
+            actions.push(actions::GameAction::GainGold {
                 amount: enemy.bounty,
             });
         }
 
-        actions.push(GameAction::Remove(RemoveSource::HealthLoss));
+        actions.push(actions::GameAction::Remove(
+            actions::RemoveSource::HealthLoss,
+        ));
 
         // death rattle
         if let Some(on_death) = on_death {
@@ -111,11 +113,12 @@ pub fn enemy_death_sprite(
     cmd: &mut CommandBuffer,
 ) {
     // add death animation
-    if actions
-        .get_actions()
-        .iter()
-        .any(|act| matches!(*act, GameAction::Remove(RemoveSource::HealthLoss)))
-    {
+    if actions.get_actions().iter().any(|act| {
+        matches!(
+            *act,
+            actions::GameAction::Remove(actions::RemoveSource::HealthLoss)
+        )
+    }) {
         cmd.push((
             *pos,
             vel.map(|v| Velocity::new((f32::EPSILON).copysign(v.get_dx()), 0.))
@@ -136,9 +139,9 @@ pub fn enemy_death_sprite(
 /// Applies all [TakeDamage] actions to their respective entities.
 pub fn resolve_damage(health: &mut Health, actions: &Actions) {
     for action in actions.get_actions() {
-        if let GameAction::TakeDamage { dmg } = action {
+        if let actions::GameAction::TakeDamage { dmg } = action {
             health.curr_health -= *dmg;
-        } else if let GameAction::TakeHealing { heal } = action {
+        } else if let actions::GameAction::TakeHealing { heal } = action {
             health.curr_health = (health.curr_health + *heal).min(health.max_health);
         }
     }
@@ -157,7 +160,7 @@ pub fn enemy(
         None => false,
         Some(pos) => pos.y >= boundaries.h,
     } {
-        actions.push(GameAction::TakeCityDamage { dmg: enemy.damage });
-        actions.push(GameAction::Remove(RemoveSource::Other));
+        actions.push(actions::GameAction::TakeCityDamage { dmg: enemy.damage });
+        actions.push(actions::GameAction::Remove(actions::RemoveSource::Other));
     }
 }
