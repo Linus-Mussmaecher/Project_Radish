@@ -149,6 +149,16 @@ struct ScoreList {
     scores: Vec<Score>,
 }
 
+pub fn load_highscores() -> Vec<i32>{
+    if let Ok(file) = std::fs::read_to_string("./data/highscores.toml") {
+        toml::from_str::<ScoreList>(&file)
+            .map(|sl| sl.scores.iter().map(|s| s.score).collect())
+            .unwrap_or_else(|_| Vec::new())
+    } else {
+        Vec::new()
+    }
+}
+
 pub struct GameOverMenu {
     ui: UiElement<()>,
 }

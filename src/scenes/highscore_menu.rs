@@ -4,14 +4,15 @@ use ggez::{
 };
 use mooeye::{scene_manager::Scene, ui_element::Alignment, UiContent, UiElement};
 
-use crate::{game_state::Controller, PALETTE};
+use crate::{PALETTE};
 
-pub struct OptionsMenu {
+use super::in_game_menu;
+
+pub struct HighscoreMenu {
     gui: UiElement<()>,
-    controller: crate::game_state::Controller,
 }
 
-impl OptionsMenu {
+impl HighscoreMenu {
     pub fn new(ctx: &Context) -> Result<Self, GameError> {
         let box_vis = mooeye::ui_element::Visuals {
             background: Color::from_rgb_u32(PALETTE[0]),
@@ -29,23 +30,31 @@ impl OptionsMenu {
         // title
 
         let title = ggez::graphics::Text::new(
-            TextFragment::new("Options").color(Color::from_rgb_u32(PALETTE[8])),
+            TextFragment::new("Highscores").color(Color::from_rgb_u32(PALETTE[8])),
         )
         .set_font("Retro")
         .set_scale(48.)
         .to_owned()
         .to_element(0, ctx);
 
-        let reset_bindings = ggez::graphics::Text::new(
-            TextFragment::new("Reset Keybindings").color(Color::from_rgb_u32(PALETTE[6])),
-        )
-        .set_font("Retro")
-        .set_scale(32.)
-        .to_owned()
-        .to_element_builder(1, ctx)
-        .with_visuals(box_vis)
-        .with_hover_visuals(box_hover_vis)
-        .build();
+        // Score display
+
+        let mut highscore_disp = ggez::graphics::Text::new("");
+
+        for (index, value) in in_game_menu::load_highscores().iter().enumerate().take(5) {
+            highscore_disp.add(
+                graphics::TextFragment::new(format!("  {:02}.{:>5}\n", index + 1, *value))
+                    .color(Color::from_rgb_u32(PALETTE[6]))
+                    .scale(32.),
+            );
+        }
+
+        let highscore_disp = highscore_disp
+            .set_font("Retro")
+            .to_owned()
+            .to_element_builder(0, ctx)
+            .with_alignment(mooeye::ui_element::Alignment::Center, mooeye::ui_element::Alignment::Min)
+            .build();
 
         let back = ggez::graphics::Text::new(
             TextFragment::new("Close").color(Color::from_rgb_u32(PALETTE[6])),
@@ -60,12 +69,12 @@ impl OptionsMenu {
 
         // Container
 
-        let mut options_box = mooeye::containers::VerticalBox::new();
-        options_box.add(title)?;
-        options_box.add(reset_bindings)?;
-        options_box.add(back)?;
-        options_box.spacing = 25.;
-        let credits_box = options_box
+        let mut hs_box = mooeye::containers::VerticalBox::new();
+        hs_box.add(title)?;
+        hs_box.add(highscore_disp)?;
+        hs_box.add(back)?;
+        hs_box.spacing = 25.;
+        let credits_box = hs_box
             .to_element_builder(0, ctx)
             .with_visuals(box_vis)
             .with_alignment(Alignment::Min, Alignment::Min)
@@ -73,36 +82,22 @@ impl OptionsMenu {
             .with_padding((25., 25., 25., 25.))
             .build();
 
-        Ok(Self {
-            gui: credits_box,
-            controller: Controller::from_path("./data/keymap.toml").unwrap_or_default(),
-        })
+        Ok(Self { gui: credits_box })
     }
 }
 
-impl Scene for OptionsMenu {
+impl Scene for HighscoreMenu {
     fn update(
         &mut self,
         ctx: &mut ggez::Context,
     ) -> Result<mooeye::scene_manager::SceneSwitch, ggez::GameError> {
         let messages = self.gui.manage_messages(ctx, None);
 
-        if messages.contains(&mooeye::UiMessage::Clicked(1))
-            || ctx
-                .keyboard
-                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::R)
-        {
-            self.controller = Controller::default();
-        }
-
         if messages.contains(&mooeye::UiMessage::Clicked(2))
             || ctx
                 .keyboard
                 .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::C)
         {
-            if self.controller.save_to_file("./data/keymap.toml").is_err() {
-                println!("[WARNING] Could not save keybindings.")
-            }
             Ok(mooeye::scene_manager::SceneSwitch::Pop(1))
         } else {
             Ok(mooeye::scene_manager::SceneSwitch::None)

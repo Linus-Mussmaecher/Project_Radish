@@ -43,17 +43,25 @@ pub enum GameAction {
     Repeated(Box<Repeater>),
 }
 
-impl Debug for GameAction{
+impl Debug for GameAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::None => write!(f, "None"),
             Self::Remove(arg0) => f.debug_tuple("Remove").field(arg0).finish(),
             Self::Move { delta } => f.debug_struct("Move").field("delta", delta).finish(),
             Self::TakeDamage { dmg } => f.debug_struct("TakeDamage").field("dmg", dmg).finish(),
-            Self::TakeHealing { heal } => f.debug_struct("TakeHealing").field("heal", heal).finish(),
-            Self::TakeCityDamage { dmg } => f.debug_struct("TakeCityDamage").field("dmg", dmg).finish(),
-            Self::GainGold { amount } => f.debug_struct("GainGold").field("amount", amount).finish(),
-            Self::AddImmunity { other } => f.debug_struct("AddImmunity").field("other", other).finish(),
+            Self::TakeHealing { heal } => {
+                f.debug_struct("TakeHealing").field("heal", heal).finish()
+            }
+            Self::TakeCityDamage { dmg } => {
+                f.debug_struct("TakeCityDamage").field("dmg", dmg).finish()
+            }
+            Self::GainGold { amount } => {
+                f.debug_struct("GainGold").field("amount", amount).finish()
+            }
+            Self::AddImmunity { other } => {
+                f.debug_struct("AddImmunity").field("other", other).finish()
+            }
             Self::AddParticle(arg0) => f.debug_tuple("AddParticle").field(arg0).finish(),
             Self::CastSpell(arg0) => f.debug_tuple("CastSpell").field(arg0).finish(),
             Self::Spawn(_) => f.debug_tuple("Spawn").finish(),
@@ -85,7 +93,7 @@ impl Default for GameAction {
 
 #[derive(Debug, Clone, Copy)]
 /// An enum that is carried by remove actions to inform the remover of the source triggering the removal
-pub enum RemoveSource{
+pub enum RemoveSource {
     /// This entity has to be removed because it has reached zero health
     HealthLoss,
     /// This entity has to be removed because its [components::LifeDuration] has run out.

@@ -59,6 +59,19 @@ impl MainMenu {
         .with_hover_visuals(box_hover_vis)
         .build();
 
+        // highscores
+
+        let highscores = ggez::graphics::Text::new(
+            TextFragment::new("Highscores").color(Color::from_rgb_u32(PALETTE[6])),
+        )
+        .set_font("Retro")
+        .set_scale(32.)
+        .to_owned()
+        .to_element_builder(3, ctx)
+        .with_visuals(box_vis)
+        .with_hover_visuals(box_hover_vis)
+        .build();
+
         // achievement
 
         let achievements = ggez::graphics::Text::new(
@@ -67,7 +80,7 @@ impl MainMenu {
         .set_font("Retro")
         .set_scale(32.)
         .to_owned()
-        .to_element_builder(3, ctx)
+        .to_element_builder(4, ctx)
         .with_visuals(box_vis)
         .with_hover_visuals(box_hover_vis)
         .build();
@@ -78,7 +91,7 @@ impl MainMenu {
         .set_font("Retro")
         .set_scale(32.)
         .to_owned()
-        .to_element_builder(4, ctx)
+        .to_element_builder(5, ctx)
         .with_visuals(box_vis)
         .with_hover_visuals(box_hover_vis)
         .build();
@@ -89,7 +102,7 @@ impl MainMenu {
         .set_font("Retro")
         .set_scale(32.)
         .to_owned()
-        .to_element_builder(5, ctx)
+        .to_element_builder(6, ctx)
         .with_visuals(box_vis)
         .with_hover_visuals(box_hover_vis)
         .build();
@@ -100,7 +113,7 @@ impl MainMenu {
         .set_font("Retro")
         .set_scale(32.)
         .to_owned()
-        .to_element_builder(6, ctx)
+        .to_element_builder(7, ctx)
         .with_visuals(box_vis)
         .with_hover_visuals(box_hover_vis)
         .build();
@@ -110,6 +123,7 @@ impl MainMenu {
         let mut menu_box = mooeye::containers::VerticalBox::new();
         menu_box.add(play)?;
         menu_box.add(tutorial)?;
+        menu_box.add(highscores)?;
         menu_box.add(achievements)?;
         menu_box.add(options)?;
         menu_box.add(credits)?;
@@ -162,6 +176,16 @@ impl Scene for MainMenu {
         if messages.contains(&mooeye::UiMessage::Clicked(3))
             || ctx
                 .keyboard
+                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::H)
+        {
+            res = mooeye::scene_manager::SceneSwitch::push(
+                super::highscore_menu::HighscoreMenu::new(ctx)?,
+            );
+        }
+
+        if messages.contains(&mooeye::UiMessage::Clicked(4))
+            || ctx
+                .keyboard
                 .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::A)
         {
             res = mooeye::scene_manager::SceneSwitch::push(
@@ -169,7 +193,7 @@ impl Scene for MainMenu {
             );
         }
 
-        if messages.contains(&mooeye::UiMessage::Clicked(4))
+        if messages.contains(&mooeye::UiMessage::Clicked(5))
             || ctx
                 .keyboard
                 .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::O)
@@ -179,7 +203,7 @@ impl Scene for MainMenu {
             )?);
         }
 
-        if messages.contains(&mooeye::UiMessage::Clicked(5))
+        if messages.contains(&mooeye::UiMessage::Clicked(6))
             || ctx
                 .keyboard
                 .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::C)
@@ -189,7 +213,7 @@ impl Scene for MainMenu {
             )?);
         }
 
-        if messages.contains(&mooeye::UiMessage::Clicked(6))
+        if messages.contains(&mooeye::UiMessage::Clicked(7))
             || ctx
                 .keyboard
                 .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::Q)
