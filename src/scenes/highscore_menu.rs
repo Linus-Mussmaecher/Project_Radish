@@ -24,7 +24,7 @@ impl HighscoreMenu {
 
         // Score display
 
-        let mut highscore_disp = graphics::Text::new("");
+        let mut highscore_disp = graphics::Text::default();
 
         for (index, value) in game_over_menu::load_highscores()
             .iter()

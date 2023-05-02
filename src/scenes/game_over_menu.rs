@@ -141,7 +141,7 @@ impl GameOverMenu {
         // list of 5 best scores so far
 
         let mut highscore_disp = graphics::Text::new(
-            graphics::TextFragment::new("Highscores\n")
+            graphics::TextFragment::new("Highscores")
                 .color(graphics::Color::from_rgb_u32(PALETTE[7]))
                 .scale(36.),
         );
@@ -150,7 +150,7 @@ impl GameOverMenu {
 
         for (index, value) in highscores.iter().enumerate().take(5) {
             highscore_disp.add(
-                graphics::TextFragment::new(format!("  {:02}.{:>5}\n", index + 1, value.score))
+                graphics::TextFragment::new(format!("\n  {:02}.{:>5}", index + 1, value.score))
                     .color(graphics::Color::from_rgb_u32(
                         // if own score shows up, change color to make it stand out
                         if index == own_index.unwrap_or(128) {

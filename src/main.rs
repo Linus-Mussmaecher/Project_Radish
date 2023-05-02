@@ -27,9 +27,13 @@ fn main() -> GameResult {
     //generate game context (window etc.)
 
     let (mut ctx, event_loop): (ggez::context::Context, ggez::event::EventLoop<()>) =
-        ContextBuilder::new("Mooeye Test", "Linus Mußmächer")
+        ContextBuilder::new("radish", "Linus Mußmächer")
             .add_resource_path(resource_dir)
-            .window_setup(conf::WindowSetup::default().title("Rosemary"))
+            .window_setup(
+                conf::WindowSetup::default()
+                    .icon("/sprites/spells/mana.png")
+                    .title("Power Defense"),
+            )
             .window_mode(
                 conf::WindowMode::default()
                     .fullscreen_type(conf::FullscreenType::Windowed)
