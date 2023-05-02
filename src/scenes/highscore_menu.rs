@@ -26,7 +26,7 @@ impl HighscoreMenu {
 
         let mut highscore_disp = graphics::Text::new("");
 
-        for (index, value) in game_over_menu::load_highscores().iter().enumerate().take(5) {
+        for (index, value) in game_over_menu::load_highscores().iter().enumerate().take(10) {
             highscore_disp.add(
                 graphics::TextFragment::new(format!("  {:02}.{:>5}\n", index + 1, *value))
                     .color(graphics::Color::from_rgb_u32(PALETTE[6]))
@@ -35,7 +35,7 @@ impl HighscoreMenu {
         }
 
         let highscore_disp = highscore_disp
-            .set_font("Retro")
+            .set_font("Retro_M")
             .to_owned()
             .to_element_builder(0, ctx)
             .with_alignment(

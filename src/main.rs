@@ -44,6 +44,10 @@ fn main() -> GameResult {
         "Retro",
         graphics::FontData::from_path(&ctx, "/fonts/retro_gaming.ttf")?,
     );
+    ctx.gfx.add_font(
+        "Retro_M",
+        graphics::FontData::from_path(&ctx, "/fonts/retro_mono.otf")?,
+    );
 
     // create Start Scene
 

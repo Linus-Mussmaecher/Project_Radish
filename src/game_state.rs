@@ -1,8 +1,4 @@
-use ggez::{
-    graphics,
-    GameError,
-    glam::Vec2,
-};
+use ggez::{glam::Vec2, graphics, GameError};
 use legion::{component, systems::CommandBuffer, Entity, IntoQuery, Resources, Schedule, World};
 use mooeye::*;
 
@@ -13,16 +9,14 @@ pub use game_message::GameMessage;
 pub use game_message::MessageSet;
 
 mod game_data;
-use game_data::GameData;
 
 mod director;
-use crate::scenes::game_over_menu;
 
 mod components;
 use self::components::spell::spell_list;
 
 mod controller;
-pub use self::controller::Controller;
+pub use controller::Controller;
 
 pub struct GameState {
     world: World,
@@ -71,7 +65,7 @@ impl GameState {
         // --- RESOURCE INITIALIZATION
 
         let mut resources = Resources::default();
-        let game_data = GameData::default();
+        let game_data = game_data::GameData::default();
         let mut message_set = MessageSet::new();
         message_set.insert(UiMessage::Extern(GameMessage::UpdateCityHealth(
             game_data.city_health,
@@ -265,10 +259,10 @@ impl scene_manager::Scene for GameState {
 
         // check for game over condition
 
-        if let Some(game_data) = self.resources.get::<GameData>() {
+        if let Some(game_data) = self.resources.get::<game_data::GameData>() {
             if game_data.city_health <= 0 {
                 return Ok(scene_manager::SceneSwitch::push(
-                    game_over_menu::GameOverMenu::new(game_data.get_score(), ctx)?,
+                    crate::scenes::game_over_menu::GameOverMenu::new(game_data.get_score(), ctx)?,
                 ));
             }
         }

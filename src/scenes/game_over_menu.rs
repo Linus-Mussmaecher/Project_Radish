@@ -130,7 +130,7 @@ impl GameOverMenu {
         }
 
         let highscore_disp = highscore_disp
-            .set_font("Retro")
+            .set_font("Retro_M")
             .to_owned()
             .to_element_builder(0, ctx)
             .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Min)

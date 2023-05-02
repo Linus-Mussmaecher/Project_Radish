@@ -14,7 +14,7 @@ const BUTTON_VIS: mooeye::ui_element::Visuals = mooeye::ui_element::Visuals {
             c[1] as f32 / 255.,
             c[2] as f32 / 255.,
             c[3] as f32 / 255.,
-            0.,
+            1.,
         )
     },
     border: {
@@ -23,7 +23,7 @@ const BUTTON_VIS: mooeye::ui_element::Visuals = mooeye::ui_element::Visuals {
             c[1] as f32 / 255.,
             c[2] as f32 / 255.,
             c[3] as f32 / 255.,
-            0.,
+            1.,
         )
     },
     border_width: 3.,
@@ -37,7 +37,7 @@ const BUTTON_HOVER_VIS: mooeye::ui_element::Visuals = mooeye::ui_element::Visual
             c[1] as f32 / 255.,
             c[2] as f32 / 255.,
             c[3] as f32 / 255.,
-            0.,
+            1.,
         )
     },
     border: {
@@ -46,7 +46,7 @@ const BUTTON_HOVER_VIS: mooeye::ui_element::Visuals = mooeye::ui_element::Visual
             c[1] as f32 / 255.,
             c[2] as f32 / 255.,
             c[3] as f32 / 255.,
-            0.,
+            1.,
         )
     },
     border_width: 3.,
