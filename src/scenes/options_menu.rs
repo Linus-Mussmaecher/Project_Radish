@@ -25,7 +25,7 @@ impl OptionsMenu {
                 .color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
-        .set_scale(32.)
+        .set_scale(24.)
         .to_owned()
         .to_element_builder(1, ctx)
         .with_visuals(super::BUTTON_VIS)

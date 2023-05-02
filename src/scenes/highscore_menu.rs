@@ -26,7 +26,11 @@ impl HighscoreMenu {
 
         let mut highscore_disp = graphics::Text::new("");
 
-        for (index, value) in game_over_menu::load_highscores().iter().enumerate().take(10) {
+        for (index, value) in game_over_menu::load_highscores()
+            .iter()
+            .enumerate()
+            .take(10)
+        {
             highscore_disp.add(
                 graphics::TextFragment::new(format!("  {:02}.{:>5}\n", index + 1, *value))
                     .color(graphics::Color::from_rgb_u32(PALETTE[6]))
@@ -44,6 +48,18 @@ impl HighscoreMenu {
             )
             .build();
 
+        let reset_scores = graphics::Text::new(
+            graphics::TextFragment::new("Reset Highscores")
+                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+        )
+        .set_font("Retro")
+        .set_scale(24.)
+        .to_owned()
+        .to_element_builder(1, ctx)
+        .with_visuals(super::BUTTON_VIS)
+        .with_hover_visuals(super::BUTTON_HOVER_VIS)
+        .build();
+
         let back = graphics::Text::new(
             graphics::TextFragment::new("Close").color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
@@ -60,6 +76,7 @@ impl HighscoreMenu {
         let mut hs_box = mooeye::containers::VerticalBox::new();
         hs_box.add(title)?;
         hs_box.add(highscore_disp)?;
+        hs_box.add(reset_scores)?;
         hs_box.add(back)?;
         hs_box.spacing = 25.;
         let credits_box = hs_box
@@ -80,6 +97,15 @@ impl scene_manager::Scene for HighscoreMenu {
         ctx: &mut ggez::Context,
     ) -> Result<mooeye::scene_manager::SceneSwitch, ggez::GameError> {
         let messages = self.gui.manage_messages(ctx, None);
+
+        if messages.contains(&mooeye::UiMessage::Clicked(1))
+            || ctx
+                .keyboard
+                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::R)
+        {
+            // delete highscores
+            std::fs::write("./data/highscores.toml", "")?;
+        }
 
         if messages.contains(&mooeye::UiMessage::Clicked(2))
             || ctx

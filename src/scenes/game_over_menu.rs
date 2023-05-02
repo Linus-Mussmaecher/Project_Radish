@@ -4,16 +4,23 @@ use serde::{Deserialize, Serialize};
 
 use crate::PALETTE;
 
+
+/// A struct that represents the score achieved in a single game. Allows Serde to .toml.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 struct Score {
+    /// The score as an integer.
     score: i32,
 }
 
+/// A struct that represents a list of scores. Allows Serde to .toml.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct ScoreList {
+    /// The scores as [Score]-structs.
     scores: Vec<Score>,
 }
 
+/// Loads the highscore list stored at ./data/highscores.toml and converts it to a vector of integer scores.
+/// Returns an empty list if none can be found.
 pub fn load_highscores() -> Vec<i32> {
     if let Ok(file) = std::fs::read_to_string("./data/highscores.toml") {
         toml::from_str::<ScoreList>(&file)
@@ -24,12 +31,17 @@ pub fn load_highscores() -> Vec<i32> {
     }
 }
 
+/// The Menu that is shown over the game state when the game ends.
 pub struct GameOverMenu {
+    /// The UI.
     ui: UiElement<()>,
 }
 
 impl GameOverMenu {
+    /// Creates a new GameOverMenu displaying the passed score and adding it (if good enough) to the highscore list.
+    /// Also displays the highscore list and marks the newly achieved score (it it shows up).
     pub fn new(score: i32, ctx: &ggez::Context) -> Result<Self, GameError> {
+
         // load highscores
 
         let mut highscores: Vec<Score> =
@@ -78,6 +90,8 @@ impl GameOverMenu {
         let mut main_box = containers::VerticalBox::new();
         main_box.spacing = 25.;
 
+        // title
+
         let game_over = graphics::Text::new(
             graphics::TextFragment::new("Game Over!")
                 .color(graphics::Color::from_rgb_u32(PALETTE[8])),
@@ -89,11 +103,15 @@ impl GameOverMenu {
         .build();
         main_box.add(game_over)?;
 
+        // horizontal box with own score left and highscores right
+
         let mut score_box = containers::HorizontalBox::new();
         score_box.spacing = 35.;
 
+        // own score + congratulatory message
+
         let score_disp = graphics::Text::new(
-            graphics::TextFragment::new("Your score:\n")
+            graphics::TextFragment::new("Score\n")
                 .color(graphics::Color::from_rgb_u32(PALETTE[7]))
                 .scale(36.),
         )
@@ -103,31 +121,38 @@ impl GameOverMenu {
                 .scale(32.),
         )
         .add(
+            // if new record, display that!
             graphics::TextFragment::new(if own_index.unwrap_or(128) == 0 {
                 "\nNew Record!"
             } else {
                 ""
             })
             .color(graphics::Color::from_rgb_u32(PALETTE[8]))
-            .scale(32.),
+            .scale(34.),
         )
-        .set_font("Retro")
+        // monospace font for scores
+        .set_font("Retro_M")
         .to_owned()
         .to_element_builder(0, ctx)
         .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Min)
         .build();
         score_box.add(score_disp)?;
 
+        // list of 5 best scores so far
+
         let mut highscore_disp = graphics::Text::new(
-            graphics::TextFragment::new("Highscores:\n")
+            graphics::TextFragment::new("Highscores\n")
                 .color(graphics::Color::from_rgb_u32(PALETTE[7]))
                 .scale(36.),
         );
+
+        // add the first 5 (or less) scores as texts to the element
 
         for (index, value) in highscores.iter().enumerate().take(5) {
             highscore_disp.add(
                 graphics::TextFragment::new(format!("  {:02}.{:>5}\n", index + 1, value.score))
                     .color(graphics::Color::from_rgb_u32(
+                        // if own score shows up, change color to make it stand out
                         if index == own_index.unwrap_or(128) {
                             PALETTE[8]
                         } else {
@@ -137,6 +162,8 @@ impl GameOverMenu {
                     .scale(32.),
             );
         }
+
+        // convert to ui element
 
         let highscore_disp = highscore_disp
             .set_font("Retro_M")
@@ -149,6 +176,8 @@ impl GameOverMenu {
 
         main_box.add(score_box.to_element(0, ctx))?;
 
+        // restart button
+
         let restart = graphics::Text::new(
             graphics::TextFragment::new("Restart").color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
@@ -160,6 +189,8 @@ impl GameOverMenu {
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
         main_box.add(restart)?;
+
+        // quit to main menu button
 
         let main_menu = graphics::Text::new(
             graphics::TextFragment::new("Return to Main Menu")
@@ -189,6 +220,8 @@ impl scene_manager::Scene for GameOverMenu {
     fn update(&mut self, ctx: &mut ggez::Context) -> Result<scene_manager::SceneSwitch, GameError> {
         let messages = self.ui.manage_messages(ctx, None);
 
+        // restart the game
+
         if messages.contains(&mooeye::UiMessage::Clicked(1))
             || ctx
                 .keyboard
@@ -199,6 +232,8 @@ impl scene_manager::Scene for GameOverMenu {
                 2,
             ));
         }
+
+        // return to main menu
 
         if messages.contains(&mooeye::UiMessage::Clicked(2))
             || ctx
