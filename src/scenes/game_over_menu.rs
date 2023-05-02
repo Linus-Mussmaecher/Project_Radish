@@ -102,6 +102,15 @@ impl GameOverMenu {
                 .color(graphics::Color::from_rgb_u32(PALETTE[6]))
                 .scale(32.),
         )
+        .add(
+            graphics::TextFragment::new(if own_index.unwrap_or(128) == 0 {
+                "\nNew Record!"
+            } else {
+                ""
+            })
+            .color(graphics::Color::from_rgb_u32(PALETTE[8]))
+            .scale(32.),
+        )
         .set_font("Retro")
         .to_owned()
         .to_element_builder(0, ctx)
