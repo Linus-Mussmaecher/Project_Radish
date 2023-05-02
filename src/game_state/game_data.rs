@@ -26,7 +26,7 @@ impl GameData {
         }
     }
 
-    pub fn get_score(&self) -> i32{
+    pub fn get_score(&self) -> i32 {
         self.score
     }
 }

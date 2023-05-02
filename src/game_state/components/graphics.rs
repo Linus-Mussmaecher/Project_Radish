@@ -31,8 +31,11 @@ impl Graphics {
     }
 
     /// Returns the objects size in the world, already multiplied by PIXEL_SIZE.
-    pub fn get_size(&self) -> (f32, f32){
-        (self.sprite.get_dimensions().0 * PIXEL_SIZE, self.sprite.get_dimensions().1 * PIXEL_SIZE)
+    pub fn get_size(&self) -> (f32, f32) {
+        (
+            self.sprite.get_dimensions().0 * PIXEL_SIZE,
+            self.sprite.get_dimensions().1 * PIXEL_SIZE,
+        )
     }
 }
 

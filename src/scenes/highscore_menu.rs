@@ -4,9 +4,9 @@ use ggez::{
 };
 use mooeye::{scene_manager::Scene, ui_element::Alignment, UiContent, UiElement};
 
-use crate::{PALETTE};
+use crate::PALETTE;
 
-use super::in_game_menu;
+use super::game_over_menu;
 
 pub struct HighscoreMenu {
     gui: UiElement<()>,
@@ -14,19 +14,6 @@ pub struct HighscoreMenu {
 
 impl HighscoreMenu {
     pub fn new(ctx: &Context) -> Result<Self, GameError> {
-        let box_vis = mooeye::ui_element::Visuals {
-            background: Color::from_rgb_u32(PALETTE[0]),
-            border: Color::from_rgb_u32(PALETTE[7]),
-            border_width: 3.,
-            rounded_corners: 6.,
-        };
-        let box_hover_vis = mooeye::ui_element::Visuals {
-            background: Color::from_rgb_u32(PALETTE[1]),
-            border: Color::from_rgb_u32(PALETTE[7]),
-            border_width: 3.,
-            rounded_corners: 6.,
-        };
-
         // title
 
         let title = ggez::graphics::Text::new(
@@ -41,7 +28,7 @@ impl HighscoreMenu {
 
         let mut highscore_disp = ggez::graphics::Text::new("");
 
-        for (index, value) in in_game_menu::load_highscores().iter().enumerate().take(5) {
+        for (index, value) in game_over_menu::load_highscores().iter().enumerate().take(5) {
             highscore_disp.add(
                 graphics::TextFragment::new(format!("  {:02}.{:>5}\n", index + 1, *value))
                     .color(Color::from_rgb_u32(PALETTE[6]))
@@ -53,7 +40,10 @@ impl HighscoreMenu {
             .set_font("Retro")
             .to_owned()
             .to_element_builder(0, ctx)
-            .with_alignment(mooeye::ui_element::Alignment::Center, mooeye::ui_element::Alignment::Min)
+            .with_alignment(
+                mooeye::ui_element::Alignment::Center,
+                mooeye::ui_element::Alignment::Min,
+            )
             .build();
 
         let back = ggez::graphics::Text::new(
@@ -63,8 +53,8 @@ impl HighscoreMenu {
         .set_scale(32.)
         .to_owned()
         .to_element_builder(2, ctx)
-        .with_visuals(box_vis)
-        .with_hover_visuals(box_hover_vis)
+        .with_visuals(super::BUTTON_VIS)
+        .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
 
         // Container
@@ -76,7 +66,7 @@ impl HighscoreMenu {
         hs_box.spacing = 25.;
         let credits_box = hs_box
             .to_element_builder(0, ctx)
-            .with_visuals(box_vis)
+            .with_visuals(super::BUTTON_VIS)
             .with_alignment(Alignment::Min, Alignment::Min)
             .with_offset(25., 25.)
             .with_padding((25., 25., 25., 25.))

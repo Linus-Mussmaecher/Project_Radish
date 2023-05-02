@@ -12,19 +12,6 @@ pub struct CreditsMenu {
 
 impl CreditsMenu {
     pub fn new(ctx: &Context) -> Result<Self, GameError> {
-        let box_vis = mooeye::ui_element::Visuals {
-            background: Color::from_rgb_u32(PALETTE[0]),
-            border: Color::from_rgb_u32(PALETTE[7]),
-            border_width: 3.,
-            rounded_corners: 6.,
-        };
-        let box_hover_vis = mooeye::ui_element::Visuals {
-            background: Color::from_rgb_u32(PALETTE[1]),
-            border: Color::from_rgb_u32(PALETTE[7]),
-            border_width: 3.,
-            rounded_corners: 6.,
-        };
-
         // title
 
         let title = ggez::graphics::Text::new(
@@ -76,8 +63,8 @@ impl CreditsMenu {
         .set_scale(32.)
         .to_owned()
         .to_element_builder(1, ctx)
-        .with_visuals(box_vis)
-        .with_hover_visuals(box_hover_vis)
+        .with_visuals(super::BUTTON_VIS)
+        .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
 
         // Container
@@ -89,7 +76,7 @@ impl CreditsMenu {
         credits_box.spacing = 25.;
         let credits_box = credits_box
             .to_element_builder(0, ctx)
-            .with_visuals(box_vis)
+            .with_visuals(super::BUTTON_VIS)
             .with_alignment(Alignment::Min, Alignment::Min)
             .with_offset(25., 25.)
             .with_padding((25., 25., 25., 25.))

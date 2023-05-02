@@ -1,27 +1,20 @@
 use ggez::{graphics::Color, *};
 
-use mooeye::{*};
+use mooeye::*;
 use std::time::Duration;
 
-use crate::{PALETTE};
+use crate::PALETTE;
 
-use super::{game_message::GameMessage};
+use crate::game_state::GameMessage;
 
 pub fn construct_game_ui(ctx: &Context) -> Result<UiElement<GameMessage>, GameError> {
-    let box_vis = mooeye::ui_element::Visuals {
-        background: Color::from_rgb_u32(PALETTE[0]),
-        border: Color::from_rgb_u32(PALETTE[7]),
-        border_width: 3.,
-        rounded_corners: 6.,
-    };
-
     // main box
     let mut main_box = containers::StackBox::new();
 
     // options icon
     let cog_icon = graphics::Image::from_path(ctx, "/sprites/ui/cog.png")?
         .to_element_builder(1, ctx)
-        .with_visuals(box_vis)
+        .with_visuals(super::BUTTON_VIS)
         .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Max)
         .scaled(2., 2.)
         .with_offset(-10., -10.)
@@ -71,7 +64,7 @@ pub fn construct_game_ui(ctx: &Context) -> Result<UiElement<GameMessage>, GameEr
     gold_box.add(gold_text)?;
     let gold_box = gold_box
         .to_element_builder(0, ctx)
-        .with_visuals(box_vis)
+        .with_visuals(super::BUTTON_VIS)
         .with_alignment(ui_element::Alignment::Min, ui_element::Alignment::Min)
         .with_offset(10., 10.)
         .with_tooltip(
@@ -84,7 +77,7 @@ pub fn construct_game_ui(ctx: &Context) -> Result<UiElement<GameMessage>, GameEr
             .to_owned()
             .to_element_builder(0, ctx)
             .with_tooltip_layout()
-            .with_visuals(box_vis)
+            .with_visuals(super::BUTTON_VIS)
             .build(),
         )
         .build();
@@ -135,7 +128,7 @@ pub fn construct_game_ui(ctx: &Context) -> Result<UiElement<GameMessage>, GameEr
     city_box.add(city_text)?;
     let city_box = city_box
         .to_element_builder(0, ctx)
-        .with_visuals(box_vis)
+        .with_visuals(super::BUTTON_VIS)
         .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Min)
         .with_offset(-10., 10.)
         .with_tooltip(
@@ -148,7 +141,7 @@ pub fn construct_game_ui(ctx: &Context) -> Result<UiElement<GameMessage>, GameEr
             .to_owned()
             .to_element_builder(0, ctx)
             .with_tooltip_layout()
-            .with_visuals(box_vis)
+            .with_visuals(super::BUTTON_VIS)
             .build(),
         )
         .build();
@@ -203,7 +196,7 @@ pub fn construct_game_ui(ctx: &Context) -> Result<UiElement<GameMessage>, GameEr
 
     let spell_box = spell_box
         .to_element_builder(0, ctx)
-        .with_visuals(box_vis)
+        .with_visuals(super::BUTTON_VIS)
         .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Min)
         .with_offset(-10., 0.)
         .build();

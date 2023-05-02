@@ -12,20 +12,6 @@ pub struct MainMenu {
 
 impl MainMenu {
     pub fn new(ctx: &ggez::Context) -> Result<Self, GameError> {
-        let box_vis = mooeye::ui_element::Visuals {
-            background: Color::from_rgb_u32(PALETTE[0]),
-            border: Color::from_rgb_u32(PALETTE[7]),
-            border_width: 3.,
-            rounded_corners: 6.,
-        };
-
-        let box_hover_vis = mooeye::ui_element::Visuals {
-            background: Color::from_rgb_u32(PALETTE[1]),
-            border: Color::from_rgb_u32(PALETTE[7]),
-            border_width: 3.,
-            rounded_corners: 6.,
-        };
-
         // title
 
         let title = ggez::graphics::Text::new(
@@ -44,8 +30,8 @@ impl MainMenu {
         .set_scale(32.)
         .to_owned()
         .to_element_builder(1, ctx)
-        .with_visuals(box_vis)
-        .with_hover_visuals(box_hover_vis)
+        .with_visuals(super::BUTTON_VIS)
+        .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
 
         let tutorial = ggez::graphics::Text::new(
@@ -55,8 +41,8 @@ impl MainMenu {
         .set_scale(32.)
         .to_owned()
         .to_element_builder(2, ctx)
-        .with_visuals(box_vis)
-        .with_hover_visuals(box_hover_vis)
+        .with_visuals(super::BUTTON_VIS)
+        .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
 
         // highscores
@@ -68,8 +54,8 @@ impl MainMenu {
         .set_scale(32.)
         .to_owned()
         .to_element_builder(3, ctx)
-        .with_visuals(box_vis)
-        .with_hover_visuals(box_hover_vis)
+        .with_visuals(super::BUTTON_VIS)
+        .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
 
         // achievement
@@ -81,8 +67,8 @@ impl MainMenu {
         .set_scale(32.)
         .to_owned()
         .to_element_builder(4, ctx)
-        .with_visuals(box_vis)
-        .with_hover_visuals(box_hover_vis)
+        .with_visuals(super::BUTTON_VIS)
+        .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
 
         let options = ggez::graphics::Text::new(
@@ -92,8 +78,8 @@ impl MainMenu {
         .set_scale(32.)
         .to_owned()
         .to_element_builder(5, ctx)
-        .with_visuals(box_vis)
-        .with_hover_visuals(box_hover_vis)
+        .with_visuals(super::BUTTON_VIS)
+        .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
 
         let credits = ggez::graphics::Text::new(
@@ -103,8 +89,8 @@ impl MainMenu {
         .set_scale(32.)
         .to_owned()
         .to_element_builder(6, ctx)
-        .with_visuals(box_vis)
-        .with_hover_visuals(box_hover_vis)
+        .with_visuals(super::BUTTON_VIS)
+        .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
 
         let quit = ggez::graphics::Text::new(
@@ -114,8 +100,8 @@ impl MainMenu {
         .set_scale(32.)
         .to_owned()
         .to_element_builder(7, ctx)
-        .with_visuals(box_vis)
-        .with_hover_visuals(box_hover_vis)
+        .with_visuals(super::BUTTON_VIS)
+        .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
 
         // Container
@@ -131,7 +117,7 @@ impl MainMenu {
         menu_box.spacing = 25.;
         let menu_box = menu_box
             .to_element_builder(0, ctx)
-            .with_visuals(box_vis)
+            .with_visuals(super::BUTTON_VIS)
             .with_alignment(Alignment::Center, Alignment::Min)
             .with_padding((25., 25., 25., 25.))
             .build();

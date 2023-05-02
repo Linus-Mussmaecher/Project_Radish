@@ -8,23 +8,20 @@ use mooeye::{scene_manager::Scene, *};
 use std::time::Duration;
 
 mod game_message;
-use game_message::GameMessage;
-use game_message::MessageSet;
+pub use game_message::GameMessage;
+pub use game_message::MessageSet;
 
 mod game_data;
 use game_data::GameData;
+
 mod director;
-use crate::scenes::in_game_menu;
-
-use self::components::spell::spell_list;
-pub use self::controller::Controller;
-use self::director::Director;
-
-mod game_ui;
+use crate::scenes::game_over_menu;
 
 mod components;
+use self::components::spell::spell_list;
 
 mod controller;
+pub use self::controller::Controller;
 
 pub struct GameState {
     world: World,
@@ -75,17 +72,19 @@ impl GameState {
         let mut resources = Resources::default();
         let game_data = GameData::default();
         let mut message_set = MessageSet::new();
-        message_set.insert(UiMessage::Extern(GameMessage::UpdateCityHealth(game_data.city_health)));
+        message_set.insert(UiMessage::Extern(GameMessage::UpdateCityHealth(
+            game_data.city_health,
+        )));
         resources.insert(game_data);
         resources.insert(message_set);
         resources.insert(boundaries);
         resources.insert(sprite_pool);
-        resources.insert(Director::new());
+        resources.insert(director::Director::new());
 
         // --- SYSTEM REGISTRY / UI CONSTRUCTION / CONTROLLER INITIALIZATION ---
         Ok(Self {
             world,
-            gui: game_ui::construct_game_ui(ctx)?,
+            gui: crate::scenes::game_ui::construct_game_ui(ctx)?,
             action_prod_schedule: Schedule::builder()
                 // director
                 .add_system(director::direct_system())
@@ -147,14 +146,17 @@ impl GameState {
         for _i in 0..12 {
             let rand_x = rand::random::<f32>() * 8. - 4.;
             positions.push(components::Position::new(
-                (rand_x) * building_size  + if rand_x > 0. {boundaries.w} else {0.},
+                (rand_x) * building_size + if rand_x > 0. { boundaries.w } else { 0. },
                 (rand::random::<f32>() * 0.7 - 0.2) * boundaries.h,
             ));
         }
-        positions.sort_by(|p1, p2| p1.y.partial_cmp(&p2.y).expect("Ordering of y-coordinates in brush init failed."));
+        positions.sort_by(|p1, p2| {
+            p1.y.partial_cmp(&p2.y)
+                .expect("Ordering of y-coordinates in brush init failed.")
+        });
         for pos in positions {
             world.push((
-                pos, 
+                pos,
                 components::Graphics::from({
                     let mut tree = sprite_pool
                         .init_sprite("/sprites/environment/tree", Duration::from_secs(1))?;
@@ -262,9 +264,11 @@ impl Scene for GameState {
 
         // check for game over condition
 
-        if let Some(game_data) = self.resources.get::<GameData>(){
-            if game_data.city_health <= 0{
-                return Ok(scene_manager::SceneSwitch::push(in_game_menu::GameOverMenu::new(game_data.get_score(), ctx)?));
+        if let Some(game_data) = self.resources.get::<GameData>() {
+            if game_data.city_health <= 0 {
+                return Ok(scene_manager::SceneSwitch::push(
+                    game_over_menu::GameOverMenu::new(game_data.get_score(), ctx)?,
+                ));
             }
         }
 
