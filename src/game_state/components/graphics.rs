@@ -107,27 +107,6 @@ pub fn draw_sprites(
             );
         }
 
-        // draw the sprites particles
-
-        for part in gfx.particles.iter_mut() {
-            if let Some(sprite) = &mut part.sprite {
-                sprite.draw_sprite(
-                    ctx,
-                    canvas,
-                    DrawParam::default()
-                        .dest(
-                            *pos + part.rel_pos
-                                - Vec2::from(sprite.get_dimensions()) * PIXEL_SIZE / 2.
-                                + Vec2::new(
-                                    (screen_w - boundaries.w) / 2.,
-                                    (screen_h - boundaries.h) / 2.,
-                                ),
-                        )
-                        .scale(Vec2::new(PIXEL_SIZE, PIXEL_SIZE)),
-                );
-            }
-        }
-
         // draw the health bar
         if let Some(health) = health {
             let blip_size = 2;
@@ -170,6 +149,27 @@ pub fn draw_sprites(
                 &graphics::Mesh::from_data(ctx, health_bar_builder.build()),
                 DrawParam::default(),
             );
+        }
+
+        // draw the sprites particles
+
+        for part in gfx.particles.iter_mut() {
+            if let Some(sprite) = &mut part.sprite {
+                sprite.draw_sprite(
+                    ctx,
+                    canvas,
+                    DrawParam::default()
+                        .dest(
+                            *pos + part.rel_pos
+                                - Vec2::from(sprite.get_dimensions()) * PIXEL_SIZE / 2.
+                                + Vec2::new(
+                                    (screen_w - boundaries.w) / 2.,
+                                    (screen_h - boundaries.h) / 2.,
+                                ),
+                        )
+                        .scale(Vec2::new(PIXEL_SIZE, PIXEL_SIZE)),
+                );
+            }
         }
     }
 

@@ -92,8 +92,8 @@ fn spawn_icebomb(
             128.,
             |act| {
                 match act {
-                    // slow down enemies by 90%
-                    GameAction::Move { delta } => *delta *= 0.1,
+                    // slow down enemies by 65%
+                    GameAction::Move { delta } => *delta *= 0.35,
                     _ => {}
                 };
             },
@@ -183,7 +183,7 @@ pub fn construct_conflagrate(spritepool: &SpritePool) -> Spell {
                 .with_duration(Duration::from_secs(5))
             )
         ])
-        .with_limit(3)
+        .with_limit(5)
         .with_enemies_only()
         .to_action()
         .into(),

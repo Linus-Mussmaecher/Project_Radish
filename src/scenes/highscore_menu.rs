@@ -32,7 +32,7 @@ impl HighscoreMenu {
             .take(10)
         {
             highscore_disp.add(
-                graphics::TextFragment::new(format!("  {:02}.{:>5}\n", index + 1, *value))
+                graphics::TextFragment::new(format!("{:02}.{:>5}\n", index + 1, *value))
                     .color(graphics::Color::from_rgb_u32(PALETTE[6]))
                     .scale(32.),
             );

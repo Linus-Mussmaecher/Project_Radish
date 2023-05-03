@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use ggez::{graphics, GameError};
+use ggez::{glam::Vec2, graphics, GameError};
 use legion::{system, systems::CommandBuffer};
 use rand::random;
 
@@ -32,8 +32,9 @@ impl Director {
             enemies: vec![
                 (040, spawn_basic_skeleton),
                 (070, spawn_fast_skeleton),
-                (100, spawn_loot_skeleton),
                 (150, spawn_tank_skeleton),
+                (200, spawn_charge_skeleton),
+                (300, spawn_loot_skeleton),
             ],
         }
     }
@@ -130,11 +131,11 @@ pub fn spawn_fast_skeleton(
 ) -> Result<(), GameError> {
     cmd.push((
         pos,
-        components::Velocity::new(35., 15.),
+        components::Velocity::new(35., 10.),
         components::BoundaryCollision::new(true, false, true),
         components::Graphics::from(sprite_pool.init_sprite(
             "/sprites/enemies/skeleton_sword",
-            Duration::from_secs_f32(0.20),
+            Duration::from_secs_f32(0.35),
         )?),
         components::Aura::new(
             256.,
@@ -231,6 +232,53 @@ pub fn spawn_tank_skeleton(
         ),
         components::Enemy::new(2, 25),
         components::Health::new(3),
+        components::Collision::new_basic(64., 64.),
+    ));
+    Ok(())
+}
+
+pub fn spawn_charge_skeleton(
+    cmd: &mut CommandBuffer,
+    sprite_pool: &sprite::SpritePool,
+    pos: Position,
+) -> Result<(), GameError> {
+    cmd.push((
+        pos,
+        components::Velocity::new(0., 21.),
+        components::Graphics::from(sprite_pool.init_sprite(
+            "/sprites/enemies/skeleton_flag",
+            Duration::from_secs_f32(0.25),
+        )?),
+        // on death: speed up nearby allies for a time
+        components::OnDeath::new(
+            Distributor::new(gameaction_multiple![
+                Repeater::new(
+                    GameAction::Move {
+                        delta: Vec2::new(0., 2.2)
+                    }
+                    .into()
+                )
+                .with_repeat_duration(Duration::from_millis(50))
+                .with_total_duration(Duration::from_secs(4))
+                .to_action(),
+                GameAction::AddParticle(
+                    Particle::new(
+                        sprite_pool.init_sprite("/sprites/bolt", Duration::from_secs_f32(0.25))?,
+                    )
+                    .with_duration(Duration::from_secs(4))
+                    .with_velocity(0., -3.)
+                    .with_relative_position(0., -32.),
+                ),
+            ])
+            .with_enemies_only()
+            .with_limit(8)
+            .with_range(196.)
+            .to_action()
+            .into(),
+            MessageSet::new(),
+        ),
+        components::Enemy::new(2, 45),
+        components::Health::new(6),
         components::Collision::new_basic(64., 64.),
     ));
     Ok(())

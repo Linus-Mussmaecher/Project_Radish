@@ -116,7 +116,7 @@ impl GameOverMenu {
                 .scale(36.),
         )
         .add(
-            graphics::TextFragment::new(format!("  {:>5}", score))
+            graphics::TextFragment::new(format!("{:>5}", score))
                 .color(graphics::Color::from_rgb_u32(PALETTE[6]))
                 .scale(32.),
         )
