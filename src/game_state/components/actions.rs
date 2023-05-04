@@ -9,7 +9,7 @@ use crate::game_state::controller;
 
 use super::{Enemy, Position};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[allow(dead_code)]
 /// This enum contains all possible ways for entities to affect the world around them.
 pub enum GameAction {
@@ -34,55 +34,47 @@ pub enum GameAction {
     /// Instructs the spell casting component to cast a certain spell
     CastSpell(usize),
     /// Executes a closure that is supposed to spawn an entity into the world. TODO: Closure evil, somehow serialize this?
-    Spawn(Box<fn(Entity, Position, &sprite::SpritePool, &mut CommandBuffer)>),
-    /// Executes an arbitrary closure with full access to the command buffer.
-    Other(Box<fn(Entity, &mut CommandBuffer)>),
+    Spawn(SpawnerBox),
+    // /// Executes an arbitrary closure with full access to the command buffer.
+    // Other(CommandBox),
     /// Distributes an action among other entities as described by the distributor
     Distributed(Box<Distributor>),
     /// Applies an action repeatedly over a time period
     Repeated(Box<Repeater>),
 }
 
-impl Debug for GameAction {
+#[derive(Clone)]
+pub struct SpawnerBox{
+    spawner: Box<fn(Entity, Position, &sprite::SpritePool, &mut CommandBuffer)>,
+}
+
+impl Debug for SpawnerBox{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::None => write!(f, "None"),
-            Self::Remove(arg0) => f.debug_tuple("Remove").field(arg0).finish(),
-            Self::Move { delta } => f.debug_struct("Move").field("delta", delta).finish(),
-            Self::TakeDamage { dmg } => f.debug_struct("TakeDamage").field("dmg", dmg).finish(),
-            Self::TakeHealing { heal } => {
-                f.debug_struct("TakeHealing").field("heal", heal).finish()
-            }
-            Self::TakeCityDamage { dmg } => {
-                f.debug_struct("TakeCityDamage").field("dmg", dmg).finish()
-            }
-            Self::GainGold { amount } => {
-                f.debug_struct("GainGold").field("amount", amount).finish()
-            }
-            Self::AddImmunity { other } => {
-                f.debug_struct("AddImmunity").field("other", other).finish()
-            }
-            Self::AddParticle(arg0) => f.debug_tuple("AddParticle").field(arg0).finish(),
-            Self::CastSpell(arg0) => f.debug_tuple("CastSpell").field(arg0).finish(),
-            Self::Spawn(_) => f.debug_tuple("Spawn").finish(),
-            Self::Other(_) => f.debug_tuple("Other").finish(),
-            Self::Distributed(arg0) => f.debug_tuple("Distributed").field(arg0).finish(),
-            Self::Repeated(arg0) => f.debug_tuple("Repeated").field(arg0).finish(),
-        }
+        f.debug_struct("SpawnerBox").finish()
     }
 }
+
+// #[derive(Clone)]
+// pub struct CommandBox{
+//     command: Box<fn(Entity, &mut CommandBuffer)>,
+// }
+
+// impl Debug for CommandBox{
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         f.debug_struct("CommandBox").finish()
+//     }
+// }
 
 impl GameAction {
     /// Helper function to create a [GameAction::Spawn] without having to use Box.
     pub fn spawn(spawner: fn(Entity, Position, &sprite::SpritePool, &mut CommandBuffer)) -> Self {
-        Self::Spawn(Box::new(spawner))
+        Self::Spawn(SpawnerBox{ spawner: Box::new(spawner)})
     }
 
-    #[allow(dead_code)]
-    /// Helper function to create a [GameAction::Other] without having to use Box.
-    pub fn other(executor: fn(Entity, &mut CommandBuffer)) -> Self {
-        Self::Other(Box::new(executor))
-    }
+    // /// Helper function to create a [GameAction::Other] without having to use Box.
+    // pub fn other(executor: fn(Entity, &mut CommandBuffer)) -> Self {
+    //     Self::Other(CommandBox{ command: Box::new(executor)})
+    // }
 }
 
 impl Default for GameAction {
@@ -100,6 +92,16 @@ pub enum RemoveSource {
     TimedOut,
     /// Any other reasong for removal.
     Other,
+}
+
+pub enum ActionTarget{
+    Range{enemies_only: bool, center: Vec2, range: f32, also_self: bool},
+    OnlySelf,
+}
+
+pub struct ActionManipulator{
+    target: ActionTarget,
+    
 }
 
 #[derive(Clone, Debug)]
@@ -192,9 +194,8 @@ pub fn resolve_executive_actions(
     for action in actions.get_actions() {
         match action {
             GameAction::Spawn(spawner) => {
-                (spawner)(*ent, pos.map(|p| *p).unwrap_or_default(), spritepool, cmd)
+                (spawner.spawner)(*ent, pos.map(|p| *p).unwrap_or_default(), spritepool, cmd)
             }
-            GameAction::Other(executor) => (executor)(*ent, cmd),
             _ => {}
         }
     }

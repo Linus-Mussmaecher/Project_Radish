@@ -13,22 +13,20 @@ const PALETTE: [u32; 16] = [
 ];
 
 fn main() -> GameResult {
-    //std::env::set_var("RUST_BACKTRACE", "1");
-    //code snippet to fetch and set resource dir
-
-    let resource_dir = if let Ok(manifest_dir) = std::env::var("CARGO_MANIFEST_DIR") {
-        let mut path = std::path::PathBuf::from(manifest_dir);
-        path.push("resources");
-        path
-    } else {
-        std::path::PathBuf::from("./resources")
-    };
+    
+    // let resource_dir = if let Ok(manifest_dir) = std::env::var("CARGO_MANIFEST_DIR") {
+    //     let mut path = std::path::PathBuf::from(manifest_dir);
+    //     path.push("resources");
+    //     path
+    // } else {
+    //     std::path::PathBuf::from("./resources")
+    // };
 
     //generate game context (window etc.)
 
     let (mut ctx, event_loop): (ggez::context::Context, ggez::event::EventLoop<()>) =
         ContextBuilder::new("radish", "Linus Mußmächer")
-            .add_resource_path(resource_dir)
+            .add_resource_path("./resources")
             .window_setup(
                 conf::WindowSetup::default()
                     .icon("/sprites/spells/mana.png")
