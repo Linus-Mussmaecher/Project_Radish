@@ -30,10 +30,10 @@ impl Director {
             total: Duration::ZERO,
             credits: 0,
             enemies: vec![
-                (20, spawn_charge_skeleton),
                 (040, spawn_basic_skeleton),
                 (070, spawn_fast_skeleton),
                 (150, spawn_tank_skeleton),
+                (200, spawn_charge_skeleton),
                 (300, spawn_loot_skeleton),
             ],
         }

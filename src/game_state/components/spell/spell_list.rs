@@ -98,7 +98,7 @@ fn spawn_icebomb(
                     .with_range(128.),
                 GameAction::TakeDamage { dmg: 1 }.into(),
             )
-            .with_duration(Duration::from_secs(5)),
+            .with_duration(Duration::from_secs_f32(1.)),
         )
         .with_effect(
             ActionEffect::transform(
