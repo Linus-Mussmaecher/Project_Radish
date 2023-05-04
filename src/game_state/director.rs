@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use ggez::{glam::Vec2, graphics, GameError};
+use ggez::{graphics, GameError};
 use legion::{system, systems::CommandBuffer};
 use rand::random;
 
@@ -30,10 +30,10 @@ impl Director {
             total: Duration::ZERO,
             credits: 0,
             enemies: vec![
+                (20, spawn_charge_skeleton),
                 (040, spawn_basic_skeleton),
                 (070, spawn_fast_skeleton),
                 (150, spawn_tank_skeleton),
-                (200, spawn_charge_skeleton),
                 (300, spawn_loot_skeleton),
             ],
         }
@@ -135,10 +135,10 @@ pub fn spawn_fast_skeleton(
         components::BoundaryCollision::new(true, false, true),
         components::Graphics::from(sprite_pool.init_sprite(
             "/sprites/enemies/skeleton_sword",
-            Duration::from_secs_f32(0.35),
+            Duration::from_secs_f32(0.25),
         )?),
-        components::Aura::new(
-            256.,
+        components::actions::Actions::new().with_effect(ActionEffect::transform(
+            ActionEffectTarget::new().with_affect_self(true).with_range(256.),
             |act| {
                 match act {
                     // speed up nearby allies by 50%
@@ -146,8 +146,7 @@ pub fn spawn_fast_skeleton(
                     _ => {}
                 };
             },
-            |_| true,
-        ),
+        )),
         components::Enemy::new(1, 15),
         components::Health::new(3),
         components::Collision::new_basic(64., 64.),
@@ -188,8 +187,11 @@ pub fn spawn_tank_skeleton(
             "/sprites/enemies/skeleton_tank",
             Duration::from_secs_f32(0.25),
         )?),
-        components::Aura::new(
-            192.,
+        components::actions::Actions::new().with_effect(ActionEffect::transform(
+            ActionEffectTarget::new()
+                .with_range(196.)
+                .with_enemies_only(true)
+                .with_affect_self(true),
             |act| {
                 match act {
                     // reduce dmg by 1, but if would be reduced to 0, onyl 20% chance to do so
@@ -207,11 +209,14 @@ pub fn spawn_tank_skeleton(
                     _ => {}
                 }
             },
-            |_| true,
-        ),
+        )),
         components::OnDeath::new(
-            GameActionContainer::single(
-                Distributor::new(gameaction_multiple![
+            ActionEffect::once(
+                ActionEffectTarget::new()
+                    .with_range(256.)
+                    .with_limit(5)
+                    .with_enemies_only(true),
+                gameaction_multiple![
                     GameAction::TakeHealing { heal: 2 },
                     GameAction::AddParticle(
                         Particle::new(
@@ -222,12 +227,10 @@ pub fn spawn_tank_skeleton(
                         .with_velocity(0., -15.)
                         .with_relative_position(0., -64.),
                     ),
-                ])
-                .with_enemies_only()
-                .with_limit(5)
-                .with_range(256.)
-                .to_action(),
-            ),
+                ],
+            )
+            .with_duration(Duration::ZERO)
+            .into(),
             MessageSet::new(),
         ),
         components::Enemy::new(2, 25),
@@ -251,29 +254,31 @@ pub fn spawn_charge_skeleton(
         )?),
         // on death: speed up nearby allies for a time
         components::OnDeath::new(
-            Distributor::new(gameaction_multiple![
-                Repeater::new(
-                    GameAction::Move {
-                        delta: Vec2::new(0., 2.2)
-                    }
+            ActionEffect::once(
+                ActionEffectTarget::new()
+                    .with_range(196.)
+                    .with_limit(8)
+                    .with_enemies_only(true),
+                gameaction_multiple![
+                    GameAction::AddParticle(
+                        Particle::new(
+                            sprite_pool
+                                .init_sprite("/sprites/bolt", Duration::from_secs_f32(0.25))?,
+                        )
+                        .with_duration(Duration::from_secs(5))
+                        .with_velocity(0., -10.)
+                        .with_relative_position(0., -24.),
+                    ),
+                    ActionEffect::transform(ActionEffectTarget::new_only_self(), |act| {
+                        match act {
+                            // speed up nearby allies by 50%
+                            GameAction::Move { delta } => *delta *= 2.5,
+                            _ => {}
+                        };
+                    }).with_duration(Duration::from_secs(5))
                     .into()
-                )
-                .with_repeat_duration(Duration::from_millis(50))
-                .with_total_duration(Duration::from_secs(4))
-                .to_action(),
-                GameAction::AddParticle(
-                    Particle::new(
-                        sprite_pool.init_sprite("/sprites/bolt", Duration::from_secs_f32(0.25))?,
-                    )
-                    .with_duration(Duration::from_secs(4))
-                    .with_velocity(0., -3.)
-                    .with_relative_position(0., -32.),
-                ),
-            ])
-            .with_enemies_only()
-            .with_limit(8)
-            .with_range(196.)
-            .to_action()
+                ],
+            )
             .into(),
             MessageSet::new(),
         ),

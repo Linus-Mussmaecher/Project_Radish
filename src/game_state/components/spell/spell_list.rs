@@ -18,7 +18,7 @@ pub fn construct_fireball(spritepool: &SpritePool) -> Spell {
         icon: spritepool
             .init_sprite("/sprites/spells/fireball", Duration::from_secs_f32(1.))
             .expect("Could not initialize this spell."),
-        spell_: GameActionContainer::single(GameAction::spawn(|_, pos, sp, cmd| {
+        spell_: GameAction::spawn(|_, pos, sp, cmd| {
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(10)),
@@ -37,7 +37,8 @@ pub fn construct_fireball(spritepool: &SpritePool) -> Spell {
                     )
                 }),
             ));
-        })),
+        })
+        .into(),
     }
 }
 
@@ -48,7 +49,7 @@ pub fn construct_icebomb(spritepool: &SpritePool) -> Spell {
         icon: spritepool
             .init_sprite("/sprites/spells/icebomb", Duration::from_secs_f32(1.))
             .expect("Could not initialize this spell."),
-        spell_: GameActionContainer::single(GameAction::spawn(|_, pos, sp, cmd| {
+        spell_: GameAction::spawn(|_, pos, sp, cmd| {
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(10)),
@@ -68,7 +69,8 @@ pub fn construct_icebomb(spritepool: &SpritePool) -> Spell {
                     )
                 }),
             ));
-        })),
+        })
+        .into(),
     }
 }
 
@@ -88,39 +90,29 @@ fn spawn_icebomb(
             sprite.set_variant(1);
             components::Graphics::from(sprite)
         },
-        components::Aura::new(
-            128.,
-            |act| {
-                match act {
-                    // slow down enemies by 65%
-                    GameAction::Move { delta } => *delta *= 0.35,
-                    _ => {}
-                };
-            },
-            // only enemies
-            |entry| {
-                if let Ok(_) = entry.get_component::<components::Enemy>() {
-                    true
-                } else {
-                    false
-                }
-            },
+        components::actions::Actions::new()
+        .with_effect(
+            ActionEffect::once(
+                ActionEffectTarget::new()
+                    .with_enemies_only(true)
+                    .with_range(128.),
+                GameAction::TakeDamage { dmg: 1 }.into(),
+            )
+            .with_duration(Duration::from_secs(5)),
+        )
+        .with_effect(
+            ActionEffect::transform(
+                ActionEffectTarget::new()
+                    .with_enemies_only(true)
+                    .with_range(128.),
+                |action|  {
+                    match action {
+                        GameAction::Move { delta } => *delta *= 0.35,
+                        _ => {}
+                    }
+                },
+            )
         ),
-        {
-            let mut actions = components::actions::Actions::new();
-            actions.push(
-                Repeater::new(
-                    Distributor::new(GameAction::TakeDamage { dmg: 1 }.into())
-                        .with_range(128.)
-                        .with_enemies_only()
-                        .to_action()
-                        .into(),
-                )
-                .with_once_after(Duration::from_secs_f32(5.))
-                .to_action(),
-            );
-            actions
-        },
     ));
 }
 
@@ -131,7 +123,7 @@ pub fn construct_electrobomb(spritepool: &SpritePool) -> Spell {
         icon: spritepool
             .init_sprite("/sprites/spells/fireball", Duration::from_secs_f32(1.))
             .expect("Could not initialize this spell."),
-        spell_: GameActionContainer::single(GameAction::spawn(|_, pos, sp, cmd| {
+        spell_: GameAction::spawn(|_, pos, sp, cmd| {
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(10)),
@@ -146,19 +138,22 @@ pub fn construct_electrobomb(spritepool: &SpritePool) -> Spell {
                             (e1, GameAction::AddImmunity { other: e2 }),
                             (
                                 e2,
-                                Distributor::new(GameActionContainer::single(
-                                    GameAction::TakeDamage { dmg: 1 },
-                                ))
-                                .with_range(128.)
-                                .with_enemies_only()
-                                .to_action(),
+                                ActionEffect::once(
+                                    ActionEffectTarget::new()
+                                        .with_enemies_only(true)
+                                        .with_affect_self(false)
+                                        .with_range(128.),
+                                    GameAction::TakeDamage { dmg: 1 }.into(),
+                                )
+                                .into(),
                             ),
                         ],
                         MessageSet::new(),
                     )
                 }),
             ));
-        })),
+        })
+        .into(),
     }
 }
 
@@ -169,23 +164,28 @@ pub fn construct_conflagrate(spritepool: &SpritePool) -> Spell {
         icon: spritepool
             .init_sprite("/sprites/spells/fireball", Duration::from_secs(1))
             .expect("Sprite not there"),
-        spell_: Distributor::new(gameaction_multiple![
-            Repeater::new(GameAction::TakeDamage { dmg: 1 }.into())
-                .with_total_duration(Duration::from_secs(5))
-                .with_repeat_duration(Duration::from_secs(1))
-                .to_action(),
-            GameAction::AddParticle(
-                Particle::new(
-                    spritepool
-                        .init_sprite("/sprites/spells/burning", Duration::from_secs_f32(0.25))
-                        .expect("Sprite."),
+        spell_: ActionEffect::once(
+            ActionEffectTarget::new()
+                .with_enemies_only(true)
+                .with_limit(5),
+            gameaction_multiple![
+                ActionEffect::repeat(
+                    ActionEffectTarget::new_only_self(),
+                    GameAction::TakeDamage { dmg: 1 }.into(),
+                    Duration::from_secs(1),
                 )
                 .with_duration(Duration::from_secs(5))
-            )
-        ])
-        .with_limit(5)
-        .with_enemies_only()
-        .to_action()
+                .into(),
+                GameAction::AddParticle(
+                    Particle::new(
+                        spritepool
+                            .init_sprite("/sprites/spells/burning", Duration::from_secs_f32(0.25))
+                            .expect("Sprite."),
+                    )
+                    .with_duration(Duration::from_secs(5))
+                )
+            ],
+        )
         .into(),
     }
 }

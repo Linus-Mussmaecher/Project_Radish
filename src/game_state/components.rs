@@ -24,8 +24,5 @@ pub use duration::LifeDuration;
 pub mod spell;
 pub use spell::SpellCaster;
 
-pub mod aura;
-pub use aura::Aura;
-
 pub mod actions;
 pub use actions::Actions;

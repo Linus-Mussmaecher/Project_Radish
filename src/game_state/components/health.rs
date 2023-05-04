@@ -47,13 +47,13 @@ impl Enemy {
 
 /// A struct that contains a actions and messages send by an entity on death.
 pub struct OnDeath {
-    death_actions: actions::GameActionContainer,
+    death_actions: actions::ActionContainer,
     death_messages: MessageSet,
 }
 
 impl OnDeath {
     /// Creates a new OnDeath component. The carrying entity will trigger the passed closure when its health reaches 0.
-    pub fn new(death_actions: actions::GameActionContainer, death_messages: MessageSet) -> Self {
+    pub fn new(death_actions: actions::ActionContainer, death_messages: MessageSet) -> Self {
         Self {
             death_actions,
             death_messages,

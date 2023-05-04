@@ -90,14 +90,12 @@ impl GameState {
                 .add_system(components::control::control_system())
                 .add_system(components::duration::manage_durations_system())
                 .add_system(components::health::destroy_by_health_system())
-                .add_system(components::actions::handle_repeaters_system())
                 // systems that consume (but may produce) actions
                 .add_system(components::spell::spell_casting_system())
                 .build(),
             action_cons_schedule: Schedule::builder()
                 // systems that consume actions
                 .add_system(components::actions::resolve_executive_actions_system())
-                .add_system(components::actions::register_repeaters_system())
                 .add_system(components::graphics::handle_particles_system())
                 .add_system(components::position::resolve_move_system())
                 .add_system(components::collision::boundary_collision_system())
@@ -228,8 +226,7 @@ impl scene_manager::Scene for GameState {
             .execute(&mut self.world, &mut self.resources);
 
         // transform game actions of this frame
-        components::actions::distribution_system(&mut self.world);
-        components::aura::aura_system(&mut self.world);
+        components::actions::handle_effects(&mut self.world, &mut self.resources);
 
         // consume game actions of this frame
         self.action_cons_schedule

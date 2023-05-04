@@ -6,7 +6,7 @@ use crate::game_state::{controller::Interactions, game_message::MessageSet};
 use mooeye::sprite::Sprite;
 
 use super::{
-    actions::{GameAction, GameActionContainer},
+    actions::{GameAction, ActionContainer},
     Actions,
 };
 
@@ -103,7 +103,7 @@ pub struct Spell {
 
     icon: Sprite,
 
-    spell_: GameActionContainer,
+    spell_: ActionContainer,
 }
 
 #[allow(dead_code)]
@@ -123,7 +123,7 @@ impl Spell {
     pub fn attempt_cast(
         &self,
         available_slots: &mut TinyVec<[(Duration, Duration); MAX_SPELL_SLOTS]>,
-    ) -> GameActionContainer {
+    ) -> ActionContainer {
         let free_slots = available_slots
             .iter()
             .filter(|slot| slot.0.is_zero())
@@ -140,7 +140,7 @@ impl Spell {
             }
             self.spell_.clone()
         } else {
-            GameActionContainer::Single(GameAction::None)
+            ActionContainer::ApplySingle(GameAction::None)
         }
     }
 }
