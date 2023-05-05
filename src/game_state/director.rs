@@ -216,7 +216,7 @@ pub fn spawn_tank_skeleton(
                     .with_range(256.)
                     .with_limit(5)
                     .with_enemies_only(true),
-                gameaction_multiple![
+                vec![
                     GameAction::TakeHealing { heal: 2 },
                     GameAction::AddParticle(
                         Particle::new(
@@ -229,8 +229,7 @@ pub fn spawn_tank_skeleton(
                     ),
                 ],
             )
-            .with_duration(Duration::ZERO)
-            .into(),
+            .with_duration(Duration::ZERO),
             MessageSet::new(),
         ),
         components::Enemy::new(2, 25),
@@ -259,7 +258,7 @@ pub fn spawn_charge_skeleton(
                     .with_range(196.)
                     .with_limit(8)
                     .with_enemies_only(true),
-                gameaction_multiple![
+                vec![
                     GameAction::AddParticle(
                         Particle::new(
                             sprite_pool
@@ -278,8 +277,7 @@ pub fn spawn_charge_skeleton(
                     }).with_duration(Duration::from_secs(5))
                     .into()
                 ],
-            )
-            .into(),
+            ),
             MessageSet::new(),
         ),
         components::Enemy::new(2, 45),

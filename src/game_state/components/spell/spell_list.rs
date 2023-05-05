@@ -96,9 +96,18 @@ fn spawn_icebomb(
                 ActionEffectTarget::new()
                     .with_enemies_only(true)
                     .with_range(128.),
-                GameAction::TakeDamage { dmg: 1 }.into(),
+                GameAction::TakeDamage { dmg: 1 },
             )
-            .with_duration(Duration::from_secs_f32(1.)),
+            .with_duration(Duration::from_secs_f32(4.5)),
+        )
+        .with_effect(
+            ActionEffect::once(
+                ActionEffectTarget::new()
+                    .with_enemies_only(true)
+                    .with_range(128.),
+                GameAction::TakeDamage { dmg: 1 },
+            )
+            .with_duration(Duration::from_secs_f32(5.)),
         )
         .with_effect(
             ActionEffect::transform(
@@ -143,7 +152,7 @@ pub fn construct_electrobomb(spritepool: &SpritePool) -> Spell {
                                         .with_enemies_only(true)
                                         .with_affect_self(false)
                                         .with_range(128.),
-                                    GameAction::TakeDamage { dmg: 1 }.into(),
+                                    GameAction::TakeDamage { dmg: 1 },
                                 )
                                 .into(),
                             ),
@@ -168,10 +177,10 @@ pub fn construct_conflagrate(spritepool: &SpritePool) -> Spell {
             ActionEffectTarget::new()
                 .with_enemies_only(true)
                 .with_limit(5),
-            gameaction_multiple![
+            vec![
                 ActionEffect::repeat(
                     ActionEffectTarget::new_only_self(),
-                    GameAction::TakeDamage { dmg: 1 }.into(),
+                    GameAction::TakeDamage { dmg: 1 },
                     Duration::from_secs(1),
                 )
                 .with_duration(Duration::from_secs(5))

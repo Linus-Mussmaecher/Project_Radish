@@ -53,9 +53,9 @@ pub struct OnDeath {
 
 impl OnDeath {
     /// Creates a new OnDeath component. The carrying entity will trigger the passed closure when its health reaches 0.
-    pub fn new(death_actions: actions::ActionContainer, death_messages: MessageSet) -> Self {
+    pub fn new(death_actions: impl Into<actions::ActionContainer>, death_messages: MessageSet) -> Self {
         Self {
-            death_actions,
+            death_actions: death_actions.into(),
             death_messages,
         }
     }

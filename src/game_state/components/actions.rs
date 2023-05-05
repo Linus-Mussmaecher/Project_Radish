@@ -104,11 +104,11 @@ impl ActionEffect {
         }
     }
 
-    pub fn repeat(target: ActionEffectTarget, actions: ActionContainer, interval: Duration) -> Self {
+    pub fn repeat(target: ActionEffectTarget, actions: impl Into<ActionContainer>, interval: Duration) -> Self {
         Self {
             target,
             content: ActionEffectType::Repeat {
-                actions,
+                actions: actions.into(),
                 interval,
                 activations: 0.,
             },
@@ -117,10 +117,10 @@ impl ActionEffect {
         }
     }
 
-    pub fn once(target: ActionEffectTarget, actions: ActionContainer) -> Self {
+    pub fn once(target: ActionEffectTarget, actions: impl Into<ActionContainer>) -> Self {
         Self {
             target,
-            content: ActionEffectType::Once(actions),
+            content: ActionEffectType::Once(actions.into()),
             duration: Some(Duration::ZERO),
             alive_duration: Duration::ZERO,
         }
@@ -146,12 +146,6 @@ impl Default for ActionEffect {
 impl From<ActionEffect> for GameAction {
     fn from(value: ActionEffect) -> Self {
         GameAction::ApplyEffect(Box::new(value))
-    }
-}
-
-impl From<ActionEffect> for ActionContainer {
-    fn from(value: ActionEffect) -> Self {
-        ActionContainer::ApplySingle(GameAction::ApplyEffect(Box::new(value)))
     }
 }
 
@@ -250,17 +244,21 @@ pub enum ActionContainer {
     ApplyMultiple(Vec<GameAction>),
 }
 
-/// Contructs a new GameActionContainer with multiple elements, similar to the vec! macro.
-macro_rules! gameaction_multiple {
-    ($( $x:expr ),* $(,)?) => {
-        crate::game_state::components::actions::ActionContainer::ApplyMultiple(vec![$($x),*])
-    };
-}
-pub(crate) use gameaction_multiple;
-
 impl From<GameAction> for ActionContainer {
     fn from(value: GameAction) -> Self {
         Self::ApplySingle(value)
+    }
+}
+
+impl From<ActionEffect> for ActionContainer {
+    fn from(value: ActionEffect) -> Self {
+        ActionContainer::ApplySingle(GameAction::ApplyEffect(Box::new(value)))
+    }
+}
+
+impl From<Vec<GameAction>> for ActionContainer{
+    fn from(value: Vec<GameAction>) -> Self {
+        ActionContainer::ApplyMultiple(value)
     }
 }
 
@@ -343,6 +341,11 @@ pub fn resolve_executive_actions(
 
 /// A special system that applies all aura-components that transform actions of other entities
 pub fn handle_effects(world: &mut legion::World, resources: &mut legion::Resources) {
+    // get interactions
+    let ix = resources
+        .get::<Interactions>()
+        .expect("Could not unpack interactions.");
+
     // compile a list of all transforms & applies affecting entities
     let mut transforms = Vec::new();
     let mut applies = Vec::new();
@@ -388,7 +391,7 @@ pub fn handle_effects(world: &mut legion::World, resources: &mut legion::Resourc
                     ActionEffectType::Once(actions) => {
                         if effect
                             .duration
-                            .map(|d| d <= effect.alive_duration)
+                            .map(|d| d <= effect.alive_duration + ix.delta)
                             .unwrap_or(false)
                         {
                             applies.push((*target, actions.clone()));
@@ -416,11 +419,6 @@ pub fn handle_effects(world: &mut legion::World, resources: &mut legion::Resourc
             }
         }
     }
-
-    // get interactions
-    let ix = resources
-        .get::<Interactions>()
-        .expect("Could not unpack interactions.");
 
     // iterate over all sources of effects
     for src_act in <&mut Actions>::query().iter_mut(world) {
