@@ -98,15 +98,6 @@ fn spawn_icebomb(
                     .with_range(128.),
                 GameAction::TakeDamage { dmg: 1 },
             )
-            .with_duration(Duration::from_secs_f32(4.5)),
-        )
-        .with_effect(
-            ActionEffect::once(
-                ActionEffectTarget::new()
-                    .with_enemies_only(true)
-                    .with_range(128.),
-                GameAction::TakeDamage { dmg: 1 },
-            )
             .with_duration(Duration::from_secs_f32(5.)),
         )
         .with_effect(
@@ -150,7 +141,7 @@ pub fn construct_electrobomb(spritepool: &SpritePool) -> Spell {
                                 ActionEffect::once(
                                     ActionEffectTarget::new()
                                         .with_enemies_only(true)
-                                        .with_affect_self(false)
+                                        .with_affect_self(true)
                                         .with_range(128.),
                                     GameAction::TakeDamage { dmg: 1 },
                                 )
