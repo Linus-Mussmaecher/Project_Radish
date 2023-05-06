@@ -185,6 +185,7 @@ impl GameOverMenu {
         .set_scale(32.)
         .to_owned()
         .to_element_builder(1, ctx)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::R)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
@@ -200,6 +201,7 @@ impl GameOverMenu {
         .set_scale(32.)
         .to_owned()
         .to_element_builder(2, ctx)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::M)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
@@ -222,10 +224,7 @@ impl scene_manager::Scene for GameOverMenu {
 
         // restart the game
 
-        if messages.contains(&mooeye::UiMessage::Clicked(1))
-            || ctx
-                .keyboard
-                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::R)
+        if messages.contains(&mooeye::UiMessage::Triggered(1))
         {
             return Ok(mooeye::scene_manager::SceneSwitch::replace(
                 crate::game_state::GameState::new(ctx)?,
@@ -235,10 +234,7 @@ impl scene_manager::Scene for GameOverMenu {
 
         // return to main menu
 
-        if messages.contains(&mooeye::UiMessage::Clicked(2))
-            || ctx
-                .keyboard
-                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::M)
+        if messages.contains(&mooeye::UiMessage::Triggered(2))
         {
             return Ok(mooeye::scene_manager::SceneSwitch::replace(
                 super::main_menu::MainMenu::new(ctx)?,

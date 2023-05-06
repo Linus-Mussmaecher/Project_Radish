@@ -243,10 +243,7 @@ impl scene_manager::Scene for GameState {
             message_set.clear();
 
             // react to UI messages
-            if messages.contains(&UiMessage::Clicked(1))
-                || ctx
-                    .keyboard
-                    .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::F10)
+            if messages.contains(&UiMessage::Triggered(1))
             {
                 return Ok(scene_manager::SceneSwitch::push(
                     crate::scenes::in_game_menu::InGameMenu::new(ctx)?,

@@ -28,6 +28,7 @@ impl OptionsMenu {
         .set_scale(24.)
         .to_owned()
         .to_element_builder(1, ctx)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::R)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
@@ -39,6 +40,7 @@ impl OptionsMenu {
         .set_scale(32.)
         .to_owned()
         .to_element_builder(2, ctx)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::C)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
@@ -72,18 +74,12 @@ impl scene_manager::Scene for OptionsMenu {
     ) -> Result<mooeye::scene_manager::SceneSwitch, GameError> {
         let messages = self.gui.manage_messages(ctx, None);
 
-        if messages.contains(&mooeye::UiMessage::Clicked(1))
-            || ctx
-                .keyboard
-                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::R)
+        if messages.contains(&mooeye::UiMessage::Triggered(1))
         {
             self.controller = game_state::Controller::default();
         }
 
-        if messages.contains(&mooeye::UiMessage::Clicked(2))
-            || ctx
-                .keyboard
-                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::C)
+        if messages.contains(&mooeye::UiMessage::Triggered(2))
         {
             if self.controller.save_to_file("./data/keymap.toml").is_err() {
                 println!("[WARNING] Could not save keybindings.")

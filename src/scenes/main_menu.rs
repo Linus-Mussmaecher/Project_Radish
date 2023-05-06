@@ -28,6 +28,7 @@ impl MainMenu {
         .set_scale(32.)
         .to_owned()
         .to_element_builder(1, ctx)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::P)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
@@ -40,6 +41,7 @@ impl MainMenu {
         .set_scale(32.)
         .to_owned()
         .to_element_builder(2, ctx)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::T)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
@@ -54,6 +56,7 @@ impl MainMenu {
         .set_scale(32.)
         .to_owned()
         .to_element_builder(3, ctx)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::H)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
@@ -68,6 +71,7 @@ impl MainMenu {
         .set_scale(32.)
         .to_owned()
         .to_element_builder(4, ctx)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::A)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
@@ -79,6 +83,7 @@ impl MainMenu {
         .set_scale(32.)
         .to_owned()
         .to_element_builder(5, ctx)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::O)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
@@ -90,6 +95,7 @@ impl MainMenu {
         .set_scale(32.)
         .to_owned()
         .to_element_builder(6, ctx)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::C)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
@@ -101,6 +107,7 @@ impl MainMenu {
         .set_scale(32.)
         .to_owned()
         .to_element_builder(7, ctx)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::Q)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
@@ -145,65 +152,44 @@ impl scene_manager::Scene for MainMenu {
 
         let mut res = mooeye::scene_manager::SceneSwitch::None;
 
-        if messages.contains(&mooeye::UiMessage::Clicked(1))
-            || ctx
-                .keyboard
-                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::P)
+        if messages.contains(&mooeye::UiMessage::Triggered(1))
         {
             res = mooeye::scene_manager::SceneSwitch::replace(game_state::GameState::new(ctx)?, 1);
         }
-        if messages.contains(&mooeye::UiMessage::Clicked(2))
-            || ctx
-                .keyboard
-                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::T)
+        if messages.contains(&mooeye::UiMessage::Triggered(2))
         {
             res = mooeye::scene_manager::SceneSwitch::replace(game_state::GameState::new(ctx)?, 1);
         }
 
-        if messages.contains(&mooeye::UiMessage::Clicked(3))
-            || ctx
-                .keyboard
-                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::H)
+        if messages.contains(&mooeye::UiMessage::Triggered(3))
         {
             res = mooeye::scene_manager::SceneSwitch::push(
                 super::highscore_menu::HighscoreMenu::new(ctx)?,
             );
         }
 
-        if messages.contains(&mooeye::UiMessage::Clicked(4))
-            || ctx
-                .keyboard
-                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::A)
+        if messages.contains(&mooeye::UiMessage::Triggered(4))
         {
             res = mooeye::scene_manager::SceneSwitch::push(
                 super::achievement_menu::AchievementMenu::new(ctx)?,
             );
         }
 
-        if messages.contains(&mooeye::UiMessage::Clicked(5))
-            || ctx
-                .keyboard
-                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::O)
+        if messages.contains(&mooeye::UiMessage::Triggered(5))
         {
             res = mooeye::scene_manager::SceneSwitch::push(super::options_menu::OptionsMenu::new(
                 ctx,
             )?);
         }
 
-        if messages.contains(&mooeye::UiMessage::Clicked(6))
-            || ctx
-                .keyboard
-                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::C)
+        if messages.contains(&mooeye::UiMessage::Triggered(6))
         {
             res = mooeye::scene_manager::SceneSwitch::push(super::credits_menu::CreditsMenu::new(
                 ctx,
             )?);
         }
 
-        if messages.contains(&mooeye::UiMessage::Clicked(7))
-            || ctx
-                .keyboard
-                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::Q)
+        if messages.contains(&mooeye::UiMessage::Triggered(7))
         {
             res = mooeye::scene_manager::SceneSwitch::Pop(1);
         }

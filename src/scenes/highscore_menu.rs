@@ -56,6 +56,7 @@ impl HighscoreMenu {
         .set_scale(24.)
         .to_owned()
         .to_element_builder(1, ctx)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::R)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
@@ -67,6 +68,7 @@ impl HighscoreMenu {
         .set_scale(32.)
         .to_owned()
         .to_element_builder(2, ctx)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::C)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
@@ -98,19 +100,13 @@ impl scene_manager::Scene for HighscoreMenu {
     ) -> Result<mooeye::scene_manager::SceneSwitch, ggez::GameError> {
         let messages = self.gui.manage_messages(ctx, None);
 
-        if messages.contains(&mooeye::UiMessage::Clicked(1))
-            || ctx
-                .keyboard
-                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::R)
+        if messages.contains(&mooeye::UiMessage::Triggered(1))
         {
             // delete highscores
             std::fs::write("./data/highscores.toml", "")?;
         }
 
-        if messages.contains(&mooeye::UiMessage::Clicked(2))
-            || ctx
-                .keyboard
-                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::C)
+        if messages.contains(&mooeye::UiMessage::Triggered(2))
         {
             Ok(mooeye::scene_manager::SceneSwitch::Pop(1))
         } else {

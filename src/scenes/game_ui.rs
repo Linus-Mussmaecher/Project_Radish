@@ -16,6 +16,7 @@ pub fn construct_game_ui(
     // options icon
     let cog_icon = graphics::Image::from_path(ctx, "/sprites/ui/cog.png")?
         .to_element_builder(1, ctx)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::F10)
         .with_visuals(super::BUTTON_VIS)
         .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Max)
         .scaled(2., 2.)
@@ -80,7 +81,6 @@ pub fn construct_game_ui(
             .set_font("Retro")
             .to_owned()
             .to_element_builder(0, ctx)
-            .with_tooltip_layout()
             .with_visuals(super::BUTTON_VIS)
             .build(),
         )
@@ -145,7 +145,6 @@ pub fn construct_game_ui(
             .set_font("Retro")
             .to_owned()
             .to_element_builder(0, ctx)
-            .with_tooltip_layout()
             .with_visuals(super::BUTTON_VIS)
             .build(),
         )

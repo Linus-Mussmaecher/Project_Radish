@@ -60,6 +60,7 @@ impl CreditsMenu {
         .set_scale(32.)
         .to_owned()
         .to_element_builder(1, ctx)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::C)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
@@ -90,10 +91,7 @@ impl scene_manager::Scene for CreditsMenu {
     ) -> Result<mooeye::scene_manager::SceneSwitch, ggez::GameError> {
         let messages = self.gui.manage_messages(ctx, None);
 
-        if messages.contains(&mooeye::UiMessage::Clicked(1))
-            || ctx
-                .keyboard
-                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::C)
+        if messages.contains(&mooeye::UiMessage::Triggered(1))
         {
             Ok(mooeye::scene_manager::SceneSwitch::Pop(1))
         } else {

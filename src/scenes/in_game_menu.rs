@@ -26,6 +26,8 @@ impl InGameMenu {
         .set_scale(32.)
         .to_owned()
         .to_element_builder(1, ctx)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::F10)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::R)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
@@ -38,6 +40,7 @@ impl InGameMenu {
         .set_scale(32.)
         .to_owned()
         .to_element_builder(2, ctx)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::M)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
@@ -50,6 +53,7 @@ impl InGameMenu {
         .set_scale(32.)
         .to_owned()
         .to_element_builder(3, ctx)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::Q)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
@@ -82,29 +86,17 @@ impl scene_manager::Scene for InGameMenu {
 
         let mut res = scene_manager::SceneSwitch::None;
 
-        if messages.contains(&UiMessage::Clicked(1))
-            || ctx
-                .keyboard
-                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::F10)
-            || ctx
-                .keyboard
-                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::R)
+        if messages.contains(&UiMessage::Triggered(1))
         {
             res = scene_manager::SceneSwitch::pop(1);
         }
 
-        if messages.contains(&UiMessage::Clicked(2))
-            || ctx
-                .keyboard
-                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::M)
+        if messages.contains(&UiMessage::Triggered(2))
         {
             res = scene_manager::SceneSwitch::replace(super::main_menu::MainMenu::new(ctx)?, 2);
         }
 
-        if messages.contains(&UiMessage::Clicked(3))
-            || ctx
-                .keyboard
-                .is_key_just_pressed(ggez::winit::event::VirtualKeyCode::Q)
+        if messages.contains(&UiMessage::Triggered(3))
         {
             res = scene_manager::SceneSwitch::pop(2);
         }
