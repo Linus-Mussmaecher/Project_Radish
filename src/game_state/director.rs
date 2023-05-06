@@ -9,11 +9,12 @@ use mooeye::sprite;
 use super::{
     components::{self, actions::*, graphics::Particle, Position},
     controller::Interactions,
-    game_message::MessageSet,
+    game_message::MessageSet, GameMessage,
 };
 
 #[derive(Clone)]
 pub struct Director {
+    wave: i32,
     intervall: Duration,
     total: Duration,
     credits: u64,
@@ -26,6 +27,7 @@ pub struct Director {
 impl Director {
     pub fn new() -> Self {
         Self {
+            wave: 0,
             intervall: Duration::ZERO,
             total: Duration::ZERO,
             credits: 0,
@@ -47,6 +49,7 @@ pub fn direct(
     #[resource] boundaries: &graphics::Rect,
     #[resource] director: &mut Director,
     #[resource] ix: &Interactions,
+    #[resource] messages: &mut MessageSet,
 ) {
     // add time since last frame to counters
 
@@ -57,7 +60,7 @@ pub fn direct(
 
     if director.intervall >= Duration::from_secs(1) {
         // grant credits
-        director.credits += 25 + director.total.as_secs() / 5;
+        director.credits += 25 + director.total.as_secs() / 10 + 100 * (director.wave as u64);
         // reset intervall
         director.intervall = Duration::ZERO;
 
@@ -102,6 +105,10 @@ pub fn direct(
                 }
             }
         }
+
+        if director.total >= Duration::from_secs(60) {
+            messages.insert(mooeye::UiMessage::Extern(GameMessage::NextWave(director.wave)));
+        }
     }
 }
 
@@ -138,7 +145,9 @@ pub fn spawn_fast_skeleton(
             Duration::from_secs_f32(0.25),
         )?),
         components::actions::Actions::new().with_effect(ActionEffect::transform(
-            ActionEffectTarget::new().with_affect_self(true).with_range(256.),
+            ActionEffectTarget::new()
+                .with_affect_self(true)
+                .with_range(256.),
             |act| {
                 match act {
                     // speed up nearby allies by 50%
@@ -274,8 +283,9 @@ pub fn spawn_charge_skeleton(
                             GameAction::Move { delta } => *delta *= 2.5,
                             _ => {}
                         };
-                    }).with_duration(Duration::from_secs(5))
-                    .into()
+                    })
+                    .with_duration(Duration::from_secs(5))
+                    .into(),
                 ],
             ),
             MessageSet::new(),

@@ -238,7 +238,7 @@ impl scene_manager::Scene for GameState {
         if let Some(mut message_set) = self.resources.get_mut::<MessageSet>() {
             // communicate with UI
             let messages = self.gui.manage_messages(ctx, message_set.clone());
-
+            
             // clear game messages
             message_set.clear();
 
@@ -249,6 +249,17 @@ impl scene_manager::Scene for GameState {
                     crate::scenes::in_game_menu::InGameMenu::new(ctx)?,
                 ));
             }
+
+            // check for next wave condition
+            
+            for message in messages.iter(){
+                if let &UiMessage::Extern(GameMessage::NextWave(wave)) = message{
+                    return Ok(scene_manager::SceneSwitch::push(
+                        crate::scenes::wave_menu::WaveMenu::new(ctx, wave)?,
+                    ));
+                }
+            }
+    
         }
 
         // check for game over condition
@@ -256,7 +267,7 @@ impl scene_manager::Scene for GameState {
         if let Some(game_data) = self.resources.get::<game_data::GameData>() {
             if game_data.city_health <= 0 {
                 return Ok(scene_manager::SceneSwitch::push(
-                    crate::scenes::game_over_menu::GameOverMenu::new(game_data.get_score(), ctx)?,
+                    crate::scenes::game_over_menu::GameOverMenu::new(ctx, game_data.get_score())?,
                 ));
             }
         }

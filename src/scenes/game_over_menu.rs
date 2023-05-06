@@ -40,7 +40,7 @@ pub struct GameOverMenu {
 impl GameOverMenu {
     /// Creates a new GameOverMenu displaying the passed score and adding it (if good enough) to the highscore list.
     /// Also displays the highscore list and marks the newly achieved score (it it shows up).
-    pub fn new(score: i32, ctx: &ggez::Context) -> Result<Self, GameError> {
+    pub fn new(ctx: &ggez::Context, score: i32, ) -> Result<Self, GameError> {
 
         // load highscores
 

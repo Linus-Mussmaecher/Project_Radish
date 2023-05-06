@@ -6,6 +6,7 @@ pub mod highscore_menu;
 pub mod in_game_menu;
 pub mod main_menu;
 pub mod options_menu;
+pub mod wave_menu;
 
 const BUTTON_VIS: mooeye::ui_element::Visuals = mooeye::ui_element::Visuals {
     background: {
