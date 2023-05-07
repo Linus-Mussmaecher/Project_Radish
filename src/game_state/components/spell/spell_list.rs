@@ -31,7 +31,7 @@ pub fn construct_fireball(spritepool: &SpritePool) -> Spell {
                     (
                         vec![
                             (e1, GameAction::Remove(RemoveSource::Other)),
-                            (e2, GameAction::TakeDamage { dmg: 2 }),
+                            (e2, GameAction::TakeDamage { dmg: 20 }),
                         ],
                         MessageSet::new(),
                     )
@@ -62,7 +62,7 @@ pub fn construct_icebomb(spritepool: &SpritePool) -> Spell {
                     (
                         vec![
                             (e1, GameAction::Remove(RemoveSource::Other)),
-                            (e2, GameAction::TakeDamage { dmg: 3 }),
+                            (e2, GameAction::TakeDamage { dmg: 25 }),
                             (e1, GameAction::spawn(spawn_icebomb)),
                         ],
                         MessageSet::new(),
@@ -96,7 +96,7 @@ fn spawn_icebomb(
                 ActionEffectTarget::new()
                     .with_enemies_only(true)
                     .with_range(128.),
-                GameAction::TakeDamage { dmg: 1 },
+                GameAction::TakeDamage { dmg: 15 },
             )
             .with_duration(Duration::from_secs_f32(5.)),
         )
@@ -143,7 +143,7 @@ pub fn construct_electrobomb(spritepool: &SpritePool) -> Spell {
                                         .with_enemies_only(true)
                                         .with_affect_self(true)
                                         .with_range(128.),
-                                    GameAction::TakeDamage { dmg: 1 },
+                                    GameAction::TakeDamage { dmg: 8 },
                                 )
                                 .into(),
                             ),
@@ -171,7 +171,7 @@ pub fn construct_conflagrate(spritepool: &SpritePool) -> Spell {
             vec![
                 ActionEffect::repeat(
                     ActionEffectTarget::new_only_self(),
-                    GameAction::TakeDamage { dmg: 1 },
+                    GameAction::TakeDamage { dmg: 15 },
                     Duration::from_secs(1),
                 )
                 .with_duration(Duration::from_secs(5))

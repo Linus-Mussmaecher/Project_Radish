@@ -1,6 +1,8 @@
+use std::time::Duration;
+
 use legion::{system, systems::CommandBuffer, Entity};
 
-use crate::game_state::game_message::MessageSet;
+use crate::game_state::{controller::Interactions, game_message::MessageSet};
 
 use super::*;
 
@@ -8,6 +10,8 @@ use super::*;
 pub struct Health {
     curr_health: i32,
     max_health: i32,
+    snapshot_health: f32,
+    snapshot_delay: Duration,
 }
 
 impl Health {
@@ -16,17 +20,24 @@ impl Health {
         Self {
             curr_health: health,
             max_health: health,
+            snapshot_health: health as f32,
+            snapshot_delay: Duration::ZERO,
         }
     }
 
     /// Returns the unis current health.
     pub fn get_current_health(&self) -> i32 {
-        self.curr_health
+        self.curr_health.max(0)
     }
 
     /// Returns the unis maximum health.
     pub fn get_max_health(&self) -> i32 {
-        self.max_health
+        self.max_health.max(0)
+    }
+
+    /// Returns the units health before the last damage chain
+    pub fn get_snapshot(&self) -> f32 {
+        self.snapshot_health.max(0.)
     }
 }
 
@@ -53,7 +64,10 @@ pub struct OnDeath {
 
 impl OnDeath {
     /// Creates a new OnDeath component. The carrying entity will trigger the passed closure when its health reaches 0.
-    pub fn new(death_actions: impl Into<actions::ActionContainer>, death_messages: MessageSet) -> Self {
+    pub fn new(
+        death_actions: impl Into<actions::ActionContainer>,
+        death_messages: MessageSet,
+    ) -> Self {
         Self {
             death_actions: death_actions.into(),
             death_messages,
@@ -137,12 +151,22 @@ pub fn enemy_death_sprite(
 
 #[system(for_each)]
 /// Applies all [TakeDamage] actions to their respective entities.
-pub fn resolve_damage(health: &mut Health, actions: &Actions) {
+pub fn resolve_damage(health: &mut Health, actions: &Actions, #[resource] ix: &Interactions) {
+    // update snapshot health
+    let health_float = health.curr_health as f32;
+    if health_float < health.snapshot_health && health.snapshot_delay.is_zero() {
+        health.snapshot_health = health_float.max(health.snapshot_health - ix.delta.as_secs_f32() * 50.);
+    } else {
+        health.snapshot_delay = health.snapshot_delay.saturating_sub(ix.delta);
+    }
+
     for action in actions.get_actions() {
         if let actions::GameAction::TakeDamage { dmg } = action {
             health.curr_health -= *dmg;
+            health.snapshot_delay = Duration::from_secs_f32(1.5);
         } else if let actions::GameAction::TakeHealing { heal } = action {
             health.curr_health = (health.curr_health + *heal).min(health.max_health);
+            health.snapshot_health = health.curr_health as f32;
         }
     }
 }

@@ -82,6 +82,7 @@ pub fn draw_sprites(
                 ((screen_w - boundaries.w)/2.).floor(),
                 ((screen_h - boundaries.h)/2.).floor(),
             )
+            
             // move to draw to correct position based on flip
             + Vec2::new(
                 -gfx.sprite.get_dimensions().0 * PIXEL_SIZE / 2. * factor,
@@ -109,41 +110,47 @@ pub fn draw_sprites(
 
         // draw the health bar
         if let Some(health) = health {
-            let blip_size = 2;
-            // get starting point
-            let area = Rect::new(
-                pos.x - (1 + (blip_size + 1) * health.get_max_health()) as f32 * PIXEL_SIZE / 2.
-                    + (screen_w - boundaries.w) / 2.,
-                pos.y - ((blip_size + 3) as f32 + gfx.sprite.get_dimensions().1 / 2.) * PIXEL_SIZE
-                    + (screen_h - boundaries.h) / 2.,
-                (1 + (blip_size + 1) * health.get_max_health()) as f32 * PIXEL_SIZE,
-                (blip_size + 2) as f32 * PIXEL_SIZE,
+            let mut bar = Rect::new(
+                n_pos.x - if factor < 1. { gfx.sprite.get_dimensions().0 * PIXEL_SIZE } else {0.},
+                n_pos.y - 5. * PIXEL_SIZE,
+                gfx.sprite.get_dimensions().0 * PIXEL_SIZE,
+                4. * PIXEL_SIZE,
             );
 
             let mut health_bar_builder = MeshBuilder::new();
+            // border
+            health_bar_builder.rectangle(
+                graphics::DrawMode::fill(),
+                bar,
+                graphics::Color::from_rgb_u32(PALETTE[15]),
+            )?;
+            bar.x += PIXEL_SIZE;
+            bar.y += PIXEL_SIZE;
+            bar.w -= 2. * PIXEL_SIZE;
+            bar.h -= 2. * PIXEL_SIZE;
+
             // background
             health_bar_builder.rectangle(
                 graphics::DrawMode::fill(),
-                area,
+                bar,
                 graphics::Color::from_rgb_u32(PALETTE[14]),
             )?;
-            // health blips
-            for i in 0..health.get_max_health() {
-                health_bar_builder.rectangle(
-                    graphics::DrawMode::fill(),
-                    Rect::new(
-                        area.x + (1 + (blip_size + 1) * i) as f32 * PIXEL_SIZE,
-                        area.y + PIXEL_SIZE,
-                        blip_size as f32 * PIXEL_SIZE,
-                        blip_size as f32 * PIXEL_SIZE,
-                    ),
-                    graphics::Color::from_rgb_u32(if i < health.get_current_health() {
-                        PALETTE[6]
-                    } else {
-                        PALETTE[11]
-                    }),
-                )?;
-            }
+            let w = bar.w;
+            //snapshot bar
+            bar.w = PIXEL_SIZE * (w * health.get_snapshot() / health.get_max_health() as f32 / PIXEL_SIZE).floor();
+            health_bar_builder.rectangle(
+                graphics::DrawMode::fill(),
+                bar,
+                graphics::Color::from_rgb_u32(PALETTE[12]),
+            )?;
+
+            // health bar
+            bar.w = PIXEL_SIZE * (w * health.get_current_health() as f32 / health.get_max_health() as f32 / PIXEL_SIZE).floor();
+            health_bar_builder.rectangle(
+                graphics::DrawMode::fill(),
+                bar,
+                graphics::Color::from_rgb_u32(PALETTE[6]),
+            )?;
 
             canvas.draw(
                 &graphics::Mesh::from_data(ctx, health_bar_builder.build()),

@@ -234,45 +234,45 @@ impl scene_manager::Scene for GameState {
 
         // --- MESSAGE HANDLING ---
 
+        let mut switch = scene_manager::SceneSwitch::None;
+
         // retrieve game messages
         if let Some(mut message_set) = self.resources.get_mut::<MessageSet>() {
+            // check for next wave condition
+
+            for message in message_set.iter() {
+                if let &UiMessage::Extern(GameMessage::NextWave(wave)) = message {
+                    switch = scene_manager::SceneSwitch::push(
+                        crate::scenes::wave_menu::WaveMenu::new(ctx, wave)?,
+                    );
+                }
+            }
+
             // communicate with UI
             let messages = self.gui.manage_messages(ctx, message_set.clone());
-            
+
             // clear game messages
             message_set.clear();
 
             // react to UI messages
-            if messages.contains(&UiMessage::Triggered(1))
-            {
-                return Ok(scene_manager::SceneSwitch::push(
+            if messages.contains(&UiMessage::Triggered(1)) {
+                switch = scene_manager::SceneSwitch::push(
                     crate::scenes::in_game_menu::InGameMenu::new(ctx)?,
-                ));
+                );
             }
-
-            // check for next wave condition
-            
-            for message in messages.iter(){
-                if let &UiMessage::Extern(GameMessage::NextWave(wave)) = message{
-                    return Ok(scene_manager::SceneSwitch::push(
-                        crate::scenes::wave_menu::WaveMenu::new(ctx, wave)?,
-                    ));
-                }
-            }
-    
         }
 
         // check for game over condition
 
         if let Some(game_data) = self.resources.get::<game_data::GameData>() {
             if game_data.city_health <= 0 {
-                return Ok(scene_manager::SceneSwitch::push(
+                switch = scene_manager::SceneSwitch::push(
                     crate::scenes::game_over_menu::GameOverMenu::new(ctx, game_data.get_score())?,
-                ));
+                );
             }
         }
 
-        Ok(scene_manager::SceneSwitch::none())
+        Ok(switch)
     }
 
     fn draw(&mut self, ctx: &mut ggez::Context, mouse_listen: bool) -> Result<(), GameError> {

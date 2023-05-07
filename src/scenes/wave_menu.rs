@@ -25,10 +25,9 @@ impl WaveMenu {
         .set_font("Retro")
         .set_scale(28.)
         .to_owned()
-        .to_element_builder(1, ctx)
+        .to_element_builder(2, ctx)
         .as_shrink()
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::F10)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::R)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::P)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
@@ -40,8 +39,7 @@ impl WaveMenu {
         .set_scale(32.)
         .to_owned()
         .to_element_builder(1, ctx)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::F10)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::R)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::N)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();

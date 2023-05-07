@@ -14,12 +14,13 @@ use super::{
 
 #[derive(Clone)]
 pub struct Director {
-    wave: i32,
+    wave: u32,
+    wave_target: u32,
     intervall: Duration,
     total: Duration,
-    credits: u64,
+    credits: u32,
     enemies: Vec<(
-        u64,
+        u32,
         fn(&mut CommandBuffer, &sprite::SpritePool, Position) -> Result<(), GameError>,
     )>,
 }
@@ -28,6 +29,7 @@ impl Director {
     pub fn new() -> Self {
         Self {
             wave: 0,
+            wave_target: 1000,
             intervall: Duration::ZERO,
             total: Duration::ZERO,
             credits: 0,
@@ -60,12 +62,12 @@ pub fn direct(
 
     if director.intervall >= Duration::from_secs(1) {
         // grant credits
-        director.credits += 25 + director.total.as_secs() / 10 + 100 * (director.wave as u64);
+        director.credits += 10 + director.total.as_secs() as u32 / 20 + 20 * director.wave;
         // reset intervall
         director.intervall = Duration::ZERO;
 
         // randomly select an amount of available credits to spend
-        let mut to_spend = (random::<f32>().powi(2) * director.credits as f32) as u64;
+        let mut to_spend = (random::<f32>().powi(2) * director.credits as f32) as u32;
         // if to_spend >= 40 {
         //     println!("Spending {} of {} credits.", to_spend, director.credits);
         // }
@@ -102,12 +104,15 @@ pub fn direct(
                     // if spawning threw no error, reduce available credits
                     to_spend -= cost;
                     director.credits -= cost;
+                    director.wave_target = director.wave_target.saturating_sub(*cost);
                 }
             }
         }
 
-        if director.total >= Duration::from_secs(60) {
-            messages.insert(mooeye::UiMessage::Extern(GameMessage::NextWave(director.wave)));
+        if director.wave_target == 0 {
+            messages.insert(mooeye::UiMessage::Extern(GameMessage::NextWave(director.wave as i32)));
+            director.wave += 1;
+            director.wave_target = director.wave * 1000 + 500;
         }
     }
 }
@@ -125,7 +130,7 @@ pub fn spawn_basic_skeleton(
             Duration::from_secs_f32(0.25),
         )?),
         components::Enemy::new(1, 10),
-        components::Health::new(4),
+        components::Health::new(75),
         components::Collision::new_basic(64., 64.),
     ));
     Ok(())
@@ -157,7 +162,7 @@ pub fn spawn_fast_skeleton(
             },
         )),
         components::Enemy::new(1, 15),
-        components::Health::new(3),
+        components::Health::new(50),
         components::Collision::new_basic(64., 64.),
     ));
     Ok(())
@@ -177,7 +182,7 @@ pub fn spawn_loot_skeleton(
             Duration::from_secs_f32(0.20),
         )?),
         components::Enemy::new(0, 100),
-        components::Health::new(8),
+        components::Health::new(150),
         components::LifeDuration::new(Duration::from_secs(15)),
         components::Collision::new_basic(64., 64.),
     ));
@@ -205,15 +210,7 @@ pub fn spawn_tank_skeleton(
                 match act {
                     // reduce dmg by 1, but if would be reduced to 0, onyl 20% chance to do so
                     GameAction::TakeDamage { dmg } => {
-                        *dmg = if *dmg == 1 {
-                            if random::<f32>() < 0.8 {
-                                1
-                            } else {
-                                0
-                            }
-                        } else {
-                            0.max(*dmg - 1)
-                        }
+                        *dmg = (*dmg as f32 * 0.7) as i32;
                     }
                     _ => {}
                 }
@@ -242,7 +239,7 @@ pub fn spawn_tank_skeleton(
             MessageSet::new(),
         ),
         components::Enemy::new(2, 25),
-        components::Health::new(3),
+        components::Health::new(75),
         components::Collision::new_basic(64., 64.),
     ));
     Ok(())
@@ -291,7 +288,7 @@ pub fn spawn_charge_skeleton(
             MessageSet::new(),
         ),
         components::Enemy::new(2, 45),
-        components::Health::new(6),
+        components::Health::new(75),
         components::Collision::new_basic(64., 64.),
     ));
     Ok(())
