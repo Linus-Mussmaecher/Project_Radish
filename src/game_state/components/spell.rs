@@ -32,6 +32,7 @@ impl SpellCaster {
         }
     }
 
+    #[allow(dead_code)]
     pub fn add_slot(&mut self){
         self.spell_slots.push(Default::default())
     }

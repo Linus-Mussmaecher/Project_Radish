@@ -54,12 +54,15 @@ impl GameState {
             components::Graphics::from(
                 sprite_pool.init_sprite("/sprites/mage", Duration::from_secs_f32(0.25))?,
             ),
-            components::SpellCaster::new(vec![
-                spell_list::construct_fireball(&sprite_pool),
-                spell_list::construct_icebomb(&sprite_pool),
-                spell_list::construct_electrobomb(&sprite_pool),
-                spell_list::construct_conflagrate(&sprite_pool),
-            ], 3),
+            components::SpellCaster::new(
+                vec![
+                    spell_list::construct_fireball(&sprite_pool),
+                    spell_list::construct_icebomb(&sprite_pool),
+                    spell_list::construct_electrobomb(&sprite_pool),
+                    spell_list::construct_conflagrate(&sprite_pool),
+                ],
+                6,
+            ),
         ));
 
         // --- RESOURCE INITIALIZATION
@@ -70,6 +73,7 @@ impl GameState {
         message_set.insert(UiMessage::Extern(GameMessage::UpdateCityHealth(
             game_data.city_health,
         )));
+        message_set.insert(UiMessage::Extern(GameMessage::NextWave(0)));
         resources.insert(game_data);
         resources.insert(message_set);
         resources.insert(boundaries);
@@ -242,9 +246,11 @@ impl scene_manager::Scene for GameState {
 
             for message in message_set.iter() {
                 if let &UiMessage::Extern(GameMessage::NextWave(wave)) = message {
-                    switch = scene_manager::SceneSwitch::push(
-                        crate::scenes::wave_menu::WaveMenu::new(ctx, wave)?,
-                    );
+                    if wave > 0 {
+                        switch = scene_manager::SceneSwitch::push(
+                            crate::scenes::wave_menu::WaveMenu::new(ctx, wave)?,
+                        );
+                    }
                 }
             }
 

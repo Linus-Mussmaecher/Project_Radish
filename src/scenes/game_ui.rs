@@ -206,6 +206,53 @@ pub fn construct_game_ui(
 
     main_box.add(spell_box)?;
 
+    let wave_box = graphics::Text::new("Wave 00")
+        .set_scale(64.)
+        .set_font("Retro")
+        .to_owned()
+        .to_element_builder(0, ctx)
+        .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Center)
+        .as_shrink()
+        .with_message_handler(|messages, layout, transitions| {
+            for message in messages {
+                if let ui_element::UiMessage::Extern(game_state::GameMessage::NextWave(wave)) =
+                    message
+                {
+                    transitions.push_back(
+                        ui_element::Transition::new(Duration::ZERO)
+                            .with_new_content(
+                                graphics::Text::new(
+                                    graphics::TextFragment::new(format!("Wave {:02}", wave + 1))
+                                        .color(graphics::Color::from_rgb_u32(PALETTE[13])),
+                                )
+                                .set_scale(64.)
+                                .set_font("Retro")
+                                .to_owned(),
+                            )
+                            .with_new_layout(ui_element::Layout {
+                                y_alignment: ui_element::Alignment::Center,
+                                y_offset: 0.,
+                                ..layout
+                            }),
+                    );
+                    transitions
+                        .push_back(ui_element::Transition::new(Duration::from_secs_f32(0.5)));
+                    transitions.push_back(
+                        ui_element::Transition::new(Duration::from_secs(5)).with_new_layout(
+                            ui_element::Layout {
+                                y_alignment: ui_element::Alignment::Min,
+                                y_offset: -100.,
+                                ..layout
+                            },
+                        ),
+                    )
+                }
+            }
+        })
+        .build();
+
+    main_box.add(wave_box)?;
+
     Ok(main_box.to_element_builder(0, ctx).as_fill().build())
 }
 

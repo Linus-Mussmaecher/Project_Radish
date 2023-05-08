@@ -7,15 +7,16 @@ use rand::random;
 use mooeye::sprite;
 
 use super::{
-    components::{self, actions::*, graphics::Particle, Position},
+    components::{self, actions::*, graphics::Particle, Enemy, Position},
     controller::Interactions,
-    game_message::MessageSet, GameMessage,
+    game_message::MessageSet,
+    GameMessage,
 };
 
 #[derive(Clone)]
 pub struct Director {
     wave: u32,
-    wave_target: u32,
+    wave_pool: u32,
     intervall: Duration,
     total: Duration,
     credits: u32,
@@ -29,7 +30,7 @@ impl Director {
     pub fn new() -> Self {
         Self {
             wave: 0,
-            wave_target: 1000,
+            wave_pool: 1000,
             intervall: Duration::ZERO,
             total: Duration::ZERO,
             credits: 0,
@@ -46,6 +47,8 @@ impl Director {
 
 #[system]
 pub fn direct(
+    subworld: &mut legion::world::SubWorld,
+    enemy_query: &mut legion::Query<&Enemy>,
     cmd: &mut CommandBuffer,
     #[resource] spritepool: &sprite::SpritePool,
     #[resource] boundaries: &graphics::Rect,
@@ -61,58 +64,62 @@ pub fn direct(
     // if a 1-second intervall has passed, attempt a spawn
 
     if director.intervall >= Duration::from_secs(1) {
-        // grant credits
-        director.credits += 10 + director.total.as_secs() as u32 / 20 + 20 * director.wave;
-        // reset intervall
-        director.intervall = Duration::ZERO;
+        // spawn enemies
+        if director.wave_pool > 0 {
+            // grant credits
+            director.credits += 15 + director.total.as_secs() as u32 / 20 + 5 * director.wave;
+            // reset intervall
+            director.intervall = Duration::ZERO;
 
-        // randomly select an amount of available credits to spend
-        let mut to_spend = (random::<f32>().powi(2) * director.credits as f32) as u32;
-        // if to_spend >= 40 {
-        //     println!("Spending {} of {} credits.", to_spend, director.credits);
-        // }
+            // randomly select an amount of available credits to spend
+            let mut to_spend = (random::<f32>().powi(2) * director.credits as f32) as u32;
+            // if to_spend >= 40 {
+            //     println!("Spending {} of {} credits.", to_spend, director.credits);
+            // }
 
-        // while credits left to spend
-        'outer: loop {
-            let mut enemy_ind = random::<usize>() % director.enemies.len();
-            let mut enemy = director.enemies.get(enemy_ind);
+            // while credits left to spend
+            'outer: loop {
+                let mut enemy_ind = random::<usize>() % director.enemies.len();
+                let mut enemy = director.enemies.get(enemy_ind);
 
-            // downgrade spawn until affordable
-            while match enemy {
-                Some((cost, _)) => *cost > to_spend,
-                None => true,
-            } {
-                // if no downgrade possible, end this spending round
-                if enemy_ind == 0 {
-                    break 'outer;
+                // downgrade spawn until affordable
+                while match enemy {
+                    Some((cost, _)) => *cost > to_spend,
+                    None => true,
+                } {
+                    // if no downgrade possible, end this spending round
+                    if enemy_ind == 0 {
+                        break 'outer;
+                    }
+                    // otherwise, downgrade and try next enemy
+                    enemy_ind -= 1;
+                    enemy = director.enemies.get(enemy_ind);
                 }
-                // otherwise, downgrade and try next enemy
-                enemy_ind -= 1;
-                enemy = director.enemies.get(enemy_ind);
-            }
 
-            // unpack enemy
-            if let Some((cost, spawner)) = enemy {
-                // spawn
-                if spawner(
-                    cmd,
-                    spritepool,
-                    ggez::glam::Vec2::new(rand::random::<f32>() * boundaries.w, -20.),
-                )
-                .is_ok()
-                {
-                    // if spawning threw no error, reduce available credits
-                    to_spend -= cost;
-                    director.credits -= cost;
-                    director.wave_target = director.wave_target.saturating_sub(*cost);
+                // unpack enemy
+                if let Some((cost, spawner)) = enemy {
+                    // spawn
+                    if spawner(
+                        cmd,
+                        spritepool,
+                        ggez::glam::Vec2::new(rand::random::<f32>() * boundaries.w, -20.),
+                    )
+                    .is_ok()
+                    {
+                        // if spawning threw no error, reduce available credits
+                        to_spend -= cost;
+                        director.credits -= cost;
+                        director.wave_pool = director.wave_pool.saturating_sub(*cost);
+                    }
                 }
             }
-        }
-
-        if director.wave_target == 0 {
-            messages.insert(mooeye::UiMessage::Extern(GameMessage::NextWave(director.wave as i32)));
+        } else if enemy_query.iter(subworld).count() == 0{
+            // wait for enemies to despawn
             director.wave += 1;
-            director.wave_target = director.wave * 1000 + 500;
+            messages.insert(mooeye::UiMessage::Extern(GameMessage::NextWave(
+                director.wave as i32,
+            )));
+            director.wave_pool = director.wave * 1000 + 500;
         }
     }
 }
@@ -223,7 +230,7 @@ pub fn spawn_tank_skeleton(
                     .with_limit(5)
                     .with_enemies_only(true),
                 vec![
-                    GameAction::TakeHealing { heal: 2 },
+                    GameAction::TakeHealing { heal: 40 },
                     GameAction::AddParticle(
                         Particle::new(
                             sprite_pool

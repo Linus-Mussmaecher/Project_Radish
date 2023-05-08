@@ -16,7 +16,7 @@ pub fn construct_fireball(spritepool: &SpritePool) -> Spell {
         spell_slots: tiny_vec!([f32; MAX_SPELL_SLOTS] => 1.5),
         name: "Fireball!".to_owned(),
         icon: spritepool
-            .init_sprite("/sprites/spells/fireball", Duration::from_secs_f32(1.))
+            .init_sprite("/sprites/spells/fireball", Duration::from_secs_f32(0.7))
             .expect("Could not initialize this spell."),
         spell_: GameAction::spawn(|_, pos, sp, cmd| {
             cmd.push((
@@ -143,7 +143,7 @@ pub fn construct_electrobomb(spritepool: &SpritePool) -> Spell {
                                         .with_enemies_only(true)
                                         .with_affect_self(true)
                                         .with_range(128.),
-                                    GameAction::TakeDamage { dmg: 8 },
+                                    GameAction::TakeDamage { dmg: 13 },
                                 )
                                 .into(),
                             ),
