@@ -196,7 +196,6 @@ pub struct Particle {
     duration: Option<Duration>,
 }
 
-#[allow(dead_code)]
 impl Particle {
     /// Creates a new particle with the passed sprite, infinite duration and no velocity or offset.
     pub fn new(sprite: Sprite) -> Self {
@@ -220,6 +219,7 @@ impl Particle {
         self
     }
 
+    #[allow(dead_code)]
     /// Sets the relative position of this particle and returns it builder-pattern style.
     pub fn with_relative_position_vec(mut self, rel_pos: Vec2) -> Self {
         self.rel_pos = rel_pos;
@@ -232,6 +232,7 @@ impl Particle {
         self
     }
 
+    #[allow(dead_code)]
     /// Sets the velocity of this particle and returns it builder-pattern style.
     pub fn with_velocity_vec(mut self, vel: Vec2) -> Self {
         self.vel = vel;

@@ -10,7 +10,6 @@ use crate::game_state::controller::Interactions;
 use super::{Enemy, Position};
 
 #[derive(Clone, Debug)]
-#[allow(dead_code)]
 /// This enum contains all possible ways for entities to affect the world around them.
 pub enum GameAction {
     /// No action will be taken - useful if an action transformation should delete certain actions.
@@ -287,7 +286,9 @@ impl Actions {
         // immediately register effects
         if let GameAction::ApplyEffect(effect) = action {
             self.effects.push(*effect);
-        } else {
+        }
+        // ignore None
+        else if !matches!(action, GameAction::None){
             self.action_queue.push(action);
         }
     }

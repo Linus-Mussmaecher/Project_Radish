@@ -19,6 +19,27 @@ pub enum Command {
     Spell2,
     /// Cast the fourth spell in the spell selection.
     Spell3,
+    /// No command
+    None,
+}
+
+impl Command{
+
+    pub fn spell_from_int(index:usize) -> Self{
+        match index {
+            0 => Self::Spell0,
+            1 => Self::Spell1,
+            2 => Self::Spell2,
+            3 => Self::Spell3,
+            _ => Self::None,
+        }
+    }
+}
+
+impl Default for Command{
+    fn default() -> Self {
+        Command::None
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Eq, Hash, PartialEq)]

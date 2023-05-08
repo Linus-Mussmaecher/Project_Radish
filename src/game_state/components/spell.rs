@@ -6,7 +6,7 @@ use crate::game_state::{controller::Interactions, game_message::MessageSet};
 use mooeye::sprite::Sprite;
 
 use super::{
-    actions::{GameAction, ActionContainer},
+    actions::{ActionContainer, GameAction},
     Actions,
 };
 
@@ -19,11 +19,21 @@ pub struct SpellCaster {
 
 impl SpellCaster {
     /// Returns a new spell casting component.
-    pub fn new(spells: Vec<Spell>) -> Self {
+    pub fn new(spells: Vec<Spell>, init_slots: usize) -> Self {
         Self {
             spells,
-            spell_slots: TinyVec::from([(Duration::ZERO, Duration::ZERO); MAX_SPELL_SLOTS]),
+            spell_slots: {
+                let mut vec = TinyVec::new();
+                for _ in 0..init_slots{
+                    vec.push(Default::default());
+                }
+                vec
+            }
         }
+    }
+
+    pub fn add_slot(&mut self){
+        self.spell_slots.push(Default::default())
     }
 }
 
@@ -58,44 +68,21 @@ pub fn spell_casting(
 
     // attempt casts
 
-    let mut cast = None;
-
-    if ix
-        .commands
-        .contains_key(&crate::game_state::controller::Command::Spell0)
-    {
-        cast = Some(0);
-    }
-
-    if ix
-        .commands
-        .contains_key(&crate::game_state::controller::Command::Spell1)
-    {
-        cast = Some(1);
-    }
-
-    if ix
-        .commands
-        .contains_key(&crate::game_state::controller::Command::Spell2)
-    {
-        cast = Some(2);
-    }
-
-    if ix
-        .commands
-        .contains_key(&crate::game_state::controller::Command::Spell3)
-    {
-        cast = Some(3);
-    }
-    if let Some(cast) = cast {
-        if let Some(spell) = caster.spells.get(cast) {
-            actions.add(spell.attempt_cast(&mut caster.spell_slots));
+    for i in 0..4 {
+        if ix
+            .commands
+            .contains_key(&crate::game_state::controller::Command::spell_from_int(i))
+        {
+            if let Some(spell) = caster.spells.get(i) {
+                actions.add(spell.attempt_cast(&mut caster.spell_slots));
+            }
         }
     }
 }
 
-pub const MAX_SPELL_SLOTS: usize = 6;
+pub const MAX_SPELL_SLOTS: usize = 8;
 
+#[allow(dead_code)]
 pub struct Spell {
     spell_slots: TinyVec<[f32; MAX_SPELL_SLOTS]>,
 
@@ -131,7 +118,7 @@ impl Spell {
 
         if free_slots >= self.spell_slots.len() {
             let mut ind = 0;
-            for slot in available_slots {
+            for slot in available_slots.iter_mut() {
                 if slot.0.is_zero() && ind < self.spell_slots.len() {
                     slot.0 = Duration::from_secs_f32(self.spell_slots[ind]);
                     slot.1 = slot.0;

@@ -59,7 +59,7 @@ impl GameState {
                 spell_list::construct_icebomb(&sprite_pool),
                 spell_list::construct_electrobomb(&sprite_pool),
                 spell_list::construct_conflagrate(&sprite_pool),
-            ]),
+            ], 3),
         ));
 
         // --- RESOURCE INITIALIZATION
