@@ -20,35 +20,49 @@ impl AchievementMenu {
         .to_owned()
         .to_element(0, ctx);
 
+        let a_list = crate::game_state::Achievement::load_set(ctx);
+
         let mut achievements = mooeye::containers::GridBox::new(4, 4);
         for index in 0..16 {
-            let achievement = graphics::Image::from_path(ctx, "/sprites/ui/lock.png")?
-                .to_element_builder(0, ctx)
-                .with_visuals(super::BUTTON_VIS)
-                .scaled(4., 4.)
-                .with_tooltip(
-                    graphics::Text::new(
-                        graphics::TextFragment::new("Pride and Accomplishment\n")
-                            .color(graphics::Color::from_rgb_u32(PALETTE[7]))
-                            .scale(28.),
-                    )
-                    .add(
-                        graphics::TextFragment::new(format!(
-                            "One day, this will be achievement number {}.",
-                            index
-                        ))
+            let ach = &a_list[index];
+            let achievement = if !ach.is_achieved() || ach.get_icon().is_none() {
+                graphics::Image::from_path(ctx, "/sprites/ui/lock.png")?
+            } else {
+                ach.get_icon().clone().unwrap()
+            }
+            .to_element_builder(0, ctx)
+            .with_visuals(super::BUTTON_VIS)
+            .scaled(4., 4.)
+            .with_tooltip(
+                graphics::Text::new(
+                    graphics::TextFragment::new(ach.get_name())
+                        .color(graphics::Color::from_rgb_u32(PALETTE[7]))
+                        .scale(28.),
+                )
+                .add("\n")
+                .add(
+                    graphics::TextFragment::new(ach.get_desc())
                         .color(graphics::Color::from_rgb_u32(PALETTE[6]))
                         .scale(20.),
-                    )
-                    .set_font("Retro")
-                    .set_wrap(true)
-                    .set_bounds(Vec2::new(300., 200.))
-                    .to_owned()
-                    .to_element_builder(0, ctx)
-                    .with_visuals(super::BUTTON_VIS)
-                    .build(),
                 )
-                .build();
+                .add(
+                    graphics::TextFragment::new(format!(
+                        "\n  {} / {}",
+                        ach.get_progress(),
+                        ach.get_target()
+                    ))
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                    .scale(20.),
+                )
+                .set_font("Retro")
+                .set_wrap(true)
+                .set_bounds(Vec2::new(300., 200.))
+                .to_owned()
+                .to_element_builder(0, ctx)
+                .with_visuals(super::BUTTON_VIS)
+                .build(),
+            )
+            .build();
 
             achievements.add(achievement, index % 4, index / 4)?;
         }
@@ -95,8 +109,7 @@ impl scene_manager::Scene for AchievementMenu {
     ) -> Result<mooeye::scene_manager::SceneSwitch, ggez::GameError> {
         let messages = self.gui.manage_messages(ctx, None);
 
-        if messages.contains(&mooeye::UiMessage::Triggered(1))
-        {
+        if messages.contains(&mooeye::UiMessage::Triggered(1)) {
             Ok(mooeye::scene_manager::SceneSwitch::Pop(1))
         } else {
             Ok(mooeye::scene_manager::SceneSwitch::None)

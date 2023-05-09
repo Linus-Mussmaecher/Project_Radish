@@ -18,6 +18,9 @@ use self::components::spell::spell_list;
 mod controller;
 pub use controller::Controller;
 
+mod achievements;
+pub use achievements::Achievement;
+
 pub struct GameState {
     world: World,
 

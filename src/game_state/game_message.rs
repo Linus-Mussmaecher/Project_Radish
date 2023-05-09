@@ -7,3 +7,7 @@ pub enum GameMessage {
 }
 
 pub type MessageSet = std::collections::HashSet<mooeye::UiMessage<GameMessage>>;
+
+pub trait MessageReceiver{
+    fn receive(&mut self, message: &mooeye::UiMessage<GameMessage>) -> mooeye::scene_manager::SceneSwitch;
+}

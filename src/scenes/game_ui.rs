@@ -236,7 +236,7 @@ pub fn construct_game_ui(
                             }),
                     );
                     transitions
-                        .push_back(ui_element::Transition::new(Duration::from_secs_f32(0.5)));
+                        .push_back(ui_element::Transition::new(Duration::from_secs_f32(1.5)));
                     transitions.push_back(
                         ui_element::Transition::new(Duration::from_secs(5)).with_new_layout(
                             ui_element::Layout {
