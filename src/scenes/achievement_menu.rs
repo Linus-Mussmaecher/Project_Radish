@@ -22,13 +22,13 @@ impl AchievementMenu {
 
         let a_list = crate::game_state::Achievement::load_set(ctx);
 
-        let mut achievements = mooeye::containers::GridBox::new(4, 4);
-        for index in 0..16 {
-            let ach = &a_list[index];
-            let achievement = if !ach.is_achieved() || ach.get_icon().is_none() {
-                graphics::Image::from_path(ctx, "/sprites/ui/lock.png")?
-            } else {
+        let mut achievements = mooeye::containers::GridBox::new(4, (a_list.len() - 1) / 4 + 1);
+        for (index, ach) in a_list.iter().enumerate() {
+            let achievement = if ach.is_achieved() && ach.get_icon().is_some() {
                 ach.get_icon().clone().unwrap()
+            } else {
+                println!("Nope, {}/{}: {}", ach.get_progress(), ach.get_target(), ach.is_achieved());
+                graphics::Image::from_path(ctx, "/sprites/ui/lock.png")?
             }
             .to_element_builder(0, ctx)
             .with_visuals(super::BUTTON_VIS)
@@ -64,7 +64,7 @@ impl AchievementMenu {
             )
             .build();
 
-            achievements.add(achievement, index % 4, index / 4)?;
+            achievements.add(achievement, index % 4,  index/ 4)?;
         }
         achievements.vertical_spacing = 10.;
         achievements.horizontal_spacing = 10.;

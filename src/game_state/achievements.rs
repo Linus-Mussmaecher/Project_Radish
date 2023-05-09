@@ -73,7 +73,7 @@ impl Achievement {
         res.push(Achievement::new(
             "First Blood",
             "Kill an enemy.",
-            graphics::Image::from_path(ctx, "/sprites/heal.png").ok(),
+            graphics::Image::from_path(ctx, "/sprites/achievements/a1_16_16.png").ok(),
             1,
             |msg| matches!(msg, GameMessage::UpdateGold(_)),
         ));
@@ -81,7 +81,7 @@ impl Achievement {
         res.push(Achievement::new(
             "Survivor",
             "Reach wave 2.",
-            graphics::Image::from_path(ctx, "/sprites/heal.png").ok(),
+            graphics::Image::from_path(ctx, "/sprites/achievements/a2_16_16.png").ok(),
             1,
             |msg| matches!(msg, GameMessage::NextWave(1)),
         ));
@@ -89,28 +89,41 @@ impl Achievement {
         res.push(Achievement::new(
             "To Dust",
             "Kill 50 enemies.",
-            graphics::Image::from_path(ctx, "/sprites/heal.png").ok(),
+            graphics::Image::from_path(ctx, "/sprites/achievements/a3_16_16.png").ok(),
             50,
             |msg| matches!(msg, GameMessage::UpdateGold(_)),
         ));
+        res.push(Achievement::new(
+            "They were legion",
+            "Kill 1000 enemies.",
+            graphics::Image::from_path(ctx, "/sprites/achievements/a4_16_16.png").ok(),
+            1000,
+            |msg| matches!(msg, GameMessage::UpdateGold(_)),
+        ));
 
-        let progress: Vec<u32> = toml::from_str(
-            &fs::read_to_string("./data/achievements.toml").unwrap_or_else(|_| "".to_owned()),
+        let progress: ProgressList = toml::from_str(
+            &fs::read_to_string("./data/achievements.toml").unwrap_or_else(|_| {
+                "".to_owned()
+            }),
         )
         .unwrap_or_default();
 
-        for i in 0..progress.len().min(res.len()) {
-            res[i].progress = progress[i];
+        for i in 0..progress.progresses.len().min(res.len()) {
+            res[i].progress = progress.progresses[i].prog;
         }
+
+        Achievement::save_set(res.clone());
 
         res
     }
 
     pub fn save_set(set: AchievementSet) {
-        let mut progress = Vec::new();
+        let mut progress = ProgressList{progresses: Vec::new()};
 
         for ach in set {
-            progress.push(ach.get_progress());
+            progress.progresses.push(Progress {
+                prog: ach.get_progress(),
+            });
         }
 
         if fs::write(
@@ -121,6 +134,22 @@ impl Achievement {
         {
             println!("Could not save achievements.");
         };
+    }
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Copy)]
+struct Progress {
+    prog: u32,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+struct ProgressList{
+    progresses: Vec<Progress>,
+}
+
+impl Default for ProgressList {
+    fn default() -> Self {
+        Self { progresses: Default::default() }
     }
 }
 
