@@ -253,6 +253,14 @@ pub fn construct_game_ui(
 
     main_box.add(wave_box)?;
 
+    let message_box = containers::VerticalBox::new().to_element_builder(100, ctx)
+    .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Max)
+    .with_offset(0., -25.)
+    .with_size(ui_element::Size::Fill(0., f32::INFINITY), ui_element::Size::Shrink(0., f32::INFINITY))
+    .build();
+
+    main_box.add(message_box)?;
+
     Ok(main_box.to_element_builder(0, ctx).as_fill().build())
 }
 
