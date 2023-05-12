@@ -1715,7 +1715,7 @@ dependencies = [
 [[package]]
 name = "mooeye"
 version = "0.2.1"
-source = "git+https://github.com/Linus-Mussmaecher/mooeye#9dd0f8774f8c26b0adb10bae5b81c4f67c89338b"
+source = "git+https://github.com/Linus-Mussmaecher/mooeye#b5296ba1b16a1646609167fbea4ac47f790b0bfc"
 dependencies = [
  "ggez",
  "regex",

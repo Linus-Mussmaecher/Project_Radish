@@ -133,7 +133,7 @@ impl scene_manager::Scene for AchievementMenu {
 }
 
 pub fn achievement_info<T: Copy + Eq + std::hash::Hash + 'static>(
-    ach: crate::game_state::Achievement,
+    ach: &crate::game_state::Achievement,
     ctx: &ggez::Context,
 ) -> Result<mooeye::UiElement<T>, GameError> {
     let mut ach_box = containers::HorizontalBox::new();

@@ -255,7 +255,7 @@ impl scene_manager::Scene for GameState {
                         );
                         self.gui.add_element(
                             100,
-                            super::scenes::achievement_menu::achievement_info(Achievement::new(
+                            super::scenes::achievement_menu::achievement_info(&Achievement::new(
                                 "To Dust",
                                 "Kill 50 enemies.",
                                 graphics::Image::from_path(ctx, "/sprites/achievements/a3_16_16.png").ok(),
