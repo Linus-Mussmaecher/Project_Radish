@@ -20,10 +20,10 @@ impl AchievementMenu {
         .to_owned()
         .to_element(0, ctx);
 
-        let a_list = crate::game_state::Achievement::load_set(ctx);
+        let a_list = crate::game_state::achievements::AchievementSet::load(ctx);
 
-        let mut achievements = mooeye::containers::GridBox::new(4, (a_list.len() - 1) / 4 + 1);
-        for (index, ach) in a_list.iter().enumerate() {
+        let mut achievements = mooeye::containers::GridBox::new(4, (a_list.list.len() - 1) / 4 + 1);
+        for (index, ach) in a_list.list.iter().enumerate() {
             let achievement = if ach.is_achieved() && ach.get_icon().is_some() {
                 ach.get_icon().clone().unwrap()
             } else {

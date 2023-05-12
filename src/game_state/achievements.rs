@@ -1,6 +1,7 @@
 use std::fs;
 
 use ggez::graphics;
+use mooeye::UiElement;
 
 use super::{game_message::MessageReceiver, GameMessage};
 
@@ -66,10 +67,34 @@ impl Achievement {
     pub fn is_achieved(&self) -> bool {
         self.progress >= self.target
     }
+}
 
-    pub fn load_set(ctx: &ggez::Context) -> AchievementSet {
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Copy)]
+struct Progress {
+    prog: u32,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+struct ProgressList {
+    progresses: Vec<Progress>,
+}
+
+impl Default for ProgressList {
+    fn default() -> Self {
+        Self {
+            progresses: Default::default(),
+        }
+    }
+}
+
+pub struct AchievementSet {
+    pub list: Vec<Achievement>,
+}
+
+impl AchievementSet{
+    pub fn load(ctx: &ggez::Context) -> Self {
         let mut res = Vec::new();
-
+    
         res.push(Achievement::new(
             "First Blood",
             "Kill an enemy.",
@@ -77,7 +102,7 @@ impl Achievement {
             1,
             |msg| matches!(msg, GameMessage::UpdateGold(_)),
         ));
-
+    
         res.push(Achievement::new(
             "Survivor",
             "Reach wave 2.",
@@ -85,7 +110,7 @@ impl Achievement {
             1,
             |msg| matches!(msg, GameMessage::NextWave(1)),
         ));
-
+    
         res.push(Achievement::new(
             "To Dust",
             "Kill 50 enemies.",
@@ -100,32 +125,30 @@ impl Achievement {
             1000,
             |msg| matches!(msg, GameMessage::UpdateGold(_)),
         ));
-
+    
         let progress: ProgressList = toml::from_str(
-            &fs::read_to_string("./data/achievements.toml").unwrap_or_else(|_| {
-                "".to_owned()
-            }),
+            &fs::read_to_string("./data/achievements.toml").unwrap_or_else(|_| "".to_owned()),
         )
         .unwrap_or_default();
-
+    
         for i in 0..progress.progresses.len().min(res.len()) {
             res[i].progress = progress.progresses[i].prog;
         }
-
-        Achievement::save_set(res.clone());
-
-        res
+    
+        Self { list: res }
     }
-
-    pub fn save_set(set: AchievementSet) {
-        let mut progress = ProgressList{progresses: Vec::new()};
-
-        for ach in set {
+    
+    pub fn save(set: Self) {
+        let mut progress = ProgressList {
+            progresses: Vec::new(),
+        };
+    
+        for ach in set.list {
             progress.progresses.push(Progress {
                 prog: ach.get_progress(),
             });
         }
-
+    
         if fs::write(
             "./data/achievements.toml",
             toml::to_string(&progress).unwrap_or_default(),
@@ -137,32 +160,26 @@ impl Achievement {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Copy)]
-struct Progress {
-    prog: u32,
-}
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
-struct ProgressList{
-    progresses: Vec<Progress>,
-}
-
-impl Default for ProgressList {
-    fn default() -> Self {
-        Self { progresses: Default::default() }
-    }
-}
-
-type AchievementSet = Vec<Achievement>;
 
 impl MessageReceiver for AchievementSet {
     fn receive(
         &mut self,
         message: &mooeye::UiMessage<GameMessage>,
-    ){
+        gui: &mut UiElement<GameMessage>,
+        ctx: &ggez::Context,
+    ) {
         if let mooeye::UiMessage::Extern(gm) = message {
-            for ach in self.iter_mut() {
+            for ach in self.list.iter_mut() {
+                let pre = ach.is_achieved();
                 ach.listen(gm);
+                if ach.is_achieved() != pre {
+                    gui.add_element(
+                        100,
+                        crate::scenes::achievement_menu::achievement_info(ach, ctx)
+                            .expect("Could not create achievement marker."),
+                    );
+                }
             }
         }
     }

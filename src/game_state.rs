@@ -18,7 +18,7 @@ use self::components::spell::spell_list;
 mod controller;
 pub use controller::Controller;
 
-mod achievements;
+pub mod achievements;
 pub use achievements::Achievement;
 
 pub struct GameState {
@@ -33,6 +33,8 @@ pub struct GameState {
     action_cons_schedule: Schedule,
 
     gui: UiElement<GameMessage>,
+
+    listeners: Vec<Box<dyn game_message::MessageReceiver>>,
 }
 
 impl GameState {
@@ -113,6 +115,11 @@ impl GameState {
                 .add_system(components::health::remove_entities_system())
                 .add_system(components::actions::clear_system())
                 .build(),
+                listeners: {
+                    let list = Vec::new();
+                    list.push(Box::new(achievements::AchievementSet::load(ctx)));
+                    list
+                },
             resources,
             controller: Controller::from_path("./data/keymap.toml").unwrap_or_default(),
         })
@@ -253,17 +260,11 @@ impl scene_manager::Scene for GameState {
                         switch = scene_manager::SceneSwitch::push(
                             crate::scenes::wave_menu::WaveMenu::new(ctx, wave)?,
                         );
-                        self.gui.add_element(
-                            100,
-                            super::scenes::achievement_menu::achievement_info(&Achievement::new(
-                                "To Dust",
-                                "Kill 50 enemies.",
-                                graphics::Image::from_path(ctx, "/sprites/achievements/a3_16_16.png").ok(),
-                                50,
-                                |msg| matches!(msg, GameMessage::UpdateGold(_)),
-                            ), ctx)?,
-                        );
                     }
+                }
+
+                for listener in self.listeners{
+                    listener.receive(message, &mut self.gui, ctx);
                 }
             }
 

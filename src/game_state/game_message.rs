@@ -1,3 +1,4 @@
+use mooeye::UiElement;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, std::hash::Hash)]
 pub enum GameMessage {
@@ -9,6 +10,11 @@ pub enum GameMessage {
 
 pub type MessageSet = std::collections::HashSet<mooeye::UiMessage<GameMessage>>;
 
-pub trait MessageReceiver{
-    fn receive(&mut self, message: &mooeye::UiMessage<GameMessage>);
+pub trait MessageReceiver {
+    fn receive(
+        &mut self,
+        message: &mooeye::UiMessage<GameMessage>,
+        gui: &mut UiElement<GameMessage>,
+        ctx: &ggez::Context,
+    );
 }
