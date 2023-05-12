@@ -253,12 +253,22 @@ impl scene_manager::Scene for GameState {
                         switch = scene_manager::SceneSwitch::push(
                             crate::scenes::wave_menu::WaveMenu::new(ctx, wave)?,
                         );
+                        self.gui.add_element(
+                            100,
+                            super::scenes::achievement_menu::achievement_info(Achievement::new(
+                                "To Dust",
+                                "Kill 50 enemies.",
+                                graphics::Image::from_path(ctx, "/sprites/achievements/a3_16_16.png").ok(),
+                                50,
+                                |msg| matches!(msg, GameMessage::UpdateGold(_)),
+                            ), ctx)?,
+                        );
                     }
                 }
             }
 
             // communicate with UI
-            let messages = self.gui.manage_messages(ctx, message_set.clone());
+            let messages = self.gui.update(ctx, message_set.clone());
 
             // clear game messages
             message_set.clear();
