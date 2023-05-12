@@ -156,17 +156,26 @@ impl Default for ProgressList {
 type AchievementSet = Vec<Achievement>;
 
 impl MessageReceiver for AchievementSet {
-    fn receive(
+    fn receive<T: Copy + Eq + std::hash::Hash + 'static>(
         &mut self,
         message: &mooeye::UiMessage<GameMessage>,
-    ) -> mooeye::scene_manager::SceneSwitch {
+    ) -> Vec<(u32, mooeye::UiElement<T>)> {
         if let mooeye::UiMessage::Extern(gm) = message {
             for ach in self.iter_mut() {
                 ach.listen(gm);
             }
         }
 
-        mooeye::scene_manager::SceneSwitch::None
+        let res = Vec::new();
+
+        for ach in self.iter(){
+            if ach.is_achieved() {
+                //res.push((100, crate::scenes::achie));
+            }
+        }
+
+        res
+
     }
 }
 
