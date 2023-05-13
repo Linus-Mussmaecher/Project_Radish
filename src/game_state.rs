@@ -116,7 +116,7 @@ impl GameState {
                 .add_system(components::actions::clear_system())
                 .build(),
                 listeners: {
-                    let list = Vec::new();
+                    let mut list: Vec<Box<dyn game_message::MessageReceiver>> = Vec::new();
                     list.push(Box::new(achievements::AchievementSet::load(ctx)));
                     list
                 },
@@ -263,7 +263,7 @@ impl scene_manager::Scene for GameState {
                     }
                 }
 
-                for listener in self.listeners{
+                for listener in self.listeners.iter_mut(){
                     listener.receive(message, &mut self.gui, ctx);
                 }
             }

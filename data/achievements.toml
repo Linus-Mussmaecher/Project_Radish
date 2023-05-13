@@ -2,10 +2,22 @@
 prog = 1
 
 [[progresses]]
+prog = 1
+
+[[progresses]]
+prog = 50
+
+[[progresses]]
+prog = 166
+
+[[progresses]]
 prog = 0
 
 [[progresses]]
-prog = 68
+prog = 0
 
 [[progresses]]
-prog = 68
+prog = 0
+
+[[progresses]]
+prog = 0

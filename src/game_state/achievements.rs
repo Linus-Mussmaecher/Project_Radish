@@ -86,7 +86,6 @@ impl Default for ProgressList {
         }
     }
 }
-
 pub struct AchievementSet {
     pub list: Vec<Achievement>,
 }
@@ -125,6 +124,40 @@ impl AchievementSet{
             1000,
             |msg| matches!(msg, GameMessage::UpdateGold(_)),
         ));
+
+        
+        res.push(Achievement::new(
+            "Royal Blood",
+            "Kill an elite enemy.",
+            graphics::Image::from_path(ctx, "/sprites/achievements/a1_16_16.png").ok(),
+            1,
+            |msg| matches!(msg, GameMessage::UpdateGold(gold) if *gold > 20),
+        ));
+
+        
+        res.push(Achievement::new(
+            "French Revolution",
+            "Kill 50 elite enemies.",
+            graphics::Image::from_path(ctx, "/sprites/achievements/a4_16_16.png").ok(),
+            50,
+            |msg| matches!(msg, GameMessage::UpdateGold(gold) if *gold > 20),
+        ));
+
+        res.push(Achievement::new(
+            "Survivor of Hathsin",
+            "Reach wave 5.",
+            graphics::Image::from_path(ctx, "/sprites/achievements/a2_16_16.png").ok(),
+            1,
+            |msg| matches!(msg, GameMessage::NextWave(5)),
+        ));
+
+        res.push(Achievement::new(
+            "Build the wall!",
+            "Take 50 city damage.",
+            graphics::Image::from_path(ctx, "/sprites/achievements/a2_16_16.png").ok(),
+            50,
+            |msg| matches!(msg, GameMessage::UpdateCityHealth(health) if *health < 10),
+        ));
     
         let progress: ProgressList = toml::from_str(
             &fs::read_to_string("./data/achievements.toml").unwrap_or_else(|_| "".to_owned()),
@@ -138,12 +171,12 @@ impl AchievementSet{
         Self { list: res }
     }
     
-    pub fn save(set: Self) {
+    pub fn save(&self) {
         let mut progress = ProgressList {
             progresses: Vec::new(),
         };
     
-        for ach in set.list {
+        for ach in self.list.iter() {
             progress.progresses.push(Progress {
                 prog: ach.get_progress(),
             });
@@ -157,6 +190,12 @@ impl AchievementSet{
         {
             println!("Could not save achievements.");
         };
+    }
+}
+
+impl Drop for AchievementSet{
+    fn drop(&mut self) {
+        self.save();
     }
 }
 
