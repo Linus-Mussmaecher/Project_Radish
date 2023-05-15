@@ -73,9 +73,6 @@ pub fn direct(
 
             // randomly select an amount of available credits to spend
             let mut to_spend = (random::<f32>().powi(2) * director.credits as f32) as u32;
-            // if to_spend >= 40 {
-            //     println!("Spending {} of {} credits.", to_spend, director.credits);
-            // }
 
             // while credits left to spend
             'outer: loop {

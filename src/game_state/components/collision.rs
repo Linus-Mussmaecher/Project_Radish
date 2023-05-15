@@ -150,7 +150,6 @@ pub fn collision(world: &mut legion::world::SubWorld, #[resource] messages: &mut
                 && *ent1 != *ent2
                 && !col1.immunity.contains(ent2)
             {
-                //println!("Collisions: {:?}, {:?}", *ent1, *ent2);
                 let (n_actions, n_messages) = (col1.collision_handler)(*ent1, *ent2);
                 messages.extend(n_messages.iter());
                 total_actions.extend(n_actions);

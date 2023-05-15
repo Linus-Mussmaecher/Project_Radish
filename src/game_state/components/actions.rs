@@ -436,12 +436,6 @@ pub fn handle_effects(world: &mut legion::World, resources: &mut legion::Resourc
             {
                 *last_activation =
                     last_activation.fract() + ix.delta.as_secs_f32() / interval.as_secs_f32();
-                println!(
-                    "{}, {}, {:?}",
-                    last_activation,
-                    effect.alive_duration.as_secs_f32(),
-                    effect.duration
-                );
             }
         }
 

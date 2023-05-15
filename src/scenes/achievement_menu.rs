@@ -27,12 +27,6 @@ impl AchievementMenu {
             let achievement = if ach.is_achieved() && ach.get_icon().is_some() {
                 ach.get_icon().clone().unwrap()
             } else {
-                println!(
-                    "Nope, {}/{}: {}",
-                    ach.get_progress(),
-                    ach.get_target(),
-                    ach.is_achieved()
-                );
                 graphics::Image::from_path(ctx, "/sprites/ui/lock.png")?
             }
             .to_element_builder(0, ctx)

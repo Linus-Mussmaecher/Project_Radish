@@ -188,7 +188,7 @@ impl AchievementSet{
         )
         .is_err()
         {
-            println!("Could not save achievements.");
+            println!("[WARNING] Could not save achievements.");
         };
     }
 }
