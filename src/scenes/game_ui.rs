@@ -1,7 +1,7 @@
 use ggez::{graphics, GameError};
 
-use mooeye::*;
 use mooeye::ui_element::UiContainer;
+use mooeye::*;
 use std::time::Duration;
 
 use crate::PALETTE;
@@ -162,52 +162,15 @@ pub fn construct_game_ui(
 
     // Spells
 
-    let mut spell_box = containers::GridBox::new(6, 1);
+    let mut spell_box = containers::HorizontalBox::new();
 
-    for i in 0..6 {
-        let mana = graphics::Image::from_path(ctx, "/sprites/spells/mana.png")?
-            .to_element_builder(0, ctx)
-            .scaled(2., 2.)
-            .build();
-
-        let mut col = graphics::Color::from_rgb_u32(PALETTE[0]);
-        col.a = 0.96;
-
-        let progress = Covering::new(col, 0.)
-            .to_element_builder(0, ctx)
-            .with_message_handler(move |message_set, _layout, transitions| {
-                for message in message_set {
-                    if let ui_element::UiMessage::Extern(
-                        game_state::GameMessage::UpdateSpellSlots(index, value),
-                    ) = message
-                    {
-                        if *index == i as usize {
-                            transitions.push_back(
-                                ui_element::Transition::new(Duration::ZERO)
-                                    .with_new_content(Covering::new(col, *value as f32 / 32.)),
-                            );
-                        }
-                    }
-                }
-            })
-            .as_fill()
-            .build();
-
-        let mut stack = containers::StackBox::new();
-        let mana_layout = mana.get_layout();
-        stack.add(progress);
-        stack.add(mana);
-
-        let stack = stack
-            .to_element_builder(0, ctx)
-            .with_wrapper_layout(mana_layout)
-            .build();
-        spell_box.add(stack, i, 0)?;
+    for i in 0..4 {
+        spell_box.add(create_spellslot(ctx, i));
     }
 
     let spell_box = spell_box
-        .to_element_builder(0, ctx)
-        .with_visuals( mooeye::ui_element::Visuals{
+        .to_element_builder(50, ctx)
+        .with_visuals(mooeye::ui_element::Visuals {
             border_widths: [0., 3., 3., 3.],
             corner_radii: [0., 3., 3., 0.],
             ..super::BUTTON_VIS
@@ -218,17 +181,65 @@ pub fn construct_game_ui(
 
     main_box.add(spell_box);
 
-    let message_box = containers::VerticalBox::new().to_element_builder(100, ctx)
-    .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Max)
-    .with_offset(0., -25.)
-    .with_size(ui_element::Size::Fill(0., f32::INFINITY), ui_element::Size::Shrink(0., f32::INFINITY))
-    .build();
+    let message_box = containers::VerticalBox::new()
+        .to_element_builder(100, ctx)
+        .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Max)
+        .with_offset(0., -25.)
+        .with_size(
+            ui_element::Size::Fill(0., f32::INFINITY),
+            ui_element::Size::Shrink(0., f32::INFINITY),
+        )
+        .build();
 
     main_box.add(message_box);
 
-    Ok(main_box.to_element_builder(0, ctx).as_fill().build())
+    Ok(main_box
+        .to_element_builder(0, ctx)
+        .as_fill()
+        .build())
 }
 
+pub fn create_spellslot(ctx: &ggez::Context, i: usize) -> UiElement<game_state::GameMessage> {
+    let mana = graphics::Image::from_path(ctx, "/sprites/spells/mana.png")
+        .expect("[ERROR] Could not unpack mana symbol. Aborting.")
+        .to_element_builder(0, ctx)
+        .scaled(2., 2.)
+        .build();
+
+    let mut col = graphics::Color::from_rgb_u32(PALETTE[0]);
+    col.a = 0.96;
+
+    let progress = Covering::new(col, 0.)
+        .to_element_builder(0, ctx)
+        .with_message_handler(move |message_set, _layout, transitions| {
+            for message in message_set {
+                if let ui_element::UiMessage::Extern(game_state::GameMessage::UpdateSpellSlots(
+                    index,
+                    value,
+                )) = message
+                {
+                    if *index == i as usize {
+                        transitions.push_back(
+                            ui_element::Transition::new(Duration::ZERO)
+                                .with_new_content(Covering::new(col, *value as f32 / 32.)),
+                        );
+                    }
+                }
+            }
+        })
+        .as_fill()
+        .build();
+
+    let mut stack = containers::StackBox::new();
+    let mana_layout = mana.get_layout();
+    stack.add(progress);
+    stack.add(mana);
+
+    stack
+        .to_element_builder(0, ctx)
+        .with_wrapper_layout(mana_layout)
+        .build()
+}
 
 /// A ui-element that covers another element by a certain amount.
 /// Change the covering amount by using messages and content-changing transitions.

@@ -71,7 +71,7 @@ impl GameState {
                     spell_list::construct_electrobomb(&sprite_pool),
                     spell_list::construct_conflagrate(&sprite_pool),
                 ],
-                6,
+                4,
             ),
         ));
 
@@ -307,7 +307,13 @@ impl scene_manager::Scene for GameState {
                     if let Ok(mut player) = self.world.entry_mut(data.get_player()) {
                         if let Ok(sc) = player.get_component_mut::<components::SpellCaster>() {
                             if data.spend(200) {
-                                sc.add_slot();
+                                self.gui.add_element(
+                                    50,
+                                    crate::scenes::game_ui::create_spellslot(
+                                        ctx,
+                                        sc.add_slot() - 1,
+                                    ),
+                                );
                             }
                         }
                     }

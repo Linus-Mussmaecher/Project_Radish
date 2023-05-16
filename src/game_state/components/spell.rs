@@ -12,6 +12,8 @@ use super::{
 
 pub mod spell_list;
 
+pub const MAX_SPELL_SLOTS: usize = 8;
+
 pub struct SpellCaster {
     spell_slots: TinyVec<[(Duration, Duration); MAX_SPELL_SLOTS]>,
     spells: Vec<Spell>,
@@ -24,17 +26,19 @@ impl SpellCaster {
             spells,
             spell_slots: {
                 let mut vec = TinyVec::new();
-                for _ in 0..init_slots{
+                for _ in 0..init_slots {
                     vec.push(Default::default());
                 }
                 vec
-            }
+            },
         }
     }
 
-    #[allow(dead_code)]
-    pub fn add_slot(&mut self){
-        self.spell_slots.push(Default::default())
+    pub fn add_slot(&mut self) -> usize{
+        if self.spell_slots.len() < MAX_SPELL_SLOTS {
+            self.spell_slots.push(Default::default());
+        }
+        self.spell_slots.len()
     }
 }
 
@@ -55,13 +59,12 @@ pub fn spell_casting(
         }
     }
 
-    for i in 0..MAX_SPELL_SLOTS {
-        if i < caster.spell_slots.len() && !caster.spell_slots[i].1.is_zero() {
+    for (i, slot) in caster.spell_slots.iter().enumerate() {
+        if !slot.1.is_zero() {
             messages.insert(mooeye::UiMessage::Extern(
                 crate::game_state::game_message::GameMessage::UpdateSpellSlots(
                     i,
-                    (caster.spell_slots[i].0.as_secs_f32() / caster.spell_slots[i].1.as_secs_f32()
-                        * 32.) as u8,
+                    (slot.0.as_secs_f32() / slot.1.as_secs_f32() * 32.) as u8,
                 ),
             ));
         }
@@ -80,8 +83,6 @@ pub fn spell_casting(
         }
     }
 }
-
-pub const MAX_SPELL_SLOTS: usize = 8;
 
 #[allow(dead_code)]
 pub struct Spell {

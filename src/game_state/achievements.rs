@@ -136,7 +136,7 @@ impl AchievementSet{
 
         
         res.push(Achievement::new(
-            "French Revolution",
+            "Party like it's 1789",
             "Kill 50 elite enemies.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a4_16_16.png").ok(),
             50,
