@@ -200,7 +200,11 @@ pub fn construct_game_ui(
 
     let spell_box = spell_box
         .to_element_builder(0, ctx)
-        .with_visuals(super::BUTTON_VIS)
+        .with_visuals( mooeye::ui_element::Visuals{
+            border_widths: [0., 3., 3., 3.],
+            corner_radii: [0., 3., 3., 0.],
+            ..super::BUTTON_VIS
+        })
         .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Min)
         .with_offset(-10., 0.)
         .build();
