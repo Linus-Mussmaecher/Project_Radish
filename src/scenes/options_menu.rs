@@ -1,5 +1,5 @@
 use ggez::{graphics, GameError};
-use mooeye::*;
+use mooeye::{*, ui_element::UiContainer};
 
 use crate::{game_state, PALETTE};
 
@@ -48,9 +48,9 @@ impl OptionsMenu {
         // Container
 
         let mut options_box = mooeye::containers::VerticalBox::new();
-        options_box.add(title)?;
-        options_box.add(reset_bindings)?;
-        options_box.add(back)?;
+        options_box.add(title);
+        options_box.add(reset_bindings);
+        options_box.add(back);
         options_box.spacing = 25.;
         let credits_box = options_box
             .to_element_builder(0, ctx)

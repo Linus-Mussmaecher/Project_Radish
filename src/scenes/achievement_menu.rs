@@ -1,5 +1,5 @@
 use ggez::{glam::Vec2, graphics, GameError};
-use mooeye::*;
+use mooeye::{*, ui_element::UiContainer};
 
 use crate::PALETTE;
 
@@ -85,9 +85,9 @@ impl AchievementMenu {
         // Container
 
         let mut credits_box = mooeye::containers::VerticalBox::new();
-        credits_box.add(title)?;
-        credits_box.add(achievements)?;
-        credits_box.add(back)?;
+        credits_box.add(title);
+        credits_box.add(achievements);
+        credits_box.add(back);
         credits_box.spacing = 25.;
         let credits_box = credits_box
             .to_element_builder(0, ctx)
@@ -133,7 +133,7 @@ pub fn achievement_info<T: Copy + Eq + std::hash::Hash + 'static>(
     let mut ach_box = containers::HorizontalBox::new();
 
     if let Ok(trophy) = graphics::Image::from_path(ctx, "/sprites/achievements/a0_16_16.png") {
-        ach_box.add(trophy.to_element_builder(0, ctx).scaled(4., 4.).build())?;
+        ach_box.add(trophy.to_element_builder(0, ctx).scaled(4., 4.).build());
     }
 
     ach_box.add(
@@ -163,7 +163,7 @@ pub fn achievement_info<T: Copy + Eq + std::hash::Hash + 'static>(
         .to_owned()
         .to_element_builder(0, ctx)
         .build(),
-    )?;
+    );
 
     if let Some(icon) = ach.get_icon() {
         ach_box.add(
@@ -171,7 +171,7 @@ pub fn achievement_info<T: Copy + Eq + std::hash::Hash + 'static>(
                 .to_element_builder(0, ctx)
                 .scaled(4., 4.)
                 .build(),
-        )?;
+        );
     }
 
     let ach_box = ach_box

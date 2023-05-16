@@ -1,5 +1,5 @@
 use ggez::{graphics, GameError};
-use mooeye::*;
+use mooeye::{*, ui_element::UiContainer};
 
 use crate::PALETTE;
 
@@ -61,10 +61,10 @@ impl InGameMenu {
         // Container
 
         let mut menu_box: containers::VerticalBox<()> = containers::VerticalBox::new();
-        menu_box.add(pause)?;
-        menu_box.add(resume)?;
-        menu_box.add(main_menu)?;
-        menu_box.add(quit)?;
+        menu_box.add(pause);
+        menu_box.add(resume);
+        menu_box.add(main_menu);
+        menu_box.add(quit);
         menu_box.spacing = 25.;
         let menu_box = menu_box
             .to_element_builder(0, ctx)

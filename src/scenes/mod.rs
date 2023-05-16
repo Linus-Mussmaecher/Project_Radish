@@ -27,8 +27,8 @@ const BUTTON_VIS: mooeye::ui_element::Visuals = mooeye::ui_element::Visuals {
             1.,
         )
     },
-    border_width: 3.,
-    rounded_corners: 6.,
+    border_widths: [3.; 4],
+    corner_radii: [3.; 4],
 };
 
 const BUTTON_HOVER_VIS: mooeye::ui_element::Visuals = mooeye::ui_element::Visuals {
@@ -50,6 +50,6 @@ const BUTTON_HOVER_VIS: mooeye::ui_element::Visuals = mooeye::ui_element::Visual
             1.,
         )
     },
-    border_width: 3.,
-    rounded_corners: 6.,
+    border_widths: [3.; 4],
+    corner_radii: [3.; 4],
 };

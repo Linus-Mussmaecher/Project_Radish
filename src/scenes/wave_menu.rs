@@ -1,5 +1,5 @@
 use ggez::{graphics, GameError};
-use mooeye::*;
+use mooeye::{*, ui_element::UiContainer};
 
 use crate::PALETTE;
 
@@ -47,9 +47,9 @@ impl WaveMenu {
         // Container
 
         let mut menu_box: containers::VerticalBox<()> = containers::VerticalBox::new();
-        menu_box.add(wave_info)?;
-        menu_box.add(purchase)?;
-        menu_box.add(next)?;
+        menu_box.add(wave_info);
+        menu_box.add(purchase);
+        menu_box.add(next);
         menu_box.spacing = 25.;
         let menu_box = menu_box
             .to_element_builder(0, ctx)

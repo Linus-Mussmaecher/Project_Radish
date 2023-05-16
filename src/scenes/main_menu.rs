@@ -1,5 +1,5 @@
 use ggez::{graphics, GameError};
-use mooeye::*;
+use mooeye::{*, ui_element::UiContainer};
 
 use crate::{game_state, PALETTE};
 
@@ -115,13 +115,13 @@ impl MainMenu {
         // Container
 
         let mut menu_box = mooeye::containers::VerticalBox::new();
-        menu_box.add(play)?;
-        menu_box.add(tutorial)?;
-        menu_box.add(highscores)?;
-        menu_box.add(achievements)?;
-        menu_box.add(options)?;
-        menu_box.add(credits)?;
-        menu_box.add(quit)?;
+        menu_box.add(play);
+        menu_box.add(tutorial);
+        menu_box.add(highscores);
+        menu_box.add(achievements);
+        menu_box.add(options);
+        menu_box.add(credits);
+        menu_box.add(quit);
         menu_box.spacing = 25.;
         let menu_box = menu_box
             .to_element_builder(0, ctx)
@@ -131,8 +131,8 @@ impl MainMenu {
             .build();
 
         let mut big_box = mooeye::containers::VerticalBox::new();
-        big_box.add(title)?;
-        big_box.add(menu_box)?;
+        big_box.add(title);
+        big_box.add(menu_box);
         let big_box = big_box
             .to_element_builder(0, ctx)
             .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Min)

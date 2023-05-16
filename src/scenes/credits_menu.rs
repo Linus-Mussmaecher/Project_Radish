@@ -1,5 +1,5 @@
 use ggez::{graphics, GameError};
-use mooeye::*;
+use mooeye::{*, ui_element::UiContainer};
 
 use crate::PALETTE;
 
@@ -68,9 +68,9 @@ impl CreditsMenu {
         // Container
 
         let mut credits_box = mooeye::containers::VerticalBox::new();
-        credits_box.add(title)?;
-        credits_box.add(text)?;
-        credits_box.add(back)?;
+        credits_box.add(title);
+        credits_box.add(text);
+        credits_box.add(back);
         credits_box.spacing = 25.;
         let credits_box = credits_box
             .to_element_builder(0, ctx)

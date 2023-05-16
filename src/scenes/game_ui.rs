@@ -1,6 +1,7 @@
 use ggez::{graphics, GameError};
 
 use mooeye::*;
+use mooeye::ui_element::UiContainer;
 use std::time::Duration;
 
 use crate::PALETTE;
@@ -24,7 +25,7 @@ pub fn construct_game_ui(
         .as_shrink()
         .build();
 
-    main_box.add(cog_icon)?;
+    main_box.add(cog_icon);
 
     // gold display
     let gold_icon = sprite::Sprite::from_path_fmt(
@@ -65,8 +66,8 @@ pub fn construct_game_ui(
     .build();
 
     let mut gold_box = containers::HorizontalBox::new();
-    gold_box.add(gold_icon)?;
-    gold_box.add(gold_text)?;
+    gold_box.add(gold_icon);
+    gold_box.add(gold_text);
     let gold_box = gold_box
         .to_element_builder(0, ctx)
         .with_visuals(super::BUTTON_VIS)
@@ -86,7 +87,7 @@ pub fn construct_game_ui(
         )
         .build();
 
-    main_box.add(gold_box)?;
+    main_box.add(gold_box);
 
     // city health display
 
@@ -129,8 +130,8 @@ pub fn construct_game_ui(
     .build();
 
     let mut city_box = containers::HorizontalBox::new();
-    city_box.add(city_display)?;
-    city_box.add(city_text)?;
+    city_box.add(city_display);
+    city_box.add(city_text);
     let city_box = city_box
         .to_element_builder(0, ctx)
         .with_visuals(super::BUTTON_VIS)
@@ -150,7 +151,7 @@ pub fn construct_game_ui(
         )
         .build();
 
-    main_box.add(city_box)?;
+    main_box.add(city_box);
 
     // Spells
 
@@ -187,8 +188,8 @@ pub fn construct_game_ui(
 
         let mut stack = containers::StackBox::new();
         let mana_layout = mana.get_layout();
-        stack.add(progress)?;
-        stack.add(mana)?;
+        stack.add(progress);
+        stack.add(mana);
 
         let stack = stack
             .to_element_builder(0, ctx)
@@ -204,7 +205,7 @@ pub fn construct_game_ui(
         .with_offset(-10., 0.)
         .build();
 
-    main_box.add(spell_box)?;
+    main_box.add(spell_box);
 
     let wave_box = graphics::Text::new("Wave 00")
         .set_scale(64.)
@@ -251,7 +252,7 @@ pub fn construct_game_ui(
         })
         .build();
 
-    main_box.add(wave_box)?;
+    main_box.add(wave_box);
 
     let message_box = containers::VerticalBox::new().to_element_builder(100, ctx)
     .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Max)
@@ -259,7 +260,7 @@ pub fn construct_game_ui(
     .with_size(ui_element::Size::Fill(0., f32::INFINITY), ui_element::Size::Shrink(0., f32::INFINITY))
     .build();
 
-    main_box.add(message_box)?;
+    main_box.add(message_box);
 
     Ok(main_box.to_element_builder(0, ctx).as_fill().build())
 }

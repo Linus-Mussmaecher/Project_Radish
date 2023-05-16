@@ -1,5 +1,5 @@
 use ggez::{graphics, GameError};
-use mooeye::*;
+use mooeye::{*, ui_element::UiContainer};
 
 use crate::PALETTE;
 
@@ -76,10 +76,10 @@ impl HighscoreMenu {
         // Container
 
         let mut hs_box = mooeye::containers::VerticalBox::new();
-        hs_box.add(title)?;
-        hs_box.add(highscore_disp)?;
-        hs_box.add(reset_scores)?;
-        hs_box.add(back)?;
+        hs_box.add(title);
+        hs_box.add(highscore_disp);
+        hs_box.add(reset_scores);
+        hs_box.add(back);
         hs_box.spacing = 25.;
         let credits_box = hs_box
             .to_element_builder(0, ctx)

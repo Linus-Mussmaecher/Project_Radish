@@ -1,5 +1,5 @@
 use ggez::{graphics, GameError};
-use mooeye::*;
+use mooeye::{*, ui_element::UiContainer};
 use serde::{Deserialize, Serialize};
 
 use crate::PALETTE;
@@ -101,7 +101,7 @@ impl GameOverMenu {
         .to_owned()
         .to_element_builder(0, ctx)
         .build();
-        main_box.add(game_over)?;
+        main_box.add(game_over);
 
         // horizontal box with own score left and highscores right
 
@@ -136,7 +136,7 @@ impl GameOverMenu {
         .to_element_builder(0, ctx)
         .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Min)
         .build();
-        score_box.add(score_disp)?;
+        score_box.add(score_disp);
 
         // list of 5 best scores so far
 
@@ -172,9 +172,9 @@ impl GameOverMenu {
             .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Min)
             .build();
 
-        score_box.add(highscore_disp)?;
+        score_box.add(highscore_disp);
 
-        main_box.add(score_box.to_element(0, ctx))?;
+        main_box.add(score_box.to_element(0, ctx));
 
         // restart button
 
@@ -189,7 +189,7 @@ impl GameOverMenu {
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
-        main_box.add(restart)?;
+        main_box.add(restart);
 
         // quit to main menu button
 
@@ -205,7 +205,7 @@ impl GameOverMenu {
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
-        main_box.add(main_menu)?;
+        main_box.add(main_menu);
 
         let main_box = main_box
             .to_element_builder(0, ctx)
