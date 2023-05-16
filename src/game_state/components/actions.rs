@@ -38,6 +38,8 @@ pub enum GameAction {
     ApplyEffect(Box<ActionEffect>),
 }
 
+/// A box that contains a spawner lambda-functor.
+/// This allows implementing debug here and then deriving it at [GameAction].
 #[derive(Clone)]
 pub struct SpawnerBox {
     spawner: Box<fn(Entity, Position, &sprite::SpritePool, &mut CommandBuffer)>,
@@ -56,11 +58,6 @@ impl GameAction {
             spawner: Box::new(spawner),
         })
     }
-
-    // /// Helper function to create a [GameAction::Other] without having to use Box.
-    // pub fn other(executor: fn(Entity, &mut CommandBuffer)) -> Self {
-    //     Self::Other(CommandBox{ command: Box::new(executor)})
-    // }
 }
 
 impl Default for GameAction {
@@ -94,6 +91,7 @@ pub struct ActionEffect {
 }
 
 impl ActionEffect {
+    /// Creates a new transformation effect, that affects a certain set of entities for an unlimited amount of time, transforming all actions applied to them as specified.
     pub fn transform(target: ActionEffectTarget, transform: fn(&mut GameAction)) -> Self {
         Self {
             target: target,
@@ -103,6 +101,7 @@ impl ActionEffect {
         }
     }
 
+    /// Creates a new repetition effect, applying the passed action(s) to a set of entities repeatedly for an unlimited amount of time.
     pub fn repeat(target: ActionEffectTarget, actions: impl Into<ActionContainer>, interval: Duration) -> Self {
         Self {
             target,
@@ -116,6 +115,7 @@ impl ActionEffect {
         }
     }
 
+    /// Creates a one-time effect that applies the passed action(s) to a set of entities once this frame.
     pub fn once(target: ActionEffectTarget, actions: impl Into<ActionContainer>) -> Self {
         Self {
             target,
@@ -125,6 +125,7 @@ impl ActionEffect {
         }
     }
 
+    /// Modifies an action effect to only last for a set amount of time.
     pub fn with_duration(mut self, duration: Duration) -> Self {
         self.duration = Some(duration);
         self
@@ -151,25 +152,34 @@ impl From<ActionEffect> for GameAction {
 #[derive(Debug, Clone)]
 /// The different types of effects that can appear
 enum ActionEffectType {
+    /// Transformation: Transforms effects applied to entities.
     Transform(ActionTransformer),
+    /// Repetition: Repeatedly applies actions to entities.
     Repeat {
         actions: ActionContainer,
         interval: Duration,
         activations: f32,
     },
+    /// One-time effect: Applies actions to entities once.
     Once(ActionContainer),
 }
 
 #[derive(Debug, Clone, Copy)]
 /// An enum that describes what targets to distribute an effect or ActionModification to.
 pub struct ActionEffectTarget {
+    /// If only entities that have an [super::Enemy] component are affected.
     pub enemies_only: bool,
+    /// The range from the source entity.
     pub range: f32,
+    /// If the source entity itself is also affected.
     pub affect_self: bool,
+    /// The max amount of entities that will be affected. None means an unlimited amount.
+    /// These will be sorted by distance to source entity.
     pub limit: Option<usize>,
 }
 
 impl ActionEffectTarget {
+    /// Creates a new effect target with default parameters.
     pub fn new() -> Self {
         Self {
             range: f32::INFINITY,
@@ -215,6 +225,7 @@ impl ActionEffectTarget {
 }
 
 #[derive(Clone)]
+/// A composite component of [ActionEffect] that transforms actions.
 pub struct ActionTransformer {
     pub transform: Arc<fn(&mut GameAction)>,
 }
@@ -263,7 +274,9 @@ impl From<Vec<GameAction>> for ActionContainer{
 
 /// A component that handles an entities interaction with the world via an action queue
 pub struct Actions {
+    /// The actions to be performed on this entity.
     action_queue: TinyVec<[GameAction; 4]>,
+    /// The effects that currently apply to this entity.
     effects: TinyVec<[ActionEffect; 4]>,
 }
 
@@ -276,6 +289,8 @@ impl Actions {
         }
     }
 
+    /// Modifies this components to include a certain effect from the start.
+    /// Can be used to add auras to entities on construction.
     pub fn with_effect(mut self, effect: ActionEffect) -> Self {
         self.effects.push(effect);
         self
@@ -293,6 +308,7 @@ impl Actions {
         }
     }
 
+    /// Adds one or multiple actions to this entitiy. They will be handled this game frame and then discarded.
     pub fn add(&mut self, actions: ActionContainer) {
         match actions {
             ActionContainer::ApplySingle(act) => self.push(act),
@@ -302,6 +318,7 @@ impl Actions {
         }
     }
 
+    /// Transforms all actions currently in this entities action queue.
     pub fn transform(&mut self, transform: &fn(&mut GameAction)) {
         for action in self.action_queue.iter_mut() {
             transform(action);

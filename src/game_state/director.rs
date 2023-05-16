@@ -13,13 +13,23 @@ use super::{
     GameMessage,
 };
 
+
+/// The director struct is responsible for spawning waves of enemies.
+/// A director regularly earns credit points and spends them on units from a customizable enemy set until a wave threshhold is reached.
+/// Then, the director rerolls the enemy pool and starts a new wave.
 #[derive(Clone)]
 pub struct Director {
+    /// The current wave number.
     wave: u32,
+    /// The amount of credits left to spend until the current wave ends.
     wave_pool: u32,
+    /// The time since the director last spawned units.
     intervall: Duration,
+    /// The entire existence duration of this director.
     total: Duration,
+    /// The current amount of credits this director can spend.
     credits: u32,
+    /// The enemy posse the director can select spawns from, containing their costs and a spawning function pointer.
     enemies: Vec<(
         u32,
         fn(&mut CommandBuffer, &sprite::SpritePool, Position) -> Result<(), GameError>,
@@ -27,6 +37,7 @@ pub struct Director {
 }
 
 impl Director {
+    /// Spawns a new director with default parameters.
     pub fn new() -> Self {
         Self {
             wave: 0,
@@ -43,8 +54,14 @@ impl Director {
             ],
         }
     }
+
+    pub fn get_wave(&self) -> u32{
+        self.wave
+    }
 }
 
+/// A system that handles the directors interaction with the game world.
+/// This increases the director credits and spends them, handles unit spawning and sends messages to initialize new waves.
 #[system]
 pub fn direct(
     subworld: &mut legion::world::SubWorld,
@@ -121,6 +138,10 @@ pub fn direct(
     }
 }
 
+
+/// # Basic skeleton
+/// ## Enemy
+/// A basic skeleton that has little health and damage and moves slowly.
 pub fn spawn_basic_skeleton(
     cmd: &mut CommandBuffer,
     sprite_pool: &sprite::SpritePool,
@@ -140,6 +161,10 @@ pub fn spawn_basic_skeleton(
     Ok(())
 }
 
+/// # Fast skeleton
+/// ## Enemy
+/// A skeleton that moves faster than the basic skeleton, but also has less health.
+/// Moves from side to side and speeds up nearby allies.
 pub fn spawn_fast_skeleton(
     cmd: &mut CommandBuffer,
     sprite_pool: &sprite::SpritePool,
@@ -172,6 +197,10 @@ pub fn spawn_fast_skeleton(
     Ok(())
 }
 
+/// # Loot goblin
+/// ## Enemy
+/// A skeleton that does not move down, only sideways. 
+/// It has lots of health and despawns after a set time, but drops lots of gold on death.
 pub fn spawn_loot_skeleton(
     cmd: &mut CommandBuffer,
     sprite_pool: &sprite::SpritePool,
@@ -193,6 +222,10 @@ pub fn spawn_loot_skeleton(
     Ok(())
 }
 
+/// # Guardian
+/// ## Enemy
+/// A tanky skeleton with lots of health. Moves slowly, but deals more damage.
+/// Reduces damage taken of nearby allies (and self) and heals nearby allies on death.
 pub fn spawn_tank_skeleton(
     cmd: &mut CommandBuffer,
     sprite_pool: &sprite::SpritePool,
@@ -249,6 +282,10 @@ pub fn spawn_tank_skeleton(
     Ok(())
 }
 
+/// # Bannerman
+/// ## Enemy
+/// A tanky, high-damage skeleton with decent speed.
+/// Speeds up nearby allies considerably on death.
 pub fn spawn_charge_skeleton(
     cmd: &mut CommandBuffer,
     sprite_pool: &sprite::SpritePool,

@@ -1,4 +1,5 @@
 use ggez::{glam::Vec2, graphics, GameError};
+use legion::EntityStore;
 use legion::{component, systems::CommandBuffer, Entity, IntoQuery, Resources, Schedule, World};
 use mooeye::*;
 
@@ -21,23 +22,27 @@ pub use controller::Controller;
 pub mod achievements;
 pub use achievements::Achievement;
 
+/// The main struct representing the current game state.
+/// This is the core scene rendering & updating gameplay.
 pub struct GameState {
+    /// The ECS worlds, containing all acting entities.
     world: World,
-
+    /// The ECS resources, data that must be available to all systems and is not bound to certain entities.
     resources: Resources,
-
+    /// The controller from which player interaction can be read.
     controller: Controller,
-
+    /// One of the two main schedules, producing actions by reading system state.
     action_prod_schedule: Schedule,
-
+    /// One of the two main schedules, mutating the game state by consuming actions.
     action_cons_schedule: Schedule,
-
+    /// The in-game GUI.
     gui: UiElement<GameMessage>,
-
+    /// Listeners (such as achievements or tutorials), receiving all game messages and potentially mutating the UI.
     listeners: Vec<Box<dyn game_message::MessageReceiver>>,
 }
 
 impl GameState {
+    /// Creates a new game state.
     pub fn new(ctx: &ggez::Context) -> Result<Self, GameError> {
         // --- WORLD CREATION ---
 
@@ -52,7 +57,7 @@ impl GameState {
 
         // Add player
 
-        world.push((
+        let player = world.push((
             components::Position::new(boundaries.w / 2., boundaries.h),
             components::BoundaryCollision::new(true, false, false),
             components::Control::new(150.),
@@ -72,13 +77,13 @@ impl GameState {
 
         // --- RESOURCE INITIALIZATION
 
-        let mut resources = Resources::default();
-        let game_data = game_data::GameData::default();
+        let game_data = game_data::GameData::new(player);
         let mut message_set = MessageSet::new();
         message_set.insert(UiMessage::Extern(GameMessage::UpdateCityHealth(
             game_data.city_health,
         )));
-        message_set.insert(UiMessage::Extern(GameMessage::NextWave(0)));
+
+        let mut resources = Resources::default();
         resources.insert(game_data);
         resources.insert(message_set);
         resources.insert(boundaries);
@@ -115,16 +120,17 @@ impl GameState {
                 .add_system(components::health::remove_entities_system())
                 .add_system(components::actions::clear_system())
                 .build(),
-                listeners: {
-                    let mut list: Vec<Box<dyn game_message::MessageReceiver>> = Vec::new();
-                    list.push(Box::new(achievements::AchievementSet::load(ctx)));
-                    list
-                },
+            listeners: {
+                let mut list: Vec<Box<dyn game_message::MessageReceiver>> = Vec::new();
+                list.push(Box::new(achievements::AchievementSet::load(ctx)));
+                list
+            },
             resources,
             controller: Controller::from_path("./data/keymap.toml").unwrap_or_default(),
         })
     }
 
+    /// Initializes the environment by spawning house and brush sprites.
     fn initalize_environment(
         boundaries: &graphics::Rect,
         sprite_pool: &sprite::SpritePool,
@@ -257,13 +263,14 @@ impl scene_manager::Scene for GameState {
             for message in message_set.iter() {
                 if let &UiMessage::Extern(GameMessage::NextWave(wave)) = message {
                     if wave > 0 {
-                        switch = scene_manager::SceneSwitch::push(
-                            crate::scenes::wave_menu::WaveMenu::new(ctx, wave)?,
+                        self.gui.add_element(
+                            0,
+                            crate::scenes::wave_menu::construct_wave_menu(ctx, wave),
                         );
                     }
                 }
 
-                for listener in self.listeners.iter_mut(){
+                for listener in self.listeners.iter_mut() {
                     listener.receive(message, &mut self.gui, ctx);
                 }
             }
@@ -275,10 +282,36 @@ impl scene_manager::Scene for GameState {
             message_set.clear();
 
             // react to UI messages
+
+            // Escape menu
             if messages.contains(&UiMessage::Triggered(1)) {
                 switch = scene_manager::SceneSwitch::push(
                     crate::scenes::in_game_menu::InGameMenu::new(ctx)?,
                 );
+            }
+
+            // Wave menu begin
+            if messages.contains(&UiMessage::Triggered(201)) {
+                self.gui.remove_elements(200);
+                if let Some(dir) = self.resources.get::<director::Director>() {
+                    self.gui.add_element(
+                        0,
+                        crate::scenes::wave_menu::construct_wave_announcer(ctx, dir.get_wave()),
+                    );
+                }
+            }
+
+            // Wave menu end
+            if messages.contains(&UiMessage::Triggered(202)) {
+                if let Some(mut data) = self.resources.get_mut::<self::game_data::GameData>() {
+                    if let Ok(mut player) = self.world.entry_mut(data.get_player()) {
+                        if let Ok(sc) = player.get_component_mut::<components::SpellCaster>() {
+                            if data.spend(200) {
+                                sc.add_slot();
+                            }
+                        }
+                    }
+                }
             }
         }
 

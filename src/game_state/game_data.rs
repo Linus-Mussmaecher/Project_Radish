@@ -4,19 +4,38 @@ use super::{
 };
 use legion::*;
 
+/// A struct that holds some general data about the game play.
 pub struct GameData {
+    /// The entity representing the player character.
+    player: Entity,
+    /// The current total score achieved.
     score: i32,
+    /// The gold the player currently holds (= score - gold spent).
     gold: i32,
+    /// The health the city has left. Public to allow easy access.
     pub city_health: i32,
 }
 
 impl GameData {
+    /// Creates a new GameData struct with the passed player and default game play parameters.
+    pub fn new(player: Entity) -> Self{
+        Self{
+            player,
+            score: 0,
+            gold: 0,
+            city_health: 10,
+        }
+    }
+
+    /// Adds both gold and score to the player.
     pub fn add_gold(&mut self, amount: i32) {
         self.score += amount;
         self.gold += amount;
     }
 
-    #[allow(dead_code)]
+    /// Attempts to spend a certain amount of gold.
+    /// If the player has enough gold, the amount is subtracted and true is returned.
+    /// Otherwise, no gold is subtracted and false is returned.
     pub fn spend(&mut self, amount: i32) -> bool {
         if amount <= self.gold {
             self.gold -= amount;
@@ -26,21 +45,18 @@ impl GameData {
         }
     }
 
+    /// Returns the current score.
     pub fn get_score(&self) -> i32 {
         self.score
     }
-}
 
-impl Default for GameData {
-    fn default() -> Self {
-        Self {
-            score: 0,
-            gold: 0,
-            city_health: 10,
-        }
+    /// Returns the player entity.
+    pub fn get_player(&self) -> Entity{
+        self.player
     }
 }
 
+/// A system that handles changes to game data, such as city damage or earning gold.
 #[system(for_each)]
 pub fn resolve_gama_data(
     actions: &super::components::Actions,

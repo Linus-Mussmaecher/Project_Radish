@@ -8,6 +8,13 @@ use crate::PALETTE;
 
 use crate::game_state;
 
+/// Constructs the UiElement that forms the main UI of the game.
+/// Consists of
+///  - Menu button
+///  - Gold & City health display
+///  - Cooldown display for the players spell slots
+///  - TODO: Indicator for currently equipped spells
+///  - Vertical box to display messages (achievements etc.)
 pub fn construct_game_ui(
     ctx: &ggez::Context,
 ) -> Result<UiElement<game_state::GameMessage>, GameError> {
@@ -211,53 +218,6 @@ pub fn construct_game_ui(
 
     main_box.add(spell_box);
 
-    let wave_box = graphics::Text::new("Wave 00")
-        .set_scale(64.)
-        .set_font("Retro")
-        .to_owned()
-        .to_element_builder(0, ctx)
-        .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Center)
-        .as_shrink()
-        .with_message_handler(|messages, layout, transitions| {
-            for message in messages {
-                if let ui_element::UiMessage::Extern(game_state::GameMessage::NextWave(wave)) =
-                    message
-                {
-                    transitions.push_back(
-                        ui_element::Transition::new(Duration::ZERO)
-                            .with_new_content(
-                                graphics::Text::new(
-                                    graphics::TextFragment::new(format!("Wave {:02}", wave + 1))
-                                        .color(graphics::Color::from_rgb_u32(PALETTE[13])),
-                                )
-                                .set_scale(64.)
-                                .set_font("Retro")
-                                .to_owned(),
-                            )
-                            .with_new_layout(ui_element::Layout {
-                                y_alignment: ui_element::Alignment::Center,
-                                y_offset: 0.,
-                                ..layout
-                            }),
-                    );
-                    transitions
-                        .push_back(ui_element::Transition::new(Duration::from_secs_f32(1.5)));
-                    transitions.push_back(
-                        ui_element::Transition::new(Duration::from_secs(5)).with_new_layout(
-                            ui_element::Layout {
-                                y_alignment: ui_element::Alignment::Min,
-                                y_offset: -100.,
-                                ..layout
-                            },
-                        ),
-                    )
-                }
-            }
-        })
-        .build();
-
-    main_box.add(wave_box);
-
     let message_box = containers::VerticalBox::new().to_element_builder(100, ctx)
     .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Max)
     .with_offset(0., -25.)
@@ -269,12 +229,18 @@ pub fn construct_game_ui(
     Ok(main_box.to_element_builder(0, ctx).as_fill().build())
 }
 
+
+/// A ui-element that covers another element by a certain amount.
+/// Change the covering amount by using messages and content-changing transitions.
 struct Covering {
+    /// The covering percentage, between 0 and 1.
     covering: f32,
+    /// The color of the covering.
     color: graphics::Color,
 }
 
 impl Covering {
+    /// Creates a new covering.
     pub fn new(color: graphics::Color, covering: f32) -> Self {
         Self { covering, color }
     }
