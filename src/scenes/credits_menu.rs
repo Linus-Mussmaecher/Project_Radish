@@ -1,5 +1,5 @@
 use ggez::{graphics, GameError};
-use mooeye::{*, ui_element::UiContainer};
+use mooeye::{ui_element::UiContainer, *};
 
 use crate::PALETTE;
 
@@ -91,8 +91,7 @@ impl scene_manager::Scene for CreditsMenu {
     ) -> Result<mooeye::scene_manager::SceneSwitch, ggez::GameError> {
         let messages = self.gui.manage_messages(ctx, None);
 
-        if messages.contains(&mooeye::UiMessage::Triggered(1))
-        {
+        if messages.contains(&mooeye::UiMessage::Triggered(1)) {
             Ok(mooeye::scene_manager::SceneSwitch::Pop(1))
         } else {
             Ok(mooeye::scene_manager::SceneSwitch::None)

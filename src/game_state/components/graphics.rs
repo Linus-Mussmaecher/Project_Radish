@@ -82,7 +82,6 @@ pub fn draw_sprites(
                 ((screen_w - boundaries.w)/2.).floor(),
                 ((screen_h - boundaries.h)/2.).floor(),
             )
-            
             // move to draw to correct position based on flip
             + Vec2::new(
                 -gfx.sprite.get_dimensions().0 * PIXEL_SIZE / 2. * factor,
@@ -111,7 +110,12 @@ pub fn draw_sprites(
         // draw the health bar
         if let Some(health) = health {
             let mut bar = Rect::new(
-                n_pos.x - if factor < 1. { gfx.sprite.get_dimensions().0 * PIXEL_SIZE } else {0.},
+                n_pos.x
+                    - if factor < 1. {
+                        gfx.sprite.get_dimensions().0 * PIXEL_SIZE
+                    } else {
+                        0.
+                    },
                 n_pos.y - 5. * PIXEL_SIZE,
                 gfx.sprite.get_dimensions().0 * PIXEL_SIZE,
                 4. * PIXEL_SIZE,
@@ -137,7 +141,8 @@ pub fn draw_sprites(
             )?;
             let w = bar.w;
             //snapshot bar
-            bar.w = PIXEL_SIZE * (w * health.get_snapshot() / health.get_max_health() as f32 / PIXEL_SIZE).floor();
+            bar.w = PIXEL_SIZE
+                * (w * health.get_snapshot() / health.get_max_health() as f32 / PIXEL_SIZE).floor();
             health_bar_builder.rectangle(
                 graphics::DrawMode::fill(),
                 bar,
@@ -145,7 +150,11 @@ pub fn draw_sprites(
             )?;
 
             // health bar
-            bar.w = PIXEL_SIZE * (w * health.get_current_health() as f32 / health.get_max_health() as f32 / PIXEL_SIZE).floor();
+            bar.w = PIXEL_SIZE
+                * (w * health.get_current_health() as f32
+                    / health.get_max_health() as f32
+                    / PIXEL_SIZE)
+                    .floor();
             health_bar_builder.rectangle(
                 graphics::DrawMode::fill(),
                 bar,

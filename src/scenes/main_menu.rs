@@ -1,5 +1,5 @@
 use ggez::{graphics, GameError};
-use mooeye::{*, ui_element::UiContainer};
+use mooeye::{ui_element::UiContainer, *};
 
 use crate::{game_state, PALETTE};
 
@@ -138,47 +138,40 @@ impl scene_manager::Scene for MainMenu {
 
         let mut res = mooeye::scene_manager::SceneSwitch::None;
 
-        if messages.contains(&mooeye::UiMessage::Triggered(1))
-        {
+        if messages.contains(&mooeye::UiMessage::Triggered(1)) {
             res = mooeye::scene_manager::SceneSwitch::replace(game_state::GameState::new(ctx)?, 1);
         }
 
         // Former tutorial. TODO: Custom mode?
-        if messages.contains(&mooeye::UiMessage::Triggered(2))
-        {
+        if messages.contains(&mooeye::UiMessage::Triggered(2)) {
             res = mooeye::scene_manager::SceneSwitch::replace(game_state::GameState::new(ctx)?, 1);
         }
 
-        if messages.contains(&mooeye::UiMessage::Triggered(3))
-        {
+        if messages.contains(&mooeye::UiMessage::Triggered(3)) {
             res = mooeye::scene_manager::SceneSwitch::push(
                 super::highscore_menu::HighscoreMenu::new(ctx)?,
             );
         }
 
-        if messages.contains(&mooeye::UiMessage::Triggered(4))
-        {
+        if messages.contains(&mooeye::UiMessage::Triggered(4)) {
             res = mooeye::scene_manager::SceneSwitch::push(
                 super::achievement_menu::AchievementMenu::new(ctx)?,
             );
         }
 
-        if messages.contains(&mooeye::UiMessage::Triggered(5))
-        {
+        if messages.contains(&mooeye::UiMessage::Triggered(5)) {
             res = mooeye::scene_manager::SceneSwitch::push(super::options_menu::OptionsMenu::new(
                 ctx,
             )?);
         }
 
-        if messages.contains(&mooeye::UiMessage::Triggered(6))
-        {
+        if messages.contains(&mooeye::UiMessage::Triggered(6)) {
             res = mooeye::scene_manager::SceneSwitch::push(super::credits_menu::CreditsMenu::new(
                 ctx,
             )?);
         }
 
-        if messages.contains(&mooeye::UiMessage::Triggered(7))
-        {
+        if messages.contains(&mooeye::UiMessage::Triggered(7)) {
             res = mooeye::scene_manager::SceneSwitch::Pop(1);
         }
 

@@ -1,5 +1,5 @@
 use ggez::{graphics, GameError};
-use mooeye::{*, ui_element::UiContainer};
+use mooeye::{ui_element::UiContainer, *};
 
 use crate::PALETTE;
 
@@ -86,18 +86,15 @@ impl scene_manager::Scene for InGameMenu {
 
         let mut res = scene_manager::SceneSwitch::None;
 
-        if messages.contains(&UiMessage::Triggered(1))
-        {
+        if messages.contains(&UiMessage::Triggered(1)) {
             res = scene_manager::SceneSwitch::pop(1);
         }
 
-        if messages.contains(&UiMessage::Triggered(2))
-        {
+        if messages.contains(&UiMessage::Triggered(2)) {
             res = scene_manager::SceneSwitch::replace(super::main_menu::MainMenu::new(ctx)?, 2);
         }
 
-        if messages.contains(&UiMessage::Triggered(3))
-        {
+        if messages.contains(&UiMessage::Triggered(3)) {
             res = scene_manager::SceneSwitch::pop(2);
         }
 

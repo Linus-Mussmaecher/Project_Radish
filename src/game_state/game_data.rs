@@ -18,8 +18,8 @@ pub struct GameData {
 
 impl GameData {
     /// Creates a new GameData struct with the passed player and default game play parameters.
-    pub fn new(player: Entity) -> Self{
-        Self{
+    pub fn new(player: Entity) -> Self {
+        Self {
             player,
             score: 0,
             gold: 0,
@@ -51,7 +51,7 @@ impl GameData {
     }
 
     /// Returns the player entity.
-    pub fn get_player(&self) -> Entity{
+    pub fn get_player(&self) -> Entity {
         self.player
     }
 }

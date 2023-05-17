@@ -20,19 +20,54 @@ pub fn construct_wave_menu(
     .to_element_builder(0, ctx)
     .build();
 
-    let purchase = graphics::Text::new(
-        graphics::TextFragment::new("Purchase additional\nspell slot.")
-            .color(graphics::Color::from_rgb_u32(PALETTE[6])),
-    )
-    .set_font("Retro")
-    .set_scale(28.)
-    .to_owned()
-    .to_element_builder(202, ctx)
-    .as_shrink()
-    .with_trigger_key(ggez::winit::event::VirtualKeyCode::P)
-    .with_visuals(super::BUTTON_VIS)
-    .with_hover_visuals(super::BUTTON_HOVER_VIS)
-    .build();
+    let purchase = graphics::Image::from_path(ctx, "/sprites/ui/mana_add.png")
+        .expect("[ERROR] Missing mana sprite.")
+        .to_element_builder(202, ctx)
+        .as_shrink()
+        .scaled(2., 2.)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::U)
+        .with_visuals(super::BUTTON_VIS)
+        .with_hover_visuals(super::BUTTON_HOVER_VIS)
+        .with_tooltip(
+            graphics::Text::new(
+                graphics::TextFragment::new("Purchase an additional spell slot.\nCost: 250g")
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+            )
+            .set_scale(24.)
+            .set_font("Retro")
+            .to_owned()
+            .to_element_builder(0, ctx)
+            .with_visuals(super::BUTTON_VIS)
+            .build(),
+        )
+        .build();
+
+    let reroll = graphics::Image::from_path(ctx, "/sprites/ui/reroll.png")
+        .expect("[ERROR] Missing reroll sprite.")
+        .to_element_builder(203, ctx)
+        .as_shrink()
+        .scaled(2., 2.)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::I)
+        .with_visuals(super::BUTTON_VIS)
+        .with_hover_visuals(super::BUTTON_HOVER_VIS)
+        .with_tooltip(
+            graphics::Text::new(
+                graphics::TextFragment::new("Reroll the enemy selection.\nCost: 50g")
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+            )
+            .set_scale(24.)
+            .set_font("Retro")
+            .to_owned()
+            .to_element_builder(0, ctx)
+            .with_visuals(super::BUTTON_VIS)
+            .build(),
+        )
+        .build();
+
+    let mut upgrade_box = containers::HorizontalBox::new();
+    upgrade_box.add(purchase);
+    upgrade_box.add(reroll);
+    let upgrade_box = upgrade_box.to_element_builder(0, ctx).build();
 
     let next = graphics::Text::new(
         graphics::TextFragment::new("Next Wave").color(graphics::Color::from_rgb_u32(PALETTE[6])),
@@ -50,7 +85,7 @@ pub fn construct_wave_menu(
 
     let mut menu_box = containers::VerticalBox::new();
     menu_box.add(wave_info);
-    menu_box.add(purchase);
+    menu_box.add(upgrade_box);
     menu_box.add(next);
     menu_box.spacing = 25.;
     let menu_box = menu_box
@@ -68,7 +103,7 @@ pub fn construct_wave_announcer(
     wave: u32,
 ) -> UiElement<crate::game_state::GameMessage> {
     let mut dur = containers::DurationBox::new(
-        Duration::from_secs(10),
+        Duration::from_secs(5),
         graphics::Text::new(
             graphics::TextFragment::new(format!("Wave {}", wave))
                 .color(graphics::Color::from_rgb_u32(PALETTE[14])),
@@ -87,15 +122,13 @@ pub fn construct_wave_announcer(
 
     let ctr_layout = dur.get_layout();
 
-    dur.add_transition(ui_element::Transition::new(Duration::from_secs(3)));
+    dur.add_transition(ui_element::Transition::new(Duration::from_secs(2)));
 
     dur.add_transition(
-        ui_element::Transition::new(Duration::from_secs(7)).with_new_layout(
-            ui_element::Layout {
-                y_alignment: ui_element::Alignment::Min,
-                ..ctr_layout
-            },
-        ),
+        ui_element::Transition::new(Duration::from_secs(3)).with_new_layout(ui_element::Layout {
+            y_alignment: ui_element::Alignment::Min,
+            ..ctr_layout
+        }),
     );
 
     dur

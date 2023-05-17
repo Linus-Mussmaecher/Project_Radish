@@ -1228,6 +1228,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
 
 [[package]]
+name = "if_chain"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb56e1aa765b4b4f3aadfab769793b7087bb03a4ea4920644a6d238e2df5b9ed"
+
+[[package]]
 name = "image"
 version = "0.24.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1661,7 +1667,7 @@ dependencies = [
 [[package]]
 name = "mooeye"
 version = "0.2.1"
-source = "git+https://github.com/Linus-Mussmaecher/mooeye#544e21f99016202293897102db41c811dfe22506"
+source = "git+https://github.com/Linus-Mussmaecher/mooeye#1ede4af96af853e7c30766933def807290b3c495"
 dependencies = [
  "ggez",
  "regex",
@@ -2085,9 +2091,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.57"
+version = "1.0.58"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c4ec6d5fe0b140acb27c9a0444118cf55bfbb4e0b259739429abb4521dd67c16"
+checksum = "fa1fb82fc0c281dd9671101b66b771ebbe1eaf967b96ac8740dcba4b70005ca8"
 dependencies = [
  "unicode-ident",
 ]
@@ -2125,6 +2131,7 @@ dependencies = [
  "copy_to_output",
  "ggez",
  "glob",
+ "if_chain",
  "legion",
  "mooeye",
  "rand",

@@ -23,9 +23,8 @@ pub enum Command {
     None,
 }
 
-impl Command{
-
-    pub fn spell_from_int(index:usize) -> Self{
+impl Command {
+    pub fn spell_from_int(index: usize) -> Self {
         match index {
             0 => Self::Spell0,
             1 => Self::Spell1,
@@ -36,7 +35,7 @@ impl Command{
     }
 }
 
-impl Default for Command{
+impl Default for Command {
     fn default() -> Self {
         Command::None
     }

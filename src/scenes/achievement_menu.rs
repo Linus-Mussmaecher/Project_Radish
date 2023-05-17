@@ -1,5 +1,5 @@
 use ggez::{glam::Vec2, graphics, GameError};
-use mooeye::{*, ui_element::UiContainer};
+use mooeye::{ui_element::UiContainer, *};
 
 use crate::PALETTE;
 
@@ -129,7 +129,7 @@ impl scene_manager::Scene for AchievementMenu {
 pub fn achievement_info<T: Copy + Eq + std::hash::Hash + 'static>(
     ach: &crate::game_state::Achievement,
     ctx: &ggez::Context,
-) -> Result<mooeye::UiElement<T>, GameError> {
+) -> mooeye::UiElement<T> {
     let mut ach_box = containers::HorizontalBox::new();
 
     if let Ok(trophy) = graphics::Image::from_path(ctx, "/sprites/achievements/a0_16_16.png") {
@@ -179,5 +179,5 @@ pub fn achievement_info<T: Copy + Eq + std::hash::Hash + 'static>(
         .with_visuals(super::BUTTON_VIS)
         .build();
 
-    Ok(containers::DurationBox::new(std::time::Duration::from_secs(15), ach_box).to_element(0, ctx))
+    containers::DurationBox::new(std::time::Duration::from_secs(15), ach_box).to_element(0, ctx)
 }

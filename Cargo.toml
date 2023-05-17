@@ -20,6 +20,7 @@ serde_with = "^2.3"
 rand = "^0.8"
 # other
 tinyvec = "^1.6"
+if_chain = "1.0.2"
 [build-dependencies]
 # Buidling
 copy_to_output = "2.1.0"

@@ -17,7 +17,7 @@ use super::{
 /// States should be used only in sequence.
 /// One rotation = one wave.
 #[derive(Debug, Clone, Copy)]
-enum DirectorState{
+enum DirectorState {
     /// The director is currently spawning enemies.
     /// The payload is the wave_pool left to spawn until this wave ends.
     Spawning(u32),
@@ -27,7 +27,6 @@ enum DirectorState{
     /// The director is waiting for the player to init the next wave.
     WaitingForMenu,
 }
-
 
 /// The director struct is responsible for spawning waves of enemies.
 /// A director regularly earns credit points and spends them on units from a customizable enemy set until a wave threshhold is reached.
@@ -71,14 +70,14 @@ impl Director {
     }
 
     /// Returns the current wave.
-    pub fn get_wave(&self) -> u32{
+    pub fn get_wave(&self) -> u32 {
         self.wave
     }
 
     /// If currently in the last [DirectorState] of a wave cycle, reset to the first one, increase the wave number
     /// and grant a wave_pool for that next wave.
-    pub fn next_wave(&mut self){
-        if matches!(self.state, DirectorState::WaitingForMenu){
+    pub fn next_wave(&mut self) {
+        if matches!(self.state, DirectorState::WaitingForMenu) {
             self.wave += 1;
             self.state = DirectorState::Spawning(200 + 600 * self.wave);
         }
@@ -107,21 +106,20 @@ pub fn direct(
         DirectorState::Spawning(wave_pool) => {
             // only spawn in 1-second intervalls
             if director.intervall >= Duration::from_secs(1) {
-    
                 // grant credits
                 director.credits += 15 + director.total.as_secs() as u32 / 20 + 5 * director.wave;
                 // reset intervall
                 director.intervall = Duration::ZERO;
-    
+
                 // randomly select an amount of available credits to spend
                 let mut to_spend = (random::<f32>().powi(2) * director.credits as f32) as u32;
-    
+
                 // while credits left to spend
                 'outer: loop {
                     // select a random enemy type
                     let mut enemy_ind = random::<usize>() % director.enemies.len();
                     let mut enemy = director.enemies.get(enemy_ind);
-    
+
                     // downgrade spawn until affordable
                     while match enemy {
                         Some((cost, _)) => *cost > to_spend,
@@ -135,7 +133,7 @@ pub fn direct(
                         enemy_ind -= 1;
                         enemy = director.enemies.get(enemy_ind);
                     }
-    
+
                     // unpack enemy
                     if let Some((cost, spawner)) = enemy {
                         // spawn
@@ -161,21 +159,18 @@ pub fn direct(
                     }
                 }
             }
-        },
+        }
         DirectorState::WaitingForDead => {
-            if enemy_query.iter(subworld).count() == 0{
+            if enemy_query.iter(subworld).count() == 0 {
                 messages.insert(mooeye::UiMessage::Extern(GameMessage::NextWave(
                     director.wave as i32 + 1,
                 )));
                 director.state = DirectorState::WaitingForMenu
             }
-        },
-        DirectorState::WaitingForMenu => {
-
         }
+        DirectorState::WaitingForMenu => {}
     }
 }
-
 
 /// # Basic skeleton
 /// ## Enemy
@@ -237,7 +232,7 @@ pub fn spawn_fast_skeleton(
 
 /// # Loot goblin
 /// ## Enemy
-/// A skeleton that does not move down, only sideways. 
+/// A skeleton that does not move down, only sideways.
 /// It has lots of health and despawns after a set time, but drops lots of gold on death.
 pub fn spawn_loot_skeleton(
     cmd: &mut CommandBuffer,

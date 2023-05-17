@@ -13,7 +13,6 @@ const PALETTE: [u32; 16] = [
 ];
 
 fn main() -> GameResult {
-    
     // let resource_dir = if let Ok(manifest_dir) = std::env::var("CARGO_MANIFEST_DIR") {
     //     let mut path = std::path::PathBuf::from(manifest_dir);
     //     path.push("resources");

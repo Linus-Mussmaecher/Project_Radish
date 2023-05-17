@@ -1,7 +1,9 @@
 use crate::scenes::wave_menu;
 use ggez::{glam::Vec2, graphics, GameError};
-use legion::EntityStore;
-use legion::{component, systems::CommandBuffer, Entity, IntoQuery, Resources, Schedule, World};
+use if_chain::if_chain;
+use legion::{
+    component, systems::CommandBuffer, Entity, EntityStore, IntoQuery, Resources, Schedule, World,
+};
 use mooeye::*;
 
 use std::time::Duration;
@@ -165,7 +167,7 @@ impl GameState {
         }
         positions.sort_by(|p1, p2| {
             p1.y.partial_cmp(&p2.y)
-                .expect("Ordering of y-coordinates in brush init failed.")
+                .expect("[ERROR] Ordering of y-coordinates in brush init failed.")
         });
         for pos in positions {
             world.push((
@@ -251,7 +253,6 @@ impl scene_manager::Scene for GameState {
 
         // retrieve game messages
         if let Some(mut message_set) = self.resources.get_mut::<MessageSet>() {
-
             // ======== GAME MESSAGES ========
 
             // check for next wave condition
@@ -297,22 +298,18 @@ impl scene_manager::Scene for GameState {
             }
 
             // Add spell slot
-            if messages.contains(&UiMessage::Triggered(202)) {
-                if let Some(mut data) = self.resources.get_mut::<self::game_data::GameData>() {
-                    if let Ok(mut player) = self.world.entry_mut(data.get_player()) {
-                        if let Ok(sc) = player.get_component_mut::<components::SpellCaster>() {
-                            if sc.can_add() && data.spend(200) {
-                                sc.add_slot();
-                                self.gui.add_element(
-                                    50,
-                                    crate::scenes::game_ui::create_spellslot(
-                                        ctx,
-                                        sc.get_slots() - 1,
-                                    ),
-                                );
-                            }
-                        }
-                    }
+            if_chain! {
+                if messages.contains(&UiMessage::Triggered(202));
+                if let Some(mut data) = self.resources.get_mut::<self::game_data::GameData>();
+                if let Ok(mut player) = self.world.entry_mut(data.get_player());
+                if let Ok(sc) = player.get_component_mut::<components::SpellCaster>();
+                if sc.can_add() && data.spend(250);
+                then {
+                    sc.add_slot();
+                    self.gui.add_element(
+                        50,
+                        crate::scenes::game_ui::create_spellslot(                            ctx,                            sc.get_slots() - 1,                        ),
+                    );
                 }
             }
         }

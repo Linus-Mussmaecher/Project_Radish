@@ -155,7 +155,8 @@ pub fn resolve_damage(health: &mut Health, actions: &Actions, #[resource] ix: &I
     // update snapshot health
     let health_float = health.curr_health as f32;
     if health_float < health.snapshot_health && health.snapshot_delay.is_zero() {
-        health.snapshot_health = health_float.max(health.snapshot_health - ix.delta.as_secs_f32() * 50.);
+        health.snapshot_health =
+            health_float.max(health.snapshot_health - ix.delta.as_secs_f32() * 50.);
     } else {
         health.snapshot_delay = health.snapshot_delay.saturating_sub(ix.delta);
     }

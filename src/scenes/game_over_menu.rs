@@ -1,9 +1,8 @@
 use ggez::{graphics, GameError};
-use mooeye::{*, ui_element::UiContainer};
+use mooeye::{ui_element::UiContainer, *};
 use serde::{Deserialize, Serialize};
 
 use crate::PALETTE;
-
 
 /// A struct that represents the score achieved in a single game. Allows Serde to .toml.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -40,8 +39,7 @@ pub struct GameOverMenu {
 impl GameOverMenu {
     /// Creates a new GameOverMenu displaying the passed score and adding it (if good enough) to the highscore list.
     /// Also displays the highscore list and marks the newly achieved score (it it shows up).
-    pub fn new(ctx: &ggez::Context, score: i32, ) -> Result<Self, GameError> {
-
+    pub fn new(ctx: &ggez::Context, score: i32) -> Result<Self, GameError> {
         // load highscores
 
         let mut highscores: Vec<Score> =
@@ -224,8 +222,7 @@ impl scene_manager::Scene for GameOverMenu {
 
         // restart the game
 
-        if messages.contains(&mooeye::UiMessage::Triggered(1))
-        {
+        if messages.contains(&mooeye::UiMessage::Triggered(1)) {
             return Ok(mooeye::scene_manager::SceneSwitch::replace(
                 crate::game_state::GameState::new(ctx)?,
                 2,
@@ -234,8 +231,7 @@ impl scene_manager::Scene for GameOverMenu {
 
         // return to main menu
 
-        if messages.contains(&mooeye::UiMessage::Triggered(2))
-        {
+        if messages.contains(&mooeye::UiMessage::Triggered(2)) {
             return Ok(mooeye::scene_manager::SceneSwitch::replace(
                 super::main_menu::MainMenu::new(ctx)?,
                 2,

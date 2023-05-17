@@ -1,5 +1,5 @@
 use ggez::{graphics, GameError};
-use mooeye::{*, ui_element::UiContainer};
+use mooeye::{ui_element::UiContainer, *};
 
 use crate::{game_state, PALETTE};
 
@@ -74,13 +74,11 @@ impl scene_manager::Scene for OptionsMenu {
     ) -> Result<mooeye::scene_manager::SceneSwitch, GameError> {
         let messages = self.gui.manage_messages(ctx, None);
 
-        if messages.contains(&mooeye::UiMessage::Triggered(1))
-        {
+        if messages.contains(&mooeye::UiMessage::Triggered(1)) {
             self.controller = game_state::Controller::default();
         }
 
-        if messages.contains(&mooeye::UiMessage::Triggered(2))
-        {
+        if messages.contains(&mooeye::UiMessage::Triggered(2)) {
             if self.controller.save_to_file("./data/keymap.toml").is_err() {
                 println!("[WARNING] Could not save keybindings.")
             }

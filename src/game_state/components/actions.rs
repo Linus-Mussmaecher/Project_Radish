@@ -102,7 +102,11 @@ impl ActionEffect {
     }
 
     /// Creates a new repetition effect, applying the passed action(s) to a set of entities repeatedly for an unlimited amount of time.
-    pub fn repeat(target: ActionEffectTarget, actions: impl Into<ActionContainer>, interval: Duration) -> Self {
+    pub fn repeat(
+        target: ActionEffectTarget,
+        actions: impl Into<ActionContainer>,
+        interval: Duration,
+    ) -> Self {
         Self {
             target,
             content: ActionEffectType::Repeat {
@@ -266,7 +270,7 @@ impl From<ActionEffect> for ActionContainer {
     }
 }
 
-impl From<Vec<GameAction>> for ActionContainer{
+impl From<Vec<GameAction>> for ActionContainer {
     fn from(value: Vec<GameAction>) -> Self {
         ActionContainer::ApplyMultiple(value)
     }
@@ -303,7 +307,7 @@ impl Actions {
             self.effects.push(*effect);
         }
         // ignore None
-        else if !matches!(action, GameAction::None){
+        else if !matches!(action, GameAction::None) {
             self.action_queue.push(action);
         }
     }
@@ -312,9 +316,11 @@ impl Actions {
     pub fn add(&mut self, actions: ActionContainer) {
         match actions {
             ActionContainer::ApplySingle(act) => self.push(act),
-            ActionContainer::ApplyMultiple(act_vec) => for act in act_vec{
-                self.push(act);
-            },
+            ActionContainer::ApplyMultiple(act_vec) => {
+                for act in act_vec {
+                    self.push(act);
+                }
+            }
         }
     }
 
@@ -357,15 +363,12 @@ pub fn resolve_executive_actions(
     }
 }
 
-
-
 /// A special system that applies all aura-components that transform actions of other entities
 #[system]
 #[write_component(Actions)]
 #[read_component(Enemy)]
 #[read_component(Position)]
 pub fn handle_effects(world: &mut legion::world::SubWorld, #[resource] ix: &Interactions) {
-
     // compile a list of all transforms & applies affecting entities
     let mut transforms = Vec::new();
     let mut applies = Vec::new();

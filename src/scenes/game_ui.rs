@@ -193,10 +193,7 @@ pub fn construct_game_ui(
 
     main_box.add(message_box);
 
-    Ok(main_box
-        .to_element_builder(0, ctx)
-        .as_fill()
-        .build())
+    Ok(main_box.to_element_builder(0, ctx).as_fill().build())
 }
 
 pub fn create_spellslot(ctx: &ggez::Context, i: usize) -> UiElement<game_state::GameMessage> {

@@ -90,10 +90,10 @@ pub struct AchievementSet {
     pub list: Vec<Achievement>,
 }
 
-impl AchievementSet{
+impl AchievementSet {
     pub fn load(ctx: &ggez::Context) -> Self {
         let mut res = Vec::new();
-    
+
         res.push(Achievement::new(
             "First Blood",
             "Kill an enemy.",
@@ -101,7 +101,7 @@ impl AchievementSet{
             1,
             |msg| matches!(msg, GameMessage::UpdateGold(_)),
         ));
-    
+
         res.push(Achievement::new(
             "Survivor",
             "Reach wave 2.",
@@ -109,7 +109,7 @@ impl AchievementSet{
             1,
             |msg| matches!(msg, GameMessage::NextWave(1)),
         ));
-    
+
         res.push(Achievement::new(
             "To Dust",
             "Kill 50 enemies.",
@@ -125,20 +125,18 @@ impl AchievementSet{
             |msg| matches!(msg, GameMessage::UpdateGold(_)),
         ));
 
-        
         res.push(Achievement::new(
             "Royal Blood",
             "Kill an elite enemy.",
-            graphics::Image::from_path(ctx, "/sprites/achievements/a1_16_16.png").ok(),
+            graphics::Image::from_path(ctx, "/sprites/achievements/a5_16_16.png").ok(),
             1,
             |msg| matches!(msg, GameMessage::UpdateGold(gold) if *gold > 20),
         ));
 
-        
         res.push(Achievement::new(
             "Party like it's 1789",
             "Kill 50 elite enemies.",
-            graphics::Image::from_path(ctx, "/sprites/achievements/a4_16_16.png").ok(),
+            graphics::Image::from_path(ctx, "/sprites/achievements/a6_16_16.png").ok(),
             50,
             |msg| matches!(msg, GameMessage::UpdateGold(gold) if *gold > 20),
         ));
@@ -146,7 +144,7 @@ impl AchievementSet{
         res.push(Achievement::new(
             "Survivor of Hathsin",
             "Reach wave 5.",
-            graphics::Image::from_path(ctx, "/sprites/achievements/a2_16_16.png").ok(),
+            graphics::Image::from_path(ctx, "/sprites/achievements/a7_16_16.png").ok(),
             1,
             |msg| matches!(msg, GameMessage::NextWave(5)),
         ));
@@ -154,34 +152,34 @@ impl AchievementSet{
         res.push(Achievement::new(
             "Build the wall!",
             "Take 50 city damage.",
-            graphics::Image::from_path(ctx, "/sprites/achievements/a2_16_16.png").ok(),
+            graphics::Image::from_path(ctx, "/sprites/achievements/a8_16_16.png").ok(),
             50,
             |msg| matches!(msg, GameMessage::UpdateCityHealth(health) if *health < 10),
         ));
-    
+
         let progress: ProgressList = toml::from_str(
             &fs::read_to_string("./data/achievements.toml").unwrap_or_else(|_| "".to_owned()),
         )
         .unwrap_or_default();
-    
+
         for i in 0..progress.progresses.len().min(res.len()) {
             res[i].progress = progress.progresses[i].prog;
         }
-    
+
         Self { list: res }
     }
-    
+
     pub fn save(&self) {
         let mut progress = ProgressList {
             progresses: Vec::new(),
         };
-    
+
         for ach in self.list.iter() {
             progress.progresses.push(Progress {
                 prog: ach.get_progress(),
             });
         }
-    
+
         if fs::write(
             "./data/achievements.toml",
             toml::to_string(&progress).unwrap_or_default(),
@@ -193,13 +191,11 @@ impl AchievementSet{
     }
 }
 
-impl Drop for AchievementSet{
+impl Drop for AchievementSet {
     fn drop(&mut self) {
         self.save();
     }
 }
-
-
 
 impl MessageReceiver for AchievementSet {
     fn receive(
@@ -215,8 +211,7 @@ impl MessageReceiver for AchievementSet {
                 if ach.is_achieved() != pre {
                     gui.add_element(
                         100,
-                        crate::scenes::achievement_menu::achievement_info(ach, ctx)
-                            .expect("Could not create achievement marker."),
+                        crate::scenes::achievement_menu::achievement_info(ach, ctx),
                     );
                 }
             }
