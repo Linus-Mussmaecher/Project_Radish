@@ -357,12 +357,14 @@ pub fn resolve_executive_actions(
     }
 }
 
+
+
 /// A special system that applies all aura-components that transform actions of other entities
-pub fn handle_effects(world: &mut legion::World, resources: &mut legion::Resources) {
-    // get interactions
-    let ix = resources
-        .get::<Interactions>()
-        .expect("Could not unpack interactions.");
+#[system]
+#[write_component(Actions)]
+#[read_component(Enemy)]
+#[read_component(Position)]
+pub fn handle_effects(world: &mut legion::world::SubWorld, #[resource] ix: &Interactions) {
 
     // compile a list of all transforms & applies affecting entities
     let mut transforms = Vec::new();

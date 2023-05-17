@@ -1,3 +1,4 @@
+use crate::scenes::wave_menu;
 use ggez::{glam::Vec2, graphics, GameError};
 use legion::EntityStore;
 use legion::{component, systems::CommandBuffer, Entity, IntoQuery, Resources, Schedule, World};
@@ -31,10 +32,8 @@ pub struct GameState {
     resources: Resources,
     /// The controller from which player interaction can be read.
     controller: Controller,
-    /// One of the two main schedules, producing actions by reading system state.
+    /// The main gameplay schedule, producing and consuming actions
     action_prod_schedule: Schedule,
-    /// One of the two main schedules, mutating the game state by consuming actions.
-    action_cons_schedule: Schedule,
     /// The in-game GUI.
     gui: UiElement<GameMessage>,
     /// Listeners (such as achievements or tutorials), receiving all game messages and potentially mutating the UI.
@@ -50,7 +49,7 @@ impl GameState {
         let mut world = World::default();
 
         // Create some resources neccessary for world init
-        let boundaries = graphics::Rect::new(0., 0., 600., 800.);
+        let boundaries = graphics::Rect::new(0., 0., 600., 900.);
         let sprite_pool = sprite::SpritePool::new().with_folder(ctx, "/sprites", true);
 
         Self::initalize_environment(&boundaries, &sprite_pool, &mut world)?;
@@ -58,7 +57,7 @@ impl GameState {
         // Add player
 
         let player = world.push((
-            components::Position::new(boundaries.w / 2., boundaries.h),
+            components::Position::new(boundaries.w / 2., boundaries.h - 64.),
             components::BoundaryCollision::new(true, false, false),
             components::Control::new(150.),
             components::Graphics::from(
@@ -104,10 +103,11 @@ impl GameState {
                 .add_system(components::control::control_system())
                 .add_system(components::duration::manage_durations_system())
                 .add_system(components::health::destroy_by_health_system())
+                .flush()
                 // systems that consume (but may produce) actions
                 .add_system(components::spell::spell_casting_system())
-                .build(),
-            action_cons_schedule: Schedule::builder()
+                .add_system(components::actions::handle_effects_system())
+                .flush()
                 // systems that consume actions
                 .add_system(components::actions::resolve_executive_actions_system())
                 .add_system(components::graphics::handle_particles_system())
@@ -245,29 +245,21 @@ impl scene_manager::Scene for GameState {
         self.action_prod_schedule
             .execute(&mut self.world, &mut self.resources);
 
-        // transform game actions of this frame
-        components::actions::handle_effects(&mut self.world, &mut self.resources);
-
-        // consume game actions of this frame
-        self.action_cons_schedule
-            .execute(&mut self.world, &mut self.resources);
-
         // --- MESSAGE HANDLING ---
 
         let mut switch = scene_manager::SceneSwitch::None;
 
         // retrieve game messages
         if let Some(mut message_set) = self.resources.get_mut::<MessageSet>() {
-            // check for next wave condition
 
+            // ======== GAME MESSAGES ========
+
+            // check for next wave condition
             for message in message_set.iter() {
                 if let &UiMessage::Extern(GameMessage::NextWave(wave)) = message {
-                    if wave > 0 {
-                        self.gui.add_element(
-                            0,
-                            crate::scenes::wave_menu::construct_wave_menu(ctx, wave),
-                        );
-                    }
+                    // Wave menu begin
+                    self.gui
+                        .add_element(0, wave_menu::construct_wave_menu(ctx, wave - 1));
                 }
 
                 for listener in self.listeners.iter_mut() {
@@ -275,13 +267,13 @@ impl scene_manager::Scene for GameState {
                 }
             }
 
-            // communicate with UI
+            // communicate with UI: Insert Game Messages and retrieve UI messages
             let messages = self.gui.update(ctx, message_set.clone());
 
             // clear game messages
             message_set.clear();
 
-            // react to UI messages
+            // ======== UI MESSAGES ========
 
             // Escape menu
             if messages.contains(&UiMessage::Triggered(1)) {
@@ -290,28 +282,32 @@ impl scene_manager::Scene for GameState {
                 );
             }
 
-            // Wave menu begin
+            // -------- WAVE MENU --------
+
+            // Exit wave menu
             if messages.contains(&UiMessage::Triggered(201)) {
                 self.gui.remove_elements(200);
-                if let Some(dir) = self.resources.get::<director::Director>() {
-                    self.gui.add_element(
-                        0,
-                        crate::scenes::wave_menu::construct_wave_announcer(ctx, dir.get_wave()),
-                    );
+                if let Some(mut dir) = self.resources.get_mut::<director::Director>() {
+                    // initialize next wave from director
+                    dir.next_wave();
+                    // create wave announcer
+                    self.gui
+                        .add_element(0, wave_menu::construct_wave_announcer(ctx, dir.get_wave()));
                 }
             }
 
-            // Wave menu end
+            // Add spell slot
             if messages.contains(&UiMessage::Triggered(202)) {
                 if let Some(mut data) = self.resources.get_mut::<self::game_data::GameData>() {
                     if let Ok(mut player) = self.world.entry_mut(data.get_player()) {
                         if let Ok(sc) = player.get_component_mut::<components::SpellCaster>() {
-                            if data.spend(200) {
+                            if sc.can_add() && data.spend(200) {
+                                sc.add_slot();
                                 self.gui.add_element(
                                     50,
                                     crate::scenes::game_ui::create_spellslot(
                                         ctx,
-                                        sc.add_slot() - 1,
+                                        sc.get_slots() - 1,
                                     ),
                                 );
                             }
@@ -321,7 +317,7 @@ impl scene_manager::Scene for GameState {
             }
         }
 
-        // check for game over condition
+        // -------- Game Over Check --------
 
         if let Some(game_data) = self.resources.get::<game_data::GameData>() {
             if game_data.city_health <= 0 {

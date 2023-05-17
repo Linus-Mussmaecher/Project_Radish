@@ -7,11 +7,11 @@ use crate::PALETTE;
 
 pub fn construct_wave_menu(
     ctx: &ggez::Context,
-    wave: i32,
+    wave_survived: i32,
 ) -> UiElement<crate::game_state::GameMessage> {
     // title
     let wave_info = graphics::Text::new(
-        graphics::TextFragment::new(format!("You have survived wave {}.", wave))
+        graphics::TextFragment::new(format!("You have survived wave {}.", wave_survived))
             .color(graphics::Color::from_rgb_u32(PALETTE[6])),
     )
     .set_font("Retro")
@@ -71,17 +71,21 @@ pub fn construct_wave_announcer(
         Duration::from_secs(10),
         graphics::Text::new(
             graphics::TextFragment::new(format!("Wave {}", wave))
-                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                .color(graphics::Color::from_rgb_u32(PALETTE[14])),
         )
-        .set_scale(32.)
+        .set_scale(48.)
         .set_font("Retro")
         .to_owned()
         .to_element_builder(0, ctx)
-        .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Center)
+        .as_shrink()
         .build(),
     )
     .to_element_builder(0, ctx)
+    .as_shrink()
+    .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Center)
     .build();
+
+    let ctr_layout = dur.get_layout();
 
     dur.add_transition(ui_element::Transition::new(Duration::from_secs(3)));
 
@@ -89,7 +93,7 @@ pub fn construct_wave_announcer(
         ui_element::Transition::new(Duration::from_secs(7)).with_new_layout(
             ui_element::Layout {
                 y_alignment: ui_element::Alignment::Min,
-                ..Default::default()
+                ..ctr_layout
             },
         ),
     );

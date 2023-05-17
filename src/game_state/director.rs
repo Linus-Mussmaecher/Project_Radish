@@ -13,6 +13,21 @@ use super::{
     GameMessage,
 };
 
+/// The state of a [Director].
+/// States should be used only in sequence.
+/// One rotation = one wave.
+#[derive(Debug, Clone, Copy)]
+enum DirectorState{
+    /// The director is currently spawning enemies.
+    /// The payload is the wave_pool left to spawn until this wave ends.
+    Spawning(u32),
+    /// The director has emptied its wave pool and is waiting for all spawned enemies to be removed.
+    WaitingForDead,
+    /// All enemies have despawned and the director has notified the player of the end of the wave.
+    /// The director is waiting for the player to init the next wave.
+    WaitingForMenu,
+}
+
 
 /// The director struct is responsible for spawning waves of enemies.
 /// A director regularly earns credit points and spends them on units from a customizable enemy set until a wave threshhold is reached.
@@ -21,8 +36,8 @@ use super::{
 pub struct Director {
     /// The current wave number.
     wave: u32,
-    /// The amount of credits left to spend until the current wave ends.
-    wave_pool: u32,
+    /// The current state of the director.
+    state: DirectorState,
     /// The time since the director last spawned units.
     intervall: Duration,
     /// The entire existence duration of this director.
@@ -40,8 +55,8 @@ impl Director {
     /// Spawns a new director with default parameters.
     pub fn new() -> Self {
         Self {
-            wave: 0,
-            wave_pool: 1000,
+            wave: 1,
+            state: DirectorState::Spawning(800),
             intervall: Duration::ZERO,
             total: Duration::ZERO,
             credits: 0,
@@ -55,8 +70,18 @@ impl Director {
         }
     }
 
+    /// Returns the current wave.
     pub fn get_wave(&self) -> u32{
         self.wave
+    }
+
+    /// If currently in the last [DirectorState] of a wave cycle, reset to the first one, increase the wave number
+    /// and grant a wave_pool for that next wave.
+    pub fn next_wave(&mut self){
+        if matches!(self.state, DirectorState::WaitingForMenu){
+            self.wave += 1;
+            self.state = DirectorState::Spawning(200 + 600 * self.wave);
+        }
     }
 }
 
@@ -78,62 +103,75 @@ pub fn direct(
     director.intervall += ix.delta;
     director.total += ix.delta;
 
-    // if a 1-second intervall has passed, attempt a spawn
-
-    if director.intervall >= Duration::from_secs(1) {
-        // spawn enemies
-        if director.wave_pool > 0 {
-            // grant credits
-            director.credits += 15 + director.total.as_secs() as u32 / 20 + 5 * director.wave;
-            // reset intervall
-            director.intervall = Duration::ZERO;
-
-            // randomly select an amount of available credits to spend
-            let mut to_spend = (random::<f32>().powi(2) * director.credits as f32) as u32;
-
-            // while credits left to spend
-            'outer: loop {
-                let mut enemy_ind = random::<usize>() % director.enemies.len();
-                let mut enemy = director.enemies.get(enemy_ind);
-
-                // downgrade spawn until affordable
-                while match enemy {
-                    Some((cost, _)) => *cost > to_spend,
-                    None => true,
-                } {
-                    // if no downgrade possible, end this spending round
-                    if enemy_ind == 0 {
-                        break 'outer;
+    match director.state {
+        DirectorState::Spawning(wave_pool) => {
+            // only spawn in 1-second intervalls
+            if director.intervall >= Duration::from_secs(1) {
+    
+                // grant credits
+                director.credits += 15 + director.total.as_secs() as u32 / 20 + 5 * director.wave;
+                // reset intervall
+                director.intervall = Duration::ZERO;
+    
+                // randomly select an amount of available credits to spend
+                let mut to_spend = (random::<f32>().powi(2) * director.credits as f32) as u32;
+    
+                // while credits left to spend
+                'outer: loop {
+                    // select a random enemy type
+                    let mut enemy_ind = random::<usize>() % director.enemies.len();
+                    let mut enemy = director.enemies.get(enemy_ind);
+    
+                    // downgrade spawn until affordable
+                    while match enemy {
+                        Some((cost, _)) => *cost > to_spend,
+                        None => true,
+                    } {
+                        // if no downgrade possible, end this spending round
+                        if enemy_ind == 0 {
+                            break 'outer;
+                        }
+                        // otherwise, downgrade and try next enemy
+                        enemy_ind -= 1;
+                        enemy = director.enemies.get(enemy_ind);
                     }
-                    // otherwise, downgrade and try next enemy
-                    enemy_ind -= 1;
-                    enemy = director.enemies.get(enemy_ind);
-                }
+    
+                    // unpack enemy
+                    if let Some((cost, spawner)) = enemy {
+                        // spawn
+                        if spawner(
+                            cmd,
+                            spritepool,
+                            ggez::glam::Vec2::new(rand::random::<f32>() * boundaries.w, -20.),
+                        )
+                        .is_ok()
+                        {
+                            // if spawning threw no error, reduce available credits
+                            to_spend -= cost;
+                            director.credits -= cost;
 
-                // unpack enemy
-                if let Some((cost, spawner)) = enemy {
-                    // spawn
-                    if spawner(
-                        cmd,
-                        spritepool,
-                        ggez::glam::Vec2::new(rand::random::<f32>() * boundaries.w, -20.),
-                    )
-                    .is_ok()
-                    {
-                        // if spawning threw no error, reduce available credits
-                        to_spend -= cost;
-                        director.credits -= cost;
-                        director.wave_pool = director.wave_pool.saturating_sub(*cost);
+                            // possible switch state on every spawn
+                            let left = wave_pool.saturating_sub(*cost);
+                            director.state = if left > 0 {
+                                DirectorState::Spawning(left)
+                            } else {
+                                DirectorState::WaitingForDead
+                            }
+                        }
                     }
                 }
             }
-        } else if enemy_query.iter(subworld).count() == 0{
-            // wait for enemies to despawn
-            director.wave += 1;
-            messages.insert(mooeye::UiMessage::Extern(GameMessage::NextWave(
-                director.wave as i32,
-            )));
-            director.wave_pool = director.wave * 1000 + 500;
+        },
+        DirectorState::WaitingForDead => {
+            if enemy_query.iter(subworld).count() == 0{
+                messages.insert(mooeye::UiMessage::Extern(GameMessage::NextWave(
+                    director.wave as i32 + 1,
+                )));
+                director.state = DirectorState::WaitingForMenu
+            }
+        },
+        DirectorState::WaitingForMenu => {
+
         }
     }
 }

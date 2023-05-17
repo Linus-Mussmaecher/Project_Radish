@@ -33,19 +33,6 @@ impl MainMenu {
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
 
-        let tutorial = graphics::Text::new(
-            graphics::TextFragment::new("Tutorial")
-                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
-        )
-        .set_font("Retro")
-        .set_scale(32.)
-        .to_owned()
-        .to_element_builder(2, ctx)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::T)
-        .with_visuals(super::BUTTON_VIS)
-        .with_hover_visuals(super::BUTTON_HOVER_VIS)
-        .build();
-
         // highscores
 
         let highscores = graphics::Text::new(
@@ -116,7 +103,6 @@ impl MainMenu {
 
         let mut menu_box = mooeye::containers::VerticalBox::new();
         menu_box.add(play);
-        menu_box.add(tutorial);
         menu_box.add(highscores);
         menu_box.add(achievements);
         menu_box.add(options);
@@ -156,6 +142,8 @@ impl scene_manager::Scene for MainMenu {
         {
             res = mooeye::scene_manager::SceneSwitch::replace(game_state::GameState::new(ctx)?, 1);
         }
+
+        // Former tutorial. TODO: Custom mode?
         if messages.contains(&mooeye::UiMessage::Triggered(2))
         {
             res = mooeye::scene_manager::SceneSwitch::replace(game_state::GameState::new(ctx)?, 1);
