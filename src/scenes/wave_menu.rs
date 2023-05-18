@@ -20,7 +20,7 @@ pub fn construct_wave_menu(
     .to_element_builder(0, ctx)
     .build();
 
-    let purchase = graphics::Image::from_path(ctx, "/sprites/ui/mana_add.png")
+    let mana = graphics::Image::from_path(ctx, "/sprites/ui/mana_add.png")
         .expect("[ERROR] Missing mana sprite.")
         .to_element_builder(202, ctx)
         .as_shrink()
@@ -31,6 +31,28 @@ pub fn construct_wave_menu(
         .with_tooltip(
             graphics::Text::new(
                 graphics::TextFragment::new("Purchase an additional spell slot.\nCost: 250g")
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+            )
+            .set_scale(24.)
+            .set_font("Retro")
+            .to_owned()
+            .to_element_builder(0, ctx)
+            .with_visuals(super::BUTTON_VIS)
+            .build(),
+        )
+        .build();
+
+        let house = graphics::Image::from_path(ctx, "/sprites/ui/house_add.png")
+        .expect("[ERROR] Missing house sprite.")
+        .to_element_builder(202, ctx)
+        .as_shrink()
+        .scaled(2., 2.)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::U)
+        .with_visuals(super::BUTTON_VIS)
+        .with_hover_visuals(super::BUTTON_HOVER_VIS)
+        .with_tooltip(
+            graphics::Text::new(
+                graphics::TextFragment::new("Purchase an additional town building.\nCost: 200g")
                     .color(graphics::Color::from_rgb_u32(PALETTE[6])),
             )
             .set_scale(24.)
@@ -65,7 +87,8 @@ pub fn construct_wave_menu(
         .build();
 
     let mut upgrade_box = containers::HorizontalBox::new();
-    upgrade_box.add(purchase);
+    upgrade_box.add(mana);
+    upgrade_box.add(house);
     upgrade_box.add(reroll);
     let upgrade_box = upgrade_box.to_element_builder(0, ctx).build();
 
