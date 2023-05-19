@@ -62,7 +62,9 @@ impl Director {
             enemies: vec![
                 (040, spawn_basic_skeleton),
                 (070, spawn_fast_skeleton),
+                (120, spawn_splitter),
                 (150, spawn_tank_skeleton),
+                (150, spawn_wizard_skeleton),
                 (200, spawn_charge_skeleton),
                 (300, spawn_loot_skeleton),
             ],
@@ -197,7 +199,7 @@ pub fn spawn_basic_skeleton(
 /// # Fast skeleton
 /// ## Enemy
 /// A skeleton that moves faster than the basic skeleton, but also has less health.
-/// Moves from side to side and speeds up nearby allies.
+/// Moves from side to side.
 pub fn spawn_fast_skeleton(
     cmd: &mut CommandBuffer,
     sprite_pool: &sprite::SpritePool,
@@ -205,24 +207,12 @@ pub fn spawn_fast_skeleton(
 ) -> Result<(), GameError> {
     cmd.push((
         pos,
-        components::Velocity::new(35., 10.),
+        components::Velocity::new(40., 20.),
         components::BoundaryCollision::new(true, false, true),
         components::Graphics::from(sprite_pool.init_sprite(
             "/sprites/enemies/skeleton_sword",
             Duration::from_secs_f32(0.25),
         )?),
-        components::actions::Actions::new().with_effect(ActionEffect::transform(
-            ActionEffectTarget::new()
-                .with_affect_self(true)
-                .with_range(256.),
-            |act| {
-                match act {
-                    // speed up nearby allies by 50%
-                    GameAction::Move { delta } => *delta *= 1.5,
-                    _ => {}
-                };
-            },
-        )),
         components::Enemy::new(1, 15),
         components::Health::new(50),
         components::Collision::new_basic(64., 64.),
@@ -318,7 +308,7 @@ pub fn spawn_tank_skeleton(
 /// # Bannerman
 /// ## Enemy
 /// A tanky, high-damage skeleton with decent speed.
-/// Speeds up nearby allies considerably on death.
+/// Speeds up nearby allies, considerably higher on death.
 pub fn spawn_charge_skeleton(
     cmd: &mut CommandBuffer,
     sprite_pool: &sprite::SpritePool,
@@ -331,6 +321,19 @@ pub fn spawn_charge_skeleton(
             "/sprites/enemies/skeleton_flag",
             Duration::from_secs_f32(0.25),
         )?),
+        // concurrently small speed boost to nearby allies
+        components::actions::Actions::new().with_effect(ActionEffect::transform(
+            ActionEffectTarget::new()
+                .with_affect_self(true)
+                .with_range(256.),
+            |act| {
+                match act {
+                    // speed up nearby allies by 50%
+                    GameAction::Move { delta } => *delta *= 1.5,
+                    _ => {}
+                };
+            },
+        )),
         // on death: speed up nearby allies for a time
         components::OnDeath::new(
             ActionEffect::once(
@@ -350,7 +353,7 @@ pub fn spawn_charge_skeleton(
                     ),
                     ActionEffect::transform(ActionEffectTarget::new_only_self(), |act| {
                         match act {
-                            // speed up nearby allies by 50%
+                            // speed up nearby allies by 150%
                             GameAction::Move { delta } => *delta *= 2.5,
                             _ => {}
                         };
@@ -363,6 +366,115 @@ pub fn spawn_charge_skeleton(
         ),
         components::Enemy::new(2, 45),
         components::Health::new(75),
+        components::Collision::new_basic(64., 64.),
+    ));
+    Ok(())
+}
+
+/// # Wizard
+/// ## Enemy
+/// A tanky but slow caster that heals and speeds up allies on the regular.
+pub fn spawn_wizard_skeleton(
+    cmd: &mut CommandBuffer,
+    sprite_pool: &sprite::SpritePool,
+    pos: Position,
+) -> Result<(), GameError> {
+    cmd.push((
+        pos,
+        components::Velocity::new(0., 7.),
+        components::Graphics::from(sprite_pool.init_sprite(
+            "/sprites/enemies/skeleton_flag",
+            Duration::from_secs_f32(0.25),
+        )?),
+        // 'Spell' 1: Speed up a nearby ally for 3 seconds every 5 seconds.
+        components::actions::Actions::new()
+        .with_effect(ActionEffect::repeat(
+            ActionEffectTarget::new()
+                .with_affect_self(false)
+                .with_range(512.)
+                .with_enemies_only(true)
+                .with_limit(1),
+                vec![
+                    GameAction::AddParticle(
+                        Particle::new(
+                            sprite_pool
+                                .init_sprite("/sprites/bolt", Duration::from_secs_f32(0.25))?,
+                        )
+                        .with_duration(Duration::from_secs(3))
+                        .with_velocity(0., -10.)
+                        .with_relative_position(0., -24.),
+                    ),
+                    ActionEffect::transform(ActionEffectTarget::new_only_self(), |act| {
+                        match act {
+                            // speed up an ally by 250%
+                            GameAction::Move { delta } => *delta *= 3.5,
+                            _ => {}
+                        };
+                    })
+                    .with_duration(Duration::from_secs(3))
+                    .into(),
+                ],
+            Duration::from_secs(5),
+        ))
+        // 'Spell' 2: Heal a nearby ally every 8 seconds.
+        .with_effect(ActionEffect::repeat(
+            ActionEffectTarget::new()
+                .with_affect_self(false)
+                .with_range(512.)
+                .with_enemies_only(true)
+                .with_limit(1),
+                vec![
+                    GameAction::AddParticle(
+                        Particle::new(
+                            sprite_pool
+                                .init_sprite("/sprites/heal", Duration::from_secs_f32(0.25))?,
+                        )
+                        .with_duration(Duration::from_secs(3))
+                        .with_velocity(0., -10.)
+                        .with_relative_position(0., -24.),
+                    ),
+                    GameAction::TakeHealing { heal: 75 },
+                ],
+            Duration::from_secs(8),
+        )),
+        components::Enemy::new(3, 75),
+        components::Health::new(150),
+        components::Collision::new_basic(64., 64.),
+    ));
+    Ok(())
+}
+
+/// # Stone Golem
+/// ## Enemy
+/// A very tanky and slow enemy that spawns multiple smaller skeletons on death.
+pub fn spawn_splitter(
+    cmd: &mut CommandBuffer,
+    sprite_pool: &sprite::SpritePool,
+    pos: Position,
+) -> Result<(), GameError> {
+    cmd.push((
+        pos,
+        components::Velocity::new(0., 8.),
+        components::Graphics::from(sprite_pool.init_sprite(
+            "/sprites/enemies/skeleton_tank",
+            Duration::from_secs_f32(0.25),
+        )?),
+        // on death: speed up nearby allies for a time
+        components::OnDeath::new(
+            GameAction::spawn(|_, vec, sprite_pool, cmd| {
+                for _ in 0..3{
+                    if spawn_basic_skeleton(cmd, sprite_pool, vec + ggez::glam::Vec2::new(
+                        (rand::random::<f32>() - 0.5) * 64.,
+                         (rand::random::<f32>() - 0.5) * 64.)
+                        ).is_err(){
+                        println!("[ERROR] Spawning function non-functional.");
+                    };
+                }
+            }),
+            MessageSet::new(),
+        ),
+        components::Enemy::new(3, 65),
+        components::Health::new(200),
         components::Collision::new_basic(64., 64.),
     ));
     Ok(())

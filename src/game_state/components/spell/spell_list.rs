@@ -16,7 +16,7 @@ pub fn construct_fireball(spritepool: &SpritePool) -> Spell {
         spell_slots: tiny_vec!([f32; MAX_SPELL_SLOTS] => 1.5),
         name: "Fireball!".to_owned(),
         icon: spritepool
-            .init_sprite_unchecked("/sprites/spells/fireball", Duration::from_secs_f32(0.7)),
+            .init_sprite_unchecked("/sprites/spells/fireball", Duration::from_secs_f32(1.3)),
         spell_: GameAction::spawn(|_, pos, sp, cmd| {
             cmd.push((
                 pos,
@@ -155,12 +155,12 @@ pub fn construct_conflagrate(spritepool: &SpritePool) -> Spell {
         spell_: ActionEffect::once(
             ActionEffectTarget::new()
                 .with_enemies_only(true)
-                .with_limit(5),
+                .with_limit(6),
             vec![
                 ActionEffect::repeat(
                     ActionEffectTarget::new_only_self(),
                     GameAction::TakeDamage { dmg: 15 },
-                    Duration::from_secs(1),
+                    Duration::from_secs_f32(0.7),
                 )
                 .with_duration(Duration::from_secs(5))
                 .into(),
