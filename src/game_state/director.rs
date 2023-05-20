@@ -61,6 +61,7 @@ impl Director {
             credits: 0,
             enemies: vec![
                 (040, spawn_basic_skeleton),
+                (050, spawn_stormer),
                 (070, spawn_fast_skeleton),
                 (120, spawn_splitter),
                 (150, spawn_tank_skeleton),
@@ -388,12 +389,12 @@ pub fn spawn_wizard_skeleton(
         )?),
         // 'Spell' 1: Speed up a nearby ally for 3 seconds every 5 seconds.
         components::actions::Actions::new()
-        .with_effect(ActionEffect::repeat(
-            ActionEffectTarget::new()
-                .with_affect_self(false)
-                .with_range(512.)
-                .with_enemies_only(true)
-                .with_limit(1),
+            .with_effect(ActionEffect::repeat(
+                ActionEffectTarget::new()
+                    .with_affect_self(false)
+                    .with_range(512.)
+                    .with_enemies_only(true)
+                    .with_limit(1),
                 vec![
                     GameAction::AddParticle(
                         Particle::new(
@@ -414,15 +415,15 @@ pub fn spawn_wizard_skeleton(
                     .with_duration(Duration::from_secs(3))
                     .into(),
                 ],
-            Duration::from_secs(5),
-        ))
-        // 'Spell' 2: Heal a nearby ally every 8 seconds.
-        .with_effect(ActionEffect::repeat(
-            ActionEffectTarget::new()
-                .with_affect_self(false)
-                .with_range(512.)
-                .with_enemies_only(true)
-                .with_limit(1),
+                Duration::from_secs(5),
+            ))
+            // 'Spell' 2: Heal a nearby ally every 8 seconds.
+            .with_effect(ActionEffect::repeat(
+                ActionEffectTarget::new()
+                    .with_affect_self(false)
+                    .with_range(512.)
+                    .with_enemies_only(true)
+                    .with_limit(1),
                 vec![
                     GameAction::AddParticle(
                         Particle::new(
@@ -435,8 +436,8 @@ pub fn spawn_wizard_skeleton(
                     ),
                     GameAction::TakeHealing { heal: 75 },
                 ],
-            Duration::from_secs(8),
-        )),
+                Duration::from_secs(8),
+            )),
         components::Enemy::new(3, 75),
         components::Health::new(150),
         components::Collision::new_basic(64., 64.),
@@ -462,11 +463,17 @@ pub fn spawn_splitter(
         // on death: speed up nearby allies for a time
         components::OnDeath::new(
             GameAction::spawn(|_, vec, sprite_pool, cmd| {
-                for _ in 0..3{
-                    if spawn_basic_skeleton(cmd, sprite_pool, vec + ggez::glam::Vec2::new(
-                        (rand::random::<f32>() - 0.5) * 64.,
-                         (rand::random::<f32>() - 0.5) * 64.)
-                        ).is_err(){
+                for _ in 0..3 {
+                    if spawn_basic_skeleton(
+                        cmd,
+                        sprite_pool,
+                        vec + ggez::glam::Vec2::new(
+                            (rand::random::<f32>() - 0.5) * 64.,
+                            (rand::random::<f32>() - 0.5) * 64.,
+                        ),
+                    )
+                    .is_err()
+                    {
                         println!("[ERROR] Spawning function non-functional.");
                     };
                 }
@@ -475,6 +482,62 @@ pub fn spawn_splitter(
         ),
         components::Enemy::new(3, 65),
         components::Health::new(200),
+        components::Collision::new_basic(64., 64.),
+    ));
+    Ok(())
+}
+
+/// # Stormer
+/// ## Enemy
+/// A nimble enemy. Taking damage grants it damage reduction for a time and speed permanently.
+pub fn spawn_stormer(
+    cmd: &mut CommandBuffer,
+    sprite_pool: &sprite::SpritePool,
+    pos: Position,
+) -> Result<(), GameError> {
+    cmd.push((
+        pos,
+        components::Velocity::new(0., 8.),
+        components::Graphics::from(sprite_pool.init_sprite(
+            "/sprites/enemies/skeleton_sword",
+            Duration::from_secs_f32(0.25),
+        )?),
+        components::Actions::new().with_effect(ActionEffect::react(
+            ActionEffectTarget::new_only_self(),
+            |action| match action {
+                // whenever taking damage
+                GameAction::TakeDamage { dmg: _ } => {
+                    println!("Taking terrible damage!");
+                    vec![
+                    // gain damage reduction for 2 seconds
+                    GameAction::ApplyEffect(Box::new(
+                        ActionEffect::transform(
+                            ActionEffectTarget::new_only_self(),
+                            |act| match act {
+                                GameAction::TakeDamage { dmg } => {
+                                    println!("Terrible damage again!");
+                                    *dmg /= 10;
+                                },
+                                _ => {}
+                            },
+                        )
+                        .with_duration(Duration::from_secs(2)),
+                    )),
+                    // and 30% speed permanently
+                    GameAction::ApplyEffect(Box::new(ActionEffect::transform(
+                        ActionEffectTarget::new_only_self(),
+                        |act| match act {
+                            GameAction::Move { delta } => *delta *= 1.3,
+                            _ => {}
+                        },
+                    ))),
+                ]
+                .into()},
+                _ => GameAction::None.into(),
+            },
+        )),
+        components::Enemy::new(3, 70),
+        components::Health::new(100),
         components::Collision::new_basic(64., 64.),
     ));
     Ok(())

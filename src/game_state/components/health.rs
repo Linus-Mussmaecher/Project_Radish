@@ -111,7 +111,7 @@ pub fn destroy_by_health(
 
         // death rattle
         if let Some(on_death) = on_death {
-            actions.add(on_death.death_actions.clone());
+            actions.push_container(on_death.death_actions.clone());
             messages.extend(on_death.death_messages.clone());
         }
     }

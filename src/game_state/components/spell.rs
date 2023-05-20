@@ -122,7 +122,7 @@ pub fn spell_casting(
             .commands
             .contains_key(&crate::game_state::controller::Command::spell_from_int(i))
         {
-            actions.add(caster.attempt_cast(i))
+            actions.push_container(caster.attempt_cast(i))
         }
     }
 }

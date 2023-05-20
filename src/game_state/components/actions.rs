@@ -94,8 +94,22 @@ impl ActionEffect {
     /// Creates a new transformation effect, that affects a certain set of entities for an unlimited amount of time, transforming all actions applied to them as specified.
     pub fn transform(target: ActionEffectTarget, transform: fn(&mut GameAction)) -> Self {
         Self {
-            target: target,
-            content: ActionEffectType::Transform(ActionTransformer::new(transform)),
+            target,
+            content: ActionEffectType::Transform(ActionTransformer {
+                transform: Arc::new(transform),
+            }),
+            duration: None,
+            alive_duration: Duration::ZERO,
+        }
+    }
+
+    /// Creates a new reaction effect, triggering on received actions to possibly trigger other actions
+    pub fn react(target: ActionEffectTarget, reaction: fn(&GameAction) -> ActionContainer) -> Self {
+        Self {
+            target,
+            content: ActionEffectType::Reaction(Reaction {
+                react: Arc::new(reaction),
+            }),
             duration: None,
             alive_duration: Duration::ZERO,
         }
@@ -158,6 +172,8 @@ impl From<ActionEffect> for GameAction {
 enum ActionEffectType {
     /// Transformation: Transforms effects applied to entities.
     Transform(ActionTransformer),
+    /// Reactions: Triggers certain actions when receiving certain actions.
+    Reaction(Reaction),
     /// Repetition: Repeatedly applies actions to entities.
     Repeat {
         actions: ActionContainer,
@@ -172,14 +188,14 @@ enum ActionEffectType {
 /// An enum that describes what targets to distribute an effect or ActionModification to.
 pub struct ActionEffectTarget {
     /// If only entities that have an [super::Enemy] component are affected.
-    pub enemies_only: bool,
+    enemies_only: bool,
     /// The range from the source entity.
-    pub range: f32,
+    range: f32,
     /// If the source entity itself is also affected.
-    pub affect_self: bool,
+    affect_self: bool,
     /// The max amount of entities that will be affected. None means an unlimited amount.
     /// These will be sorted by distance to source entity.
-    pub limit: Option<usize>,
+    limit: Option<usize>,
 }
 
 impl ActionEffectTarget {
@@ -230,22 +246,25 @@ impl ActionEffectTarget {
 
 #[derive(Clone)]
 /// A composite component of [ActionEffect] that transforms actions.
-pub struct ActionTransformer {
-    pub transform: Arc<fn(&mut GameAction)>,
-}
-
-impl ActionTransformer {
-    /// Creates a new GameActionContainer transforming all actions on a target.
-    pub fn new(transform: fn(&mut GameAction)) -> Self {
-        ActionTransformer {
-            transform: Arc::new(transform),
-        }
-    }
+struct ActionTransformer {
+    transform: Arc<fn(&mut GameAction)>,
 }
 
 impl Debug for ActionTransformer {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ActionTransformer").finish()
+    }
+}
+
+#[derive(Clone)]
+/// A compositive component of [ActionEffect] that reacts to received actions.
+struct Reaction {
+    react: Arc<fn(&GameAction) -> ActionContainer>,
+}
+
+impl Debug for Reaction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Reaction").finish()
     }
 }
 
@@ -313,7 +332,7 @@ impl Actions {
     }
 
     /// Adds one or multiple actions to this entitiy. They will be handled this game frame and then discarded.
-    pub fn add(&mut self, actions: ActionContainer) {
+    pub fn push_container(&mut self, actions: ActionContainer) {
         match actions {
             ActionContainer::ApplySingle(act) => self.push(act),
             ActionContainer::ApplyMultiple(act_vec) => {
@@ -325,9 +344,20 @@ impl Actions {
     }
 
     /// Transforms all actions currently in this entities action queue.
-    pub fn transform(&mut self, transform: &fn(&mut GameAction)) {
+    fn transform(&mut self, transform: &fn(&mut GameAction)) {
         for action in self.action_queue.iter_mut() {
             transform(action);
+        }
+    }
+
+    // Reacts to all currently stored actions, potentially creating new actions
+    fn react(&mut self, reaction: &fn(&GameAction) -> ActionContainer) {
+        let mut to_add = Vec::new();
+        for action in self.action_queue.iter() {
+            to_add.push(reaction(action));
+        }
+        for cont in to_add {
+            self.push_container(cont);
         }
     }
 
@@ -371,6 +401,7 @@ pub fn resolve_executive_actions(
 pub fn handle_effects(world: &mut legion::world::SubWorld, #[resource] ix: &Interactions) {
     // compile a list of all transforms & applies affecting entities
     let mut transforms = Vec::new();
+    let mut reactions = Vec::new();
     let mut applies = Vec::new();
 
     // iterate over all sources of effects
@@ -411,6 +442,9 @@ pub fn handle_effects(world: &mut legion::world::SubWorld, #[resource] ix: &Inte
                             applies.push((*target, actions.clone()));
                         }
                     }
+                    ActionEffectType::Reaction(reaction) => {
+                        reactions.push((*target, reaction.react.clone()));
+                    }
                     ActionEffectType::Once(actions) => {
                         if effect
                             .duration
@@ -434,11 +468,20 @@ pub fn handle_effects(world: &mut legion::world::SubWorld, #[resource] ix: &Inte
         }
     }
 
+    // apply remembered reactions to all entities
+    for (target, reaction) in reactions {
+        if let Ok(mut entry) = world.entry_mut(target) {
+            if let Ok(actions) = entry.get_component_mut::<Actions>() {
+                actions.react(reaction.as_ref());
+            }
+        }
+    }
+
     // apply all remembered action application to all entities
     for (target, new_actions) in applies {
         if let Ok(mut entry) = world.entry_mut(target) {
             if let Ok(actions) = entry.get_component_mut::<Actions>() {
-                actions.add(new_actions);
+                actions.push_container(new_actions);
             }
         }
     }
