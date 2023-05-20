@@ -34,6 +34,10 @@ impl Achievement {
         }
     }
 
+    pub fn reset_progress(&mut self){
+        self.progress = 0;
+    }
+
     /// Checks a message and increases the internal progress counter if it triggers this achievement
     pub fn listen(&mut self, message: &GameMessage) {
         if (self.check_fulfil)(message) {
