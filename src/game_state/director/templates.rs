@@ -26,6 +26,14 @@ pub(super) fn generate_templates(
             070,
             super::spawners::spawn_fast_skeleton,
         ),
+        // Dodge skeleton
+        EnemyTemplate::new(
+            sprite_pool.init_sprite("/sprites/enemies/skeleton_sword", Duration::ZERO)?,
+            "Skeleton Dodger",
+            "A nimble enemy that walks faster and slightly sideways, but has less health than the basic skeleton. It also does a short sprint from time to time.",
+            080,
+            super::spawners::spawn_dodge_skeleton,
+        ),
         // Tanky skeleton
         EnemyTemplate::new(
             sprite_pool.init_sprite("/sprites/enemies/skeleton_tank", Duration::ZERO)?,
@@ -45,10 +53,18 @@ pub(super) fn generate_templates(
         // Wizard
         EnemyTemplate::new(
             sprite_pool.init_sprite("/sprites/enemies/skeleton_wizard", Duration::ZERO)?,
-            "Skeleton Wizard",
+            "Lightning Wizard",
             "A slow and flimsy enemy that regularly speeds up nearby allies and heals them.",
             150,
             super::spawners::spawn_wizard_skeleton,
+        ),
+        // Wizard 2
+        EnemyTemplate::new(
+            sprite_pool.init_sprite("/sprites/enemies/skeleton_wizard2", Duration::ZERO)?,
+            "Earth Wizard",
+            "A slow and flimsy enemy that regularly gives nearby allies a damage reducing shield and heals them.",
+            150,
+            super::spawners::spawn_wizard_skeleton2,
         ),
         // Splitter
         EnemyTemplate::new(

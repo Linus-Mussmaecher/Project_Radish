@@ -52,6 +52,48 @@ pub fn spawn_fast_skeleton(
     Ok(())
 }
 
+/// # Dodging skeleton
+/// ## Enemy
+/// A fast skeleton that regularly and does a short sprint
+pub fn spawn_dodge_skeleton(
+    cmd: &mut CommandBuffer,
+    sprite_pool: &sprite::SpritePool,
+    pos: components::Position,
+) -> Result<(), GameError> {
+    cmd.push((
+        pos,
+        components::Velocity::new(10., 22.),
+        components::BoundaryCollision::new(true, false, true),
+        components::Graphics::from(sprite_pool.init_sprite(
+            "/sprites/enemies/skeleton_sword",
+            Duration::from_secs_f32(0.25),
+        )?),
+        components::Actions::new().with_effect(actions::ActionEffect::repeat(
+            actions::ActionEffectTarget::new_only_self(),
+            actions::GameAction::ApplyEffect(
+                actions::ActionEffect::transform(
+                    actions::ActionEffectTarget::new_only_self(),
+                    |action| {
+                        match action {
+                            actions::GameAction::Move { delta } => {
+                                delta.x *= 10.;
+                                delta.y *= 2.;
+                            }
+                            _ => {}
+                        };
+                    },
+                ).with_duration(Duration::from_secs(2))
+                .into(),
+            ),
+            Duration::from_secs(8),
+        )),
+        components::Enemy::new(1, 15),
+        components::Health::new(50),
+        components::Collision::new_basic(64., 64.),
+    ));
+    Ok(())
+}
+
 /// # Loot goblin
 /// ## Enemy
 /// A skeleton that does not move down, only sideways.
@@ -118,8 +160,10 @@ pub fn spawn_tank_skeleton(
                     actions::GameAction::TakeHealing { heal: 40 },
                     actions::GameAction::AddParticle(
                         components::graphics::Particle::new(
-                            sprite_pool
-                                .init_sprite("/sprites/heal", Duration::from_secs_f32(0.25))?,
+                            sprite_pool.init_sprite(
+                                "/sprites/effects/heal",
+                                Duration::from_secs_f32(0.25),
+                            )?,
                         )
                         .with_duration(Duration::from_secs(1))
                         .with_velocity(0., -15.)
@@ -176,8 +220,10 @@ pub fn spawn_charge_skeleton(
                 vec![
                     actions::GameAction::AddParticle(
                         components::graphics::Particle::new(
-                            sprite_pool
-                                .init_sprite("/sprites/bolt", Duration::from_secs_f32(0.25))?,
+                            sprite_pool.init_sprite(
+                                "/sprites/effects/bolt",
+                                Duration::from_secs_f32(0.25),
+                            )?,
                         )
                         .with_duration(Duration::from_secs(5))
                         .with_velocity(0., -10.)
@@ -232,8 +278,10 @@ pub fn spawn_wizard_skeleton(
                 vec![
                     actions::GameAction::AddParticle(
                         components::graphics::Particle::new(
-                            sprite_pool
-                                .init_sprite("/sprites/bolt", Duration::from_secs_f32(0.25))?,
+                            sprite_pool.init_sprite(
+                                "/sprites/effects/bolt",
+                                Duration::from_secs_f32(0.25),
+                            )?,
                         )
                         .with_duration(Duration::from_secs(3))
                         .with_velocity(0., -10.)
@@ -264,8 +312,10 @@ pub fn spawn_wizard_skeleton(
                 vec![
                     actions::GameAction::AddParticle(
                         components::graphics::Particle::new(
-                            sprite_pool
-                                .init_sprite("/sprites/heal", Duration::from_secs_f32(0.25))?,
+                            sprite_pool.init_sprite(
+                                "/sprites/effects/heal",
+                                Duration::from_secs_f32(0.25),
+                            )?,
                         )
                         .with_duration(Duration::from_secs(3))
                         .with_velocity(0., -10.)
@@ -274,6 +324,82 @@ pub fn spawn_wizard_skeleton(
                     actions::GameAction::TakeHealing { heal: 75 },
                 ],
                 Duration::from_secs(8),
+            )),
+        components::Enemy::new(3, 35),
+        components::Health::new(150),
+        components::Collision::new_basic(64., 64.),
+    ));
+    Ok(())
+}
+
+/// # Wizard 2
+/// ## Enemy
+/// A tanky but slow caster that heals allies and gives them a damage protection aura.
+pub fn spawn_wizard_skeleton2(
+    cmd: &mut CommandBuffer,
+    sprite_pool: &sprite::SpritePool,
+    pos: components::Position,
+) -> Result<(), GameError> {
+    cmd.push((
+        pos,
+        components::Velocity::new(0., 7.),
+        components::Graphics::from(sprite_pool.init_sprite(
+            "/sprites/enemies/skeleton_wizard2",
+            Duration::from_secs_f32(0.25),
+        )?),
+        // 'Spell' 1: Speed up a nearby ally for 3 seconds every 5 seconds.
+        components::actions::Actions::new()
+            .with_effect(actions::ActionEffect::repeat(
+                actions::ActionEffectTarget::new()
+                    .with_affect_self(false)
+                    .with_range(512.)
+                    .with_enemies_only(true)
+                    .with_limit(1),
+                vec![
+                    actions::GameAction::AddParticle(
+                        components::graphics::Particle::new(sprite_pool.init_sprite(
+                            "/sprites/effects/shield",
+                            Duration::from_secs_f32(0.25),
+                        )?)
+                        .with_duration(Duration::from_secs(3)),
+                    ),
+                    actions::ActionEffect::transform(
+                        actions::ActionEffectTarget::new_only_self(),
+                        |act| {
+                            match act {
+                                // speed up an ally by 250%
+                                actions::GameAction::TakeDamage { dmg } => *dmg /= 3,
+                                _ => {}
+                            };
+                        },
+                    )
+                    .with_duration(Duration::from_secs(3))
+                    .into(),
+                ],
+                Duration::from_secs(8),
+            ))
+            // 'Spell' 2: Heal a nearby ally every 8 seconds.
+            .with_effect(actions::ActionEffect::repeat(
+                actions::ActionEffectTarget::new()
+                    .with_affect_self(false)
+                    .with_range(512.)
+                    .with_enemies_only(true)
+                    .with_limit(1),
+                vec![
+                    actions::GameAction::AddParticle(
+                        components::graphics::Particle::new(
+                            sprite_pool.init_sprite(
+                                "/sprites/effects/heal",
+                                Duration::from_secs_f32(0.25),
+                            )?,
+                        )
+                        .with_duration(Duration::from_secs(3))
+                        .with_velocity(0., -10.)
+                        .with_relative_position(0., -24.),
+                    ),
+                    actions::GameAction::TakeHealing { heal: 60 },
+                ],
+                Duration::from_secs(5),
             )),
         components::Enemy::new(3, 35),
         components::Health::new(150),
