@@ -21,9 +21,10 @@ pub fn construct_fireball(spritepool: &SpritePool) -> Spell {
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(10)),
-                components::Graphics::from(
-                    sp.init_sprite_unchecked("/sprites/spells/fireball", Duration::from_secs_f32(0.2)),
-                ),
+                components::Graphics::from(sp.init_sprite_unchecked(
+                    "/sprites/spells/fireball",
+                    Duration::from_secs_f32(0.2),
+                )),
                 components::Velocity::new(0., -250.),
                 components::Collision::new(32., 32., |e1, e2| {
                     (
@@ -50,9 +51,10 @@ pub fn construct_icebomb(spritepool: &SpritePool) -> Spell {
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(10)),
-                components::Graphics::from(
-                    sp.init_sprite_unchecked("/sprites/spells/icebomb", Duration::from_secs_f32(0.2)),
-                ),
+                components::Graphics::from(sp.init_sprite_unchecked(
+                    "/sprites/spells/icebomb",
+                    Duration::from_secs_f32(0.2),
+                )),
                 components::Velocity::new(0., -520.),
                 components::Collision::new(32., 32., |e1, e2| {
                     (
@@ -117,9 +119,10 @@ pub fn construct_electrobomb(spritepool: &SpritePool) -> Spell {
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(10)),
-                components::Graphics::from(
-                    sp.init_sprite_unchecked("/sprites/spells/electroorb", Duration::from_secs_f32(0.2)),
-                ),
+                components::Graphics::from(sp.init_sprite_unchecked(
+                    "/sprites/spells/electroorb",
+                    Duration::from_secs_f32(0.2),
+                )),
                 components::Velocity::new(0., -180.),
                 components::Collision::new(32., 32., |e1, e2| {
                     (
@@ -150,8 +153,7 @@ pub fn construct_conflagrate(spritepool: &SpritePool) -> Spell {
     Spell {
         spell_slots: tiny_vec!([f32; MAX_SPELL_SLOTS] => 4., 4., 10., 10.),
         name: "Conflagrate".to_owned(),
-        icon: spritepool
-            .init_sprite_unchecked("/sprites/spells/fireball", Duration::from_secs(1)),
+        icon: spritepool.init_sprite_unchecked("/sprites/spells/fireball", Duration::from_secs(1)),
         spell_: ActionEffect::once(
             ActionEffectTarget::new()
                 .with_enemies_only(true)
@@ -165,10 +167,10 @@ pub fn construct_conflagrate(spritepool: &SpritePool) -> Spell {
                 .with_duration(Duration::from_secs(5))
                 .into(),
                 GameAction::AddParticle(
-                    Particle::new(
-                        spritepool
-                            .init_sprite_unchecked("/sprites/spells/burning", Duration::from_secs_f32(0.25))
-                    )
+                    Particle::new(spritepool.init_sprite_unchecked(
+                        "/sprites/spells/burning",
+                        Duration::from_secs_f32(0.25),
+                    ))
                     .with_duration(Duration::from_secs(5)),
                 ),
             ],

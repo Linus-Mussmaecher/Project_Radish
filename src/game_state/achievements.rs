@@ -34,7 +34,7 @@ impl Achievement {
         }
     }
 
-    pub fn reset_progress(&mut self){
+    pub fn reset_progress(&mut self) {
         self.progress = 0;
     }
 
@@ -111,7 +111,7 @@ impl AchievementSet {
             "Reach wave 2.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a2_16_16.png").ok(),
             1,
-            |msg| matches!(msg, GameMessage::NextWave(1)),
+            |msg| matches!(msg, GameMessage::NextWave(2)),
         ));
 
         res.push(Achievement::new(
@@ -134,7 +134,7 @@ impl AchievementSet {
             "Kill an elite enemy.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a5_16_16.png").ok(),
             1,
-            |msg| matches!(msg, GameMessage::UpdateGold(gold) if *gold > 20),
+            |msg| matches!(msg, GameMessage::UpdateGold(gold) if *gold >= 20),
         ));
 
         res.push(Achievement::new(
@@ -142,7 +142,7 @@ impl AchievementSet {
             "Kill 50 elite enemies.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a6_16_16.png").ok(),
             50,
-            |msg| matches!(msg, GameMessage::UpdateGold(gold) if *gold > 20),
+            |msg| matches!(msg, GameMessage::UpdateGold(gold) if *gold >= 20),
         ));
 
         res.push(Achievement::new(

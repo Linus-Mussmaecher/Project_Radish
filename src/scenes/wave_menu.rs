@@ -8,6 +8,7 @@ use crate::PALETTE;
 pub fn construct_wave_menu(
     ctx: &ggez::Context,
     wave_survived: i32,
+    enemies: &[&crate::game_state::EnemyTemplate],
 ) -> UiElement<crate::game_state::GameMessage> {
     // title
     let wave_info = graphics::Text::new(
@@ -42,9 +43,9 @@ pub fn construct_wave_menu(
         )
         .build();
 
-        let house = graphics::Image::from_path(ctx, "/sprites/ui/house_add.png")
+    let house = graphics::Image::from_path(ctx, "/sprites/ui/house_add.png")
         .expect("[ERROR] Missing house sprite.")
-        .to_element_builder(202, ctx)
+        .to_element_builder(203, ctx)
         .as_shrink()
         .scaled(2., 2.)
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::U)
@@ -66,7 +67,7 @@ pub fn construct_wave_menu(
 
     let reroll = graphics::Image::from_path(ctx, "/sprites/ui/reroll.png")
         .expect("[ERROR] Missing reroll sprite.")
-        .to_element_builder(203, ctx)
+        .to_element_builder(204, ctx)
         .as_shrink()
         .scaled(2., 2.)
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::I)
@@ -85,31 +86,80 @@ pub fn construct_wave_menu(
             .build(),
         )
         .build();
+    
+
+    let next = graphics::Image::from_path(ctx, "/sprites/ui/next.png")
+        .expect("[ERROR] Missing reroll sprite.")
+        .to_element_builder(201, ctx)
+        .as_shrink()
+        .scaled(2., 2.)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::N)
+        .with_visuals(super::BUTTON_VIS)
+        .with_hover_visuals(super::BUTTON_HOVER_VIS)
+        .with_tooltip(
+            graphics::Text::new(
+                graphics::TextFragment::new("Start the next wave!")
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+            )
+            .set_scale(24.)
+            .set_font("Retro")
+            .to_owned()
+            .to_element_builder(0, ctx)
+            .with_visuals(super::BUTTON_VIS)
+            .build(),
+        )
+        .build();
 
     let mut upgrade_box = containers::HorizontalBox::new();
     upgrade_box.add(mana);
     upgrade_box.add(house);
     upgrade_box.add(reroll);
+    upgrade_box.add(next);
     let upgrade_box = upgrade_box.to_element_builder(0, ctx).build();
 
-    let next = graphics::Text::new(
-        graphics::TextFragment::new("Next Wave").color(graphics::Color::from_rgb_u32(PALETTE[6])),
-    )
-    .set_font("Retro")
-    .set_scale(32.)
-    .to_owned()
-    .to_element_builder(201, ctx)
-    .with_trigger_key(ggez::winit::event::VirtualKeyCode::N)
-    .with_visuals(super::BUTTON_VIS)
-    .with_hover_visuals(super::BUTTON_HOVER_VIS)
-    .build();
+    let mut enemy_box = containers::HorizontalBox::new();
+
+    for template in enemies {
+        enemy_box.add(
+            template
+                .icon
+                .clone()
+                .to_element_builder(0, ctx)
+                .scaled(4., 4.)
+                .with_tooltip(
+                    graphics::Text::new(
+                        graphics::TextFragment::new(&template.name)
+                            .color(graphics::Color::from_rgb_u32(PALETTE[8]))
+                            .scale(36.),
+                    )
+                    .add(graphics::TextFragment::new("\n"))
+                    .add(
+                        graphics::TextFragment::new(&template.description)
+                            .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                            .scale(24.),
+                    )
+                    .set_bounds(ggez::glam::Vec2::new(300., 200.))
+                    .set_wrap(true)
+                    .set_font("Retro")
+                    .to_owned()
+                    .to_element_builder(0, ctx)
+                    .with_visuals(super::BUTTON_VIS)
+                    .build(),
+                )
+                .build(),
+        );
+    }
+
+    let enemy_box = enemy_box
+        .to_element_builder(0, ctx)
+        .with_visuals(super::BUTTON_VIS)
+        .build();
 
     // Container
-
     let mut menu_box = containers::VerticalBox::new();
     menu_box.add(wave_info);
+    menu_box.add(enemy_box);
     menu_box.add(upgrade_box);
-    menu_box.add(next);
     menu_box.spacing = 25.;
     let menu_box = menu_box
         .to_element_builder(200, ctx)

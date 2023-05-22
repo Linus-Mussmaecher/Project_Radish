@@ -15,6 +15,7 @@ pub use game_message::MessageSet;
 mod game_data;
 
 mod director;
+pub use director::EnemyTemplate;
 
 mod components;
 use self::components::spell::spell_list;
@@ -88,8 +89,8 @@ impl GameState {
         resources.insert(game_data);
         resources.insert(message_set);
         resources.insert(boundaries);
+        resources.insert(director::Director::new(&sprite_pool));
         resources.insert(sprite_pool);
-        resources.insert(director::Director::new());
 
         // --- SYSTEM REGISTRY / UI CONSTRUCTION / CONTROLLER INITIALIZATION ---
         Ok(Self {
@@ -257,10 +258,18 @@ impl scene_manager::Scene for GameState {
 
             // check for next wave condition
             for message in message_set.iter() {
-                if let &UiMessage::Extern(GameMessage::NextWave(wave)) = message {
-                    // Wave menu begin
-                    self.gui
-                        .add_element(0, wave_menu::construct_wave_menu(ctx, wave - 1));
+                if let &UiMessage::Extern(GameMessage::NextWave(_)) = message {
+                    if let Some(director) = self.resources.get::<director::Director>() {
+                        // Wave menu begin
+                        self.gui.add_element(
+                            0,
+                            wave_menu::construct_wave_menu(
+                                ctx,
+                                director.get_wave() as i32,
+                                &director.get_enemies(),
+                            ),
+                        );
+                    }
                 }
 
                 for listener in self.listeners.iter_mut() {
@@ -308,8 +317,27 @@ impl scene_manager::Scene for GameState {
                     sc.add_slot();
                     self.gui.add_element(
                         50,
-                        crate::scenes::game_ui::create_spellslot(                            ctx,                            sc.get_slots() - 1,                        ),
+                        crate::scenes::game_ui::create_spellslot(
+                            ctx,
+                            sc.get_slots() - 1,
+                        ),
                     );
+                }
+            }
+
+            // reroll enemies
+            if_chain! {
+                if messages.contains(&UiMessage::Triggered(204));
+                if let Some(mut director) = self.resources.get_mut::<director::Director>();
+                if let Some(mut data) = self.resources.get_mut::<self::game_data::GameData>();
+                if data.spend(50);
+                then {
+                    // reroll enemies
+                    director.reroll_wave_enemies();
+                    // recreate UI
+                    self.gui.remove_elements(200);
+                    self.gui
+                    .add_element(0, wave_menu::construct_wave_menu(ctx, director.get_wave() as i32 , &director.get_enemies()));
                 }
             }
         }

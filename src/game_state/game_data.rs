@@ -12,6 +12,8 @@ pub struct GameData {
     score: i32,
     /// The gold the player currently holds (= score - gold spent).
     gold: i32,
+    /// The gold the player had on the last pass (may have changed from the outside)
+    last_gold: i32,
     /// The health the city has left. Public to allow easy access.
     pub city_health: i32,
 }
@@ -23,6 +25,7 @@ impl GameData {
             player,
             score: 0,
             gold: 0,
+            last_gold: 0,
             city_health: 10,
         }
     }
@@ -63,13 +66,11 @@ pub fn resolve_gama_data(
     #[resource] game_data: &mut GameData,
     #[resource] messages: &mut MessageSet,
 ) {
-    let mut change_gold = false;
     let mut change_city = false;
     for action in actions.get_actions() {
         match action {
             GameAction::GainGold { amount } => {
                 game_data.add_gold(*amount);
-                change_gold = true;
             }
             GameAction::TakeCityDamage { dmg } => {
                 game_data.city_health -= *dmg as i32;
@@ -79,10 +80,11 @@ pub fn resolve_gama_data(
         }
     }
 
-    if change_gold {
+    if game_data.last_gold != game_data.gold {
         messages.insert(mooeye::UiMessage::Extern(GameMessage::UpdateGold(
             game_data.gold,
         )));
+        game_data.last_gold = game_data.gold;
     }
 
     if change_city {

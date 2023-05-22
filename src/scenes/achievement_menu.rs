@@ -1,7 +1,7 @@
 use ggez::{glam::Vec2, graphics, GameError};
 use mooeye::{ui_element::UiContainer, *};
 
-use crate::{PALETTE, game_state::achievements::AchievementSet};
+use crate::{game_state::achievements::AchievementSet, PALETTE};
 
 pub struct AchievementMenu {
     gui: UiElement<()>,
@@ -71,7 +71,8 @@ impl AchievementMenu {
         let achievements = achievements.to_element(0, ctx);
 
         let reset = graphics::Text::new(
-            graphics::TextFragment::new("Reset progress").color(graphics::Color::from_rgb_u32(PALETTE[6])),
+            graphics::TextFragment::new("Reset progress")
+                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
         .set_scale(32.)
@@ -121,9 +122,9 @@ impl scene_manager::Scene for AchievementMenu {
     ) -> Result<mooeye::scene_manager::SceneSwitch, ggez::GameError> {
         let messages = self.gui.manage_messages(ctx, None);
 
-        if messages.contains(&mooeye::UiMessage::Triggered(2)){
+        if messages.contains(&mooeye::UiMessage::Triggered(2)) {
             let mut a_list = AchievementSet::load(ctx);
-            for ach in a_list.list.iter_mut(){
+            for ach in a_list.list.iter_mut() {
                 ach.reset_progress();
             }
             a_list.save();
