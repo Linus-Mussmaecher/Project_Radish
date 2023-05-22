@@ -22,7 +22,7 @@ pub(super) fn generate_templates(
         EnemyTemplate::new(
             sprite_pool.init_sprite("/sprites/enemies/skeleton_sword", Duration::ZERO)?,
             "Skeleton Runner",
-            "A enemy that walks faster and dodges from side to side, but has less health than the basic skeleton.",
+            "A nimble enemy that walks faster and also sideways, but has less health than the basic skeleton.",
             070,
             super::spawners::spawn_fast_skeleton,
         ),
@@ -38,7 +38,7 @@ pub(super) fn generate_templates(
         EnemyTemplate::new(
             sprite_pool.init_sprite("/sprites/enemies/skeleton_flag", Duration::ZERO)?,
             "Skeleton Bannerman",
-            "A tanky skeleton with decent speed. Speeds up nearby allies, with a huge speed bost on death",
+            "A skeleton with decent speed and suvivability. Speeds up nearby allies, with a huge speed bost on death.",
             110,
             super::spawners::spawn_charge_skeleton,
         ),
@@ -58,14 +58,6 @@ pub(super) fn generate_templates(
             200,
             super::spawners::spawn_splitter,
         ),
-        // getting-faster
-        EnemyTemplate::new(
-            sprite_pool.init_sprite("/sprites/enemies/ghost", Duration::ZERO)?,
-            "Ghost",
-            "A slow enemy that, whenever it takes damage, speeds up and becomes temporarily immune.",
-            200,
-            super::spawners::spawn_ghost,
-        ),
         // loot
         EnemyTemplate::new(
             sprite_pool.init_sprite("/sprites/enemies/skeleton_loot", Duration::ZERO)?,
@@ -73,6 +65,14 @@ pub(super) fn generate_templates(
             "An enemy that doesn't threaten your city but lingers at a fixed height, disappearing after a time. Drops huge amounts of gold on death.",
             180,
             super::spawners::spawn_loot_skeleton,
+        ),
+        // getting-faster
+        EnemyTemplate::new(
+            sprite_pool.init_sprite("/sprites/enemies/ghost", Duration::ZERO)?,
+            "Ghost",
+            "A slow enemy that, whenever it takes damage, speeds up and becomes temporarily immune.",
+            200,
+            super::spawners::spawn_ghost,
         ),
 
     ])

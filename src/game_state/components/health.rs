@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use legion::{system, systems::CommandBuffer, Entity};
 
-use crate::game_state::{controller::Interactions, game_message::MessageSet};
+use crate::game_state::{controller::Interactions, game_message};
 
 use super::*;
 
@@ -59,14 +59,14 @@ impl Enemy {
 /// A struct that contains a actions and messages send by an entity on death.
 pub struct OnDeath {
     death_actions: actions::ActionContainer,
-    death_messages: MessageSet,
+    death_messages: game_message::MessageSet,
 }
 
 impl OnDeath {
     /// Creates a new OnDeath component. The carrying entity will trigger the passed closure when its health reaches 0.
     pub fn new(
         death_actions: impl Into<actions::ActionContainer>,
-        death_messages: MessageSet,
+        death_messages: game_message::MessageSet,
     ) -> Self {
         Self {
             death_actions: death_actions.into(),
@@ -94,7 +94,7 @@ pub fn destroy_by_health(
     enemy: Option<&Enemy>,
     on_death: Option<&OnDeath>,
     actions: &mut Actions,
-    #[resource] messages: &mut MessageSet,
+    #[resource] messages: &mut game_message::MessageSet,
 ) {
     if health.curr_health <= 0 {
         // in case of enemies
@@ -103,6 +103,7 @@ pub fn destroy_by_health(
             actions.push(actions::GameAction::GainGold {
                 amount: enemy.bounty,
             });
+            messages.insert(mooeye::UiMessage::Extern(game_message::GameMessage::EnemyKilled(enemy.bounty)));
         }
 
         actions.push(actions::GameAction::Remove(

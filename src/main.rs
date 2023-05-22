@@ -13,13 +13,9 @@ const PALETTE: [u32; 16] = [
 ];
 
 fn main() -> GameResult {
-    // let resource_dir = if let Ok(manifest_dir) = std::env::var("CARGO_MANIFEST_DIR") {
-    //     let mut path = std::path::PathBuf::from(manifest_dir);
-    //     path.push("resources");
-    //     path
-    // } else {
-    //     std::path::PathBuf::from("./resources")
-    // };
+
+    // for debugging
+    //std::env::set_var("RUST_BACKTRACE", "1");
 
     //generate game context (window etc.)
 

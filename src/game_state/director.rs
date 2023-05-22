@@ -89,13 +89,6 @@ impl Director {
         }
         // sort the wave_enemies array
         self.wave_enemies.sort();
-
-        // remove duplicates
-        for i in 1..4 {
-            if self.wave_enemies[i] == self.wave_enemies[i - 1] {
-                self.wave_enemies[i] = (self.wave_enemies[i] + 1) % self.enemies.len();
-            }
-        }
     }
 }
 

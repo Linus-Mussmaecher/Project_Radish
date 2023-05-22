@@ -103,7 +103,7 @@ impl AchievementSet {
             "Kill an enemy.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a1_16_16.png").ok(),
             1,
-            |msg| matches!(msg, GameMessage::UpdateGold(_)),
+            |msg| matches!(msg, GameMessage::EnemyKilled(_)),
         ));
 
         res.push(Achievement::new(
@@ -119,14 +119,14 @@ impl AchievementSet {
             "Kill 50 enemies.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a3_16_16.png").ok(),
             50,
-            |msg| matches!(msg, GameMessage::UpdateGold(_)),
+            |msg| matches!(msg, GameMessage::EnemyKilled(_)),
         ));
         res.push(Achievement::new(
             "They were legion",
             "Kill 1000 enemies.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a4_16_16.png").ok(),
             1000,
-            |msg| matches!(msg, GameMessage::UpdateGold(_)),
+            |msg| matches!(msg, GameMessage::EnemyKilled(_)),
         ));
 
         res.push(Achievement::new(
@@ -134,7 +134,7 @@ impl AchievementSet {
             "Kill an elite enemy.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a5_16_16.png").ok(),
             1,
-            |msg| matches!(msg, GameMessage::UpdateGold(gold) if *gold >= 20),
+            |msg| matches!(msg, GameMessage::EnemyKilled(gold) if *gold >= 20),
         ));
 
         res.push(Achievement::new(
@@ -142,7 +142,7 @@ impl AchievementSet {
             "Kill 50 elite enemies.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a6_16_16.png").ok(),
             50,
-            |msg| matches!(msg, GameMessage::UpdateGold(gold) if *gold >= 20),
+            |msg| matches!(msg, GameMessage::EnemyKilled(gold) if *gold >= 20),
         ));
 
         res.push(Achievement::new(

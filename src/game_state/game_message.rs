@@ -6,6 +6,7 @@ pub enum GameMessage {
     UpdateGold(i32),
     UpdateSpellSlots(usize, u8),
     NextWave(i32),
+    EnemyKilled(i32),
 }
 
 pub type MessageSet = std::collections::HashSet<mooeye::UiMessage<GameMessage>>;
