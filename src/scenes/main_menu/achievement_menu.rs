@@ -1,4 +1,4 @@
-use ggez::{glam::Vec2, graphics, GameError};
+use ggez::{graphics, GameError};
 use mooeye::{ui_element::UiContainer, *};
 
 use crate::PALETTE;
@@ -24,46 +24,7 @@ impl AchievementMenu {
 
         let mut achievements = mooeye::containers::GridBox::new(4, (a_list.list.len() - 1) / 4 + 1);
         for (index, ach) in a_list.list.iter().enumerate() {
-            let achievement = if ach.is_achieved() && ach.get_icon().is_some() {
-                ach.get_icon().clone().unwrap()
-            } else {
-                graphics::Image::from_path(ctx, "/sprites/ui/lock.png")?
-            }
-            .to_element_builder(0, ctx)
-            .with_visuals(super::BUTTON_VIS)
-            .scaled(4., 4.)
-            .with_tooltip(
-                graphics::Text::new(
-                    graphics::TextFragment::new(ach.get_name())
-                        .color(graphics::Color::from_rgb_u32(PALETTE[7]))
-                        .scale(28.),
-                )
-                .add("\n")
-                .add(
-                    graphics::TextFragment::new(ach.get_desc())
-                        .color(graphics::Color::from_rgb_u32(PALETTE[6]))
-                        .scale(20.),
-                )
-                .add(
-                    graphics::TextFragment::new(format!(
-                        "\n  {} / {}",
-                        ach.get_progress(),
-                        ach.get_target()
-                    ))
-                    .color(graphics::Color::from_rgb_u32(PALETTE[6]))
-                    .scale(20.),
-                )
-                .set_font("Retro")
-                .set_wrap(true)
-                .set_bounds(Vec2::new(300., 200.))
-                .to_owned()
-                .to_element_builder(0, ctx)
-                .with_visuals(super::BUTTON_VIS)
-                .build(),
-            )
-            .build();
-
-            achievements.add(achievement, index % 4, index / 4)?;
+            achievements.add(ach.info_element_small(ctx), index % 4, index / 4)?;
         }
         achievements.vertical_spacing = 10.;
         achievements.horizontal_spacing = 10.;

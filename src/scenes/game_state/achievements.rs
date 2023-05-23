@@ -1,8 +1,8 @@
 use std::fs;
 
 use ggez::graphics;
-use mooeye::{*, ui_element::UiContainer};
-use serde::{Serialize, Deserialize};
+use mooeye::{ui_element::UiContainer, *};
+use serde::{Deserialize, Serialize};
 
 use crate::PALETTE;
 
@@ -41,10 +41,14 @@ impl Achievement {
         self.progress = 0;
     }
 
-    /// Checks a message and increases the internal progress counter if it triggers this achievement
-    pub fn listen(&mut self, message: &GameMessage) {
+    /// Checks a message and increases the internal progress counter if it triggers this achievement.
+    /// Returns true if this completed the achievement.
+    pub fn listen(&mut self, message: &GameMessage) -> bool {
         if (self.check_fulfil)(message) {
-            self.progress = (self.progress + 1).min(self.target);
+            self.progress += 1;
+            self.progress == self.target
+        } else {
+            false
         }
     }
 
@@ -53,30 +57,54 @@ impl Achievement {
         self.progress
     }
 
-    /// Returns how often the conditions for this achievement need to be fulfiled to count as achieved
-    pub fn get_target(&self) -> u32 {
-        self.target
-    }
-
-    pub fn get_name(&self) -> &str {
-        &self.name
-    }
-
-    pub fn get_desc(&self) -> &str {
-        &self.description
-    }
-
-    pub fn get_icon(&self) -> &Option<graphics::Image> {
-        &self.icon
-    }
-
     /// Returns wether or not this achievement has been achieved often enough yet
     pub fn is_achieved(&self) -> bool {
         self.progress >= self.target
     }
 
+    /// Returns a small UiElement representing this achievement, consisting of the icon and a tooltip.
+    pub fn info_element_small<T: Copy + Eq + std::hash::Hash + 'static>(
+        &self,
+        ctx: &ggez::Context,
+    ) -> mooeye::UiElement<T> {
+        if self.is_achieved() && self.icon.is_some() {
+            self.icon.clone().unwrap()
+        } else {
+            graphics::Image::from_path(ctx, "/sprites/ui/lock.png").unwrap()
+        }
+        .to_element_builder(0, ctx)
+        .with_visuals(super::super::BUTTON_VIS)
+        .scaled(4., 4.)
+        .with_tooltip(
+            graphics::Text::new(
+                graphics::TextFragment::new(&self.name)
+                    .color(graphics::Color::from_rgb_u32(PALETTE[7]))
+                    .scale(28.),
+            )
+            .add("\n")
+            .add(
+                graphics::TextFragment::new(&self.description)
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                    .scale(20.),
+            )
+            .add(
+                graphics::TextFragment::new(format!("\n  {} / {}", self.progress, self.target))
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                    .scale(20.),
+            )
+            .set_font("Retro")
+            .set_wrap(true)
+            .set_bounds(ggez::glam::Vec2::new(300., 200.))
+            .to_owned()
+            .to_element_builder(0, ctx)
+            .with_visuals(super::super::BUTTON_VIS)
+            .build(),
+        )
+        .build()
+    }
+
     /// Returns a UiElement representing this achievement
-    pub fn achievement_info<T: Copy + Eq + std::hash::Hash + 'static>(
+    pub fn info_element_large<T: Copy + Eq + std::hash::Hash + 'static>(
         &self,
         ctx: &ggez::Context,
     ) -> mooeye::UiElement<T> {
@@ -99,13 +127,9 @@ impl Achievement {
                     .scale(20.),
             )
             .add(
-                graphics::TextFragment::new(format!(
-                    "\n  {} / {}",
-                    self.progress,
-                    self.target
-                ))
-                .color(graphics::Color::from_rgb_u32(PALETTE[6]))
-                .scale(20.),
+                graphics::TextFragment::new(format!("\n  {} / {}", self.progress, self.target))
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                    .scale(20.),
             )
             .set_font("Retro")
             .set_wrap(true)
@@ -157,6 +181,7 @@ pub struct AchievementSet {
 impl AchievementSet {
     pub fn load(ctx: &ggez::Context) -> Self {
         let mut res = Vec::new();
+        res.reserve(8);
 
         res.push(Achievement::new(
             "First Blood",
@@ -270,28 +295,11 @@ impl MessageReceiver for AchievementSet {
     ) {
         if let mooeye::UiMessage::Extern(gm) = message {
             for ach in self.list.iter_mut() {
-                let pre = ach.is_achieved();
-                ach.listen(gm);
-                if ach.is_achieved() != pre {
-                    gui.add_element(
-                        100,
-                        ach.achievement_info(ctx),
-                    );
+                if ach.listen(gm) {
+                    gui.add_element(100, ach.info_element_large(ctx));
                 }
             }
         }
-    }
-}
-
-impl Default for Achievement {
-    fn default() -> Self {
-        Self::new(
-            "Pride and Accomplishment",
-            "This achievement has not been implemented.",
-            None,
-            1,
-            |_| false,
-        )
     }
 }
 
@@ -321,11 +329,11 @@ pub fn load_highscores() -> Vec<i32> {
     }
 }
 
-pub fn save_highscores(scores: Vec<i32>){
+pub fn save_highscores(scores: Vec<i32>) {
     if let Ok(toml_string) = toml::to_string(&ScoreList {
-        scores: scores.iter().map(|&score| Score{score}).collect(),
+        scores: scores.iter().map(|&score| Score { score }).collect(),
     }) {
-        if std::fs::write("./data/highscores.toml", &toml_string).is_err(){
+        if std::fs::write("./data/highscores.toml", &toml_string).is_err() {
             println!("[ERROR] Could not save highscores.")
         };
     }
