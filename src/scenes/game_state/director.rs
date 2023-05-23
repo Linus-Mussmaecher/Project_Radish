@@ -12,7 +12,7 @@ mod templates;
 /// The state of a [Director].
 /// States should be used only in sequence.
 /// One rotation = one wave.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 enum DirectorState {
     /// The director is currently spawning enemies.
     /// The payload is the wave_pool left to spawn until this wave ends.
@@ -76,7 +76,7 @@ impl Director {
     /// If currently in the last [DirectorState] of a wave cycle, reset to the first one, increase the wave number
     /// and grant a wave_pool for that next wave.
     pub fn next_wave(&mut self) {
-        if matches!(self.state, DirectorState::WaitingForMenu) {
+        if self.state == DirectorState::WaitingForMenu {
             self.wave += 1;
             self.state = DirectorState::Spawning(200 + 600 * self.wave);
         }

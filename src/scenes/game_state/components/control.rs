@@ -1,4 +1,4 @@
-use crate::game_state::controller::Interactions;
+use super::super::controller;
 use ggez::glam::Vec2;
 use legion::system;
 
@@ -18,20 +18,20 @@ impl Control {
 
 #[system(for_each)]
 /// A system that manages the translation of orders coming from the controller (via the interactions resource) to actions of control components.
-pub fn control(control: &Control, actions: &mut Actions, #[resource] ix: &Interactions) {
+pub fn control(control: &Control, actions: &mut Actions, #[resource] ix: &controller::Interactions) {
     // Movement
 
     let mut del = Vec2::ZERO;
 
     if let Some(true) = ix
         .commands
-        .get(&crate::game_state::controller::Command::MoveLeft)
+        .get(&controller::Command::MoveLeft)
     {
         del.x -= 1.;
     }
     if let Some(true) = ix
         .commands
-        .get(&crate::game_state::controller::Command::MoveRight)
+        .get(&controller::Command::MoveRight)
     {
         del.x += 1.;
     }
@@ -44,25 +44,25 @@ pub fn control(control: &Control, actions: &mut Actions, #[resource] ix: &Intera
 
     if let Some(true) = ix
         .commands
-        .get(&crate::game_state::controller::Command::Spell0)
+        .get(&controller::Command::Spell0)
     {
         actions.push(super::actions::GameAction::CastSpell(0));
     }
     if let Some(true) = ix
         .commands
-        .get(&crate::game_state::controller::Command::Spell1)
+        .get(&controller::Command::Spell1)
     {
         actions.push(super::actions::GameAction::CastSpell(1));
     }
     if let Some(true) = ix
         .commands
-        .get(&crate::game_state::controller::Command::Spell2)
+        .get(&controller::Command::Spell2)
     {
         actions.push(super::actions::GameAction::CastSpell(2));
     }
     if let Some(true) = ix
         .commands
-        .get(&crate::game_state::controller::Command::Spell3)
+        .get(&controller::Command::Spell3)
     {
         actions.push(super::actions::GameAction::CastSpell(3));
     }

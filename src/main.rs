@@ -2,8 +2,6 @@ use ggez::*;
 
 mod scenes;
 
-mod game_state;
-
 const WIDTH: f32 = 1200.;
 const HEIGHT: f32 = 900.;
 

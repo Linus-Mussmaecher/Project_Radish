@@ -1,7 +1,7 @@
 use ggez::{glam::Vec2, graphics, GameError};
 use mooeye::{ui_element::UiContainer, *};
 
-use crate::{game_state::achievements::AchievementSet, PALETTE};
+use crate::PALETTE;
 
 pub struct AchievementMenu {
     gui: UiElement<()>,
@@ -20,7 +20,7 @@ impl AchievementMenu {
         .to_owned()
         .to_element(0, ctx);
 
-        let a_list = crate::game_state::achievements::AchievementSet::load(ctx);
+        let a_list = super::game_state::achievements::AchievementSet::load(ctx);
 
         let mut achievements = mooeye::containers::GridBox::new(4, (a_list.list.len() - 1) / 4 + 1);
         for (index, ach) in a_list.list.iter().enumerate() {
@@ -123,7 +123,7 @@ impl scene_manager::Scene for AchievementMenu {
         let messages = self.gui.manage_messages(ctx, None);
 
         if messages.contains(&mooeye::UiMessage::Triggered(2)) {
-            let mut a_list = AchievementSet::load(ctx);
+            let mut a_list = super::game_state::achievements::AchievementSet::load(ctx);
             for ach in a_list.list.iter_mut() {
                 ach.reset_progress();
             }
@@ -149,7 +149,7 @@ impl scene_manager::Scene for AchievementMenu {
 }
 
 pub fn achievement_info<T: Copy + Eq + std::hash::Hash + 'static>(
-    ach: &crate::game_state::Achievement,
+    ach: &super::game_state::Achievement,
     ctx: &ggez::Context,
 ) -> mooeye::UiElement<T> {
     let mut ach_box = containers::HorizontalBox::new();

@@ -1,12 +1,6 @@
-pub mod achievement_menu;
-pub mod credits_menu;
 pub mod game_over_menu;
-pub mod game_ui;
-pub mod highscore_menu;
-pub mod in_game_menu;
 pub mod main_menu;
-pub mod options_menu;
-pub mod wave_menu;
+pub mod game_state;
 
 const BUTTON_VIS: mooeye::ui_element::Visuals = mooeye::ui_element::Visuals {
     background: {

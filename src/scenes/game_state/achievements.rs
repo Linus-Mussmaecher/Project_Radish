@@ -215,7 +215,7 @@ impl MessageReceiver for AchievementSet {
                 if ach.is_achieved() != pre {
                     gui.add_element(
                         100,
-                        crate::scenes::achievement_menu::achievement_info(ach, ctx),
+                        crate::scenes::main_menu::achievement_menu::achievement_info(ach, ctx),
                     );
                 }
             }

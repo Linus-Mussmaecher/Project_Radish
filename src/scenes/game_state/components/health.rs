@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use legion::{system, systems::CommandBuffer, Entity};
 
-use crate::game_state::{controller::Interactions, game_message};
+use super::super::game_message;
 
 use super::*;
 
@@ -103,7 +103,9 @@ pub fn destroy_by_health(
             actions.push(actions::GameAction::GainGold {
                 amount: enemy.bounty,
             });
-            messages.insert(mooeye::UiMessage::Extern(game_message::GameMessage::EnemyKilled(enemy.bounty)));
+            messages.insert(mooeye::UiMessage::Extern(
+                game_message::GameMessage::EnemyKilled(enemy.bounty),
+            ));
         }
 
         actions.push(actions::GameAction::Remove(
@@ -152,7 +154,7 @@ pub fn enemy_death_sprite(
 
 #[system(for_each)]
 /// Applies all [TakeDamage] actions to their respective entities.
-pub fn resolve_damage(health: &mut Health, actions: &Actions, #[resource] ix: &Interactions) {
+pub fn resolve_damage(health: &mut Health, actions: &Actions, #[resource] ix: &super::super::controller::Interactions) {
     // update snapshot health
     let health_float = health.curr_health as f32;
     if health_float < health.snapshot_health && health.snapshot_delay.is_zero() {

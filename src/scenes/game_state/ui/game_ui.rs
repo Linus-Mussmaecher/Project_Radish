@@ -4,9 +4,9 @@ use mooeye::ui_element::UiContainer;
 use mooeye::*;
 use std::time::Duration;
 
-use crate::PALETTE;
+use super::game_state;
 
-use crate::game_state;
+use crate::PALETTE;
 
 /// Constructs the UiElement that forms the main UI of the game.
 /// Consists of
@@ -17,7 +17,7 @@ use crate::game_state;
 ///  - Vertical box to display messages (achievements etc.)
 pub fn construct_game_ui(
     ctx: &ggez::Context,
-) -> Result<UiElement<game_state::GameMessage>, GameError> {
+) -> Result<UiElement<super::super::GameMessage>, GameError> {
     // main box
     let mut main_box = containers::StackBox::new();
 
