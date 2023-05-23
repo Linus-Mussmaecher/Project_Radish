@@ -10,7 +10,7 @@ use mooeye::sprite::Sprite;
 use legion::{system, IntoQuery};
 use tinyvec::TinyVec;
 
-use crate::{game_state::controller::Interactions, PALETTE};
+use crate::PALETTE;
 
 use super::{actions::GameAction, Health, Position, Velocity};
 
@@ -254,7 +254,7 @@ impl Particle {
 pub fn handle_particles(
     gfx: &mut Graphics,
     actions: &super::Actions,
-    #[resource] ix: &Interactions,
+    #[resource] ix: &super::super::controller::Interactions,
 ) {
     // Move particles and reduce their durations.
     for particle in gfx.particles.iter_mut() {

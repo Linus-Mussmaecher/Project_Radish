@@ -3,13 +3,14 @@ use std::time::Duration;
 use ggez::graphics;
 use mooeye::{ui_element::UiContainer, *};
 
+use super::game_state;
 use crate::PALETTE;
 
 pub fn construct_wave_menu(
     ctx: &ggez::Context,
     wave_survived: i32,
-    enemies: &[&crate::game_state::EnemyTemplate],
-) -> UiElement<crate::game_state::GameMessage> {
+    enemies: &[&game_state::EnemyTemplate],
+) -> UiElement<game_state::GameMessage> {
     // ---- Title ----
 
     let title = graphics::Text::new(
@@ -249,7 +250,7 @@ pub fn construct_wave_menu(
 pub fn construct_wave_announcer(
     ctx: &ggez::Context,
     wave: u32,
-) -> UiElement<crate::game_state::GameMessage> {
+) -> UiElement<game_state::GameMessage> {
     let mut dur = containers::DurationBox::new(
         Duration::from_secs(5),
         graphics::Text::new(

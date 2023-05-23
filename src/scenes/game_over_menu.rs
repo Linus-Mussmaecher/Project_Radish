@@ -224,7 +224,7 @@ impl scene_manager::Scene for GameOverMenu {
 
         if messages.contains(&mooeye::UiMessage::Triggered(1)) {
             return Ok(mooeye::scene_manager::SceneSwitch::replace(
-                crate::game_state::GameState::new(ctx)?,
+                super::game_state::GameState::new(ctx)?,
                 2,
             ));
         }

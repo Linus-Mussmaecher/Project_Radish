@@ -2,8 +2,9 @@ use legion::system;
 use std::time::Duration;
 use tinyvec::TinyVec;
 
-use crate::game_state::{controller::Interactions, game_message::MessageSet};
 use mooeye::sprite::Sprite;
+
+use super::super::{game_message, controller};
 
 use super::{
     actions::{ActionContainer, GameAction},
@@ -92,8 +93,8 @@ impl SpellCaster {
 pub fn spell_casting(
     caster: &mut SpellCaster,
     actions: &mut Actions,
-    #[resource] messages: &mut MessageSet,
-    #[resource] ix: &Interactions,
+    #[resource] messages: &mut game_message::MessageSet,
+    #[resource] ix: &controller::Interactions,
 ) {
     // reduce cooldowns
     for slot in caster.spell_slots.iter_mut() {
@@ -107,7 +108,7 @@ pub fn spell_casting(
     for (i, slot) in caster.spell_slots.iter().enumerate() {
         if !slot.1.is_zero() {
             messages.insert(mooeye::UiMessage::Extern(
-                crate::game_state::game_message::GameMessage::UpdateSpellSlots(
+                game_message::GameMessage::UpdateSpellSlots(
                     i,
                     (slot.0.as_secs_f32() / slot.1.as_secs_f32() * 32.) as u8,
                 ),
@@ -120,7 +121,7 @@ pub fn spell_casting(
     for i in 0..4 {
         if ix
             .commands
-            .contains_key(&crate::game_state::controller::Command::spell_from_int(i))
+            .contains_key(&controller::Command::spell_from_int(i))
         {
             actions.push_container(caster.attempt_cast(i))
         }

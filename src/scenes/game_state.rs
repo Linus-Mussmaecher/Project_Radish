@@ -22,6 +22,7 @@ use self::components::spell::spell_list;
 
 mod controller;
 pub use controller::Controller;
+pub use controller::Interactions;
 
 pub mod achievements;
 pub use achievements::Achievement;

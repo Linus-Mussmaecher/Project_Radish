@@ -1,7 +1,7 @@
 use legion::system;
 use std::time::Duration;
 
-use crate::game_state::controller::Interactions;
+use super::super::controller;
 
 use super::{actions::GameAction, Actions};
 
@@ -32,7 +32,7 @@ impl From<Duration> for LifeDuration {
 pub fn manage_durations(
     duration: &mut LifeDuration,
     actions: &mut Actions,
-    #[resource] ix: &Interactions,
+    #[resource] ix: &controller::Interactions,
 ) {
     duration.life_duration += ix.delta;
     if duration.life_duration >= duration.max_duration {

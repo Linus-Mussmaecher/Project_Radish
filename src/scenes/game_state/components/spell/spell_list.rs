@@ -4,7 +4,7 @@ use legion::{systems::CommandBuffer, Entity};
 use mooeye::sprite::SpritePool;
 use tinyvec::tiny_vec;
 
-use crate::game_state::{
+use crate::scenes::game_state::{
     components::{self, actions::*, graphics::Particle, spell::MAX_SPELL_SLOTS},
     game_message::MessageSet,
 };

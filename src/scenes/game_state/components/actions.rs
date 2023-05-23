@@ -5,7 +5,7 @@ use legion::{system, systems::CommandBuffer, Entity, EntityStore, IntoQuery};
 use mooeye::sprite;
 use tinyvec::TinyVec;
 
-use crate::game_state::controller::Interactions;
+use super::super::controller::Interactions;
 
 use super::{Enemy, Position};
 

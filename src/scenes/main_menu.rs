@@ -1,7 +1,16 @@
+pub mod options_menu;
+pub mod highscore_menu;
+pub mod achievement_menu;
+pub mod credits_menu;
+
+use super::BUTTON_HOVER_VIS;
+use super::BUTTON_VIS;
+use super::game_state;
+
 use ggez::{graphics, GameError};
 use mooeye::{ui_element::UiContainer, *};
 
-use crate::{game_state, PALETTE};
+use crate::{PALETTE};
 
 pub struct MainMenu {
     gui: UiElement<()>,
@@ -149,24 +158,24 @@ impl scene_manager::Scene for MainMenu {
 
         if messages.contains(&mooeye::UiMessage::Triggered(3)) {
             res = mooeye::scene_manager::SceneSwitch::push(
-                super::highscore_menu::HighscoreMenu::new(ctx)?,
+                highscore_menu::HighscoreMenu::new(ctx)?,
             );
         }
 
         if messages.contains(&mooeye::UiMessage::Triggered(4)) {
             res = mooeye::scene_manager::SceneSwitch::push(
-                super::achievement_menu::AchievementMenu::new(ctx)?,
+                achievement_menu::AchievementMenu::new(ctx)?,
             );
         }
 
         if messages.contains(&mooeye::UiMessage::Triggered(5)) {
-            res = mooeye::scene_manager::SceneSwitch::push(super::options_menu::OptionsMenu::new(
+            res = mooeye::scene_manager::SceneSwitch::push(options_menu::OptionsMenu::new(
                 ctx,
             )?);
         }
 
         if messages.contains(&mooeye::UiMessage::Triggered(6)) {
-            res = mooeye::scene_manager::SceneSwitch::push(super::credits_menu::CreditsMenu::new(
+            res = mooeye::scene_manager::SceneSwitch::push(credits_menu::CreditsMenu::new(
                 ctx,
             )?);
         }

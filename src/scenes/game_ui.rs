@@ -4,9 +4,9 @@ use mooeye::ui_element::UiContainer;
 use mooeye::*;
 use std::time::Duration;
 
-use crate::PALETTE;
+use super::game_state;
 
-use crate::game_state;
+use crate::PALETTE;
 
 /// Constructs the UiElement that forms the main UI of the game.
 /// Consists of

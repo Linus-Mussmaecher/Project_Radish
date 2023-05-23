@@ -1,4 +1,3 @@
-use crate::game_state::{components::actions::GameAction, controller::Interactions};
 use ggez::glam::Vec2;
 use legion::system;
 
@@ -52,8 +51,8 @@ impl From<Velocity> for Vec2 {
 
 #[system(for_each)]
 /// Moves entities with the velocity component.
-pub fn velocity(vel: &Velocity, actions: &mut Actions, #[resource] ix: &Interactions) {
-    actions.push(GameAction::Move {
+pub fn velocity(vel: &Velocity, actions: &mut Actions, #[resource] ix: &super::super::Interactions) {
+    actions.push(super::actions::GameAction::Move {
         delta: Vec2::from(*vel) * ix.delta.as_secs_f32(),
     })
 }
@@ -62,7 +61,7 @@ pub fn velocity(vel: &Velocity, actions: &mut Actions, #[resource] ix: &Interact
 /// Resolves movement events.
 pub fn resolve_move(pos: &mut Position, actions: &Actions) {
     for action in actions.get_actions() {
-        if let GameAction::Move { delta } = action {
+        if let super::actions::GameAction::Move { delta } = action {
             *pos += *delta;
         }
     }

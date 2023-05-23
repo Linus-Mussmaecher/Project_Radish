@@ -1,5 +1,7 @@
 use std::time::Duration;
 
+use crate::scenes::game_state::game_message;
+
 use super::{components, components::actions};
 use ggez::GameError;
 use legion::systems::CommandBuffer;
@@ -172,7 +174,7 @@ pub fn spawn_tank_skeleton(
                 ],
             )
             .with_duration(Duration::ZERO),
-            crate::game_state::MessageSet::new(),
+            game_message::MessageSet::new(),
         ),
         components::Enemy::new(2, 20),
         components::Health::new(75),
@@ -243,7 +245,7 @@ pub fn spawn_charge_skeleton(
                     .into(),
                 ],
             ),
-            crate::game_state::MessageSet::new(),
+            game_message::MessageSet::new(),
         ),
         components::Enemy::new(2, 20),
         components::Health::new(75),
@@ -440,7 +442,7 @@ pub fn spawn_splitter(
                     };
                 }
             }),
-            crate::game_state::MessageSet::new(),
+            game_message::MessageSet::new(),
         ),
         components::Enemy::new(3, 20),
         components::Health::new(200),
