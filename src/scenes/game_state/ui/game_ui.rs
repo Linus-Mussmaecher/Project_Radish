@@ -17,7 +17,7 @@ use crate::PALETTE;
 ///  - Vertical box to display messages (achievements etc.)
 pub fn construct_game_ui(
     ctx: &ggez::Context,
-) -> Result<UiElement<game_state::GameMessage>, GameError> {
+) -> Result<UiElement<super::super::GameMessage>, GameError> {
     // main box
     let mut main_box = containers::StackBox::new();
 

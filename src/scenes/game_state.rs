@@ -1,4 +1,3 @@
-use crate::scenes::wave_menu;
 use ggez::{glam::Vec2, graphics, GameError};
 use if_chain::if_chain;
 use legion::{
@@ -26,6 +25,8 @@ pub use controller::Interactions;
 
 pub mod achievements;
 pub use achievements::Achievement;
+
+mod ui;
 
 /// The main struct representing the current game state.
 /// This is the core scene rendering & updating gameplay.
@@ -96,7 +97,7 @@ impl GameState {
         // --- SYSTEM REGISTRY / UI CONSTRUCTION / CONTROLLER INITIALIZATION ---
         Ok(Self {
             world,
-            gui: crate::scenes::game_ui::construct_game_ui(ctx)?,
+            gui: ui::game_ui::construct_game_ui(ctx)?,
             action_prod_schedule: Schedule::builder()
                 // director
                 .add_system(director::direct_system())
@@ -264,7 +265,7 @@ impl scene_manager::Scene for GameState {
                         // Wave menu begin
                         self.gui.add_element(
                             0,
-                            wave_menu::construct_wave_menu(
+                            ui::wave_menu::construct_wave_menu(
                                 ctx,
                                 director.get_wave() as i32,
                                 &director.get_enemies(),
@@ -289,7 +290,7 @@ impl scene_manager::Scene for GameState {
             // Escape menu
             if messages.contains(&UiMessage::Triggered(1)) {
                 switch = scene_manager::SceneSwitch::push(
-                    crate::scenes::in_game_menu::InGameMenu::new(ctx)?,
+                    ui::in_game_menu::InGameMenu::new(ctx)?,
                 );
             }
 
@@ -303,7 +304,7 @@ impl scene_manager::Scene for GameState {
                     dir.next_wave();
                     // create wave announcer
                     self.gui
-                        .add_element(0, wave_menu::construct_wave_announcer(ctx, dir.get_wave()));
+                        .add_element(0, ui::wave_menu::construct_wave_announcer(ctx, dir.get_wave()));
                 }
             }
 
@@ -318,7 +319,7 @@ impl scene_manager::Scene for GameState {
                     sc.add_slot();
                     self.gui.add_element(
                         50,
-                        crate::scenes::game_ui::create_spellslot(
+                        ui::game_ui::create_spellslot(
                             ctx,
                             sc.get_slots() - 1,
                         ),
@@ -338,7 +339,7 @@ impl scene_manager::Scene for GameState {
                     // recreate UI
                     self.gui.remove_elements(200);
                     self.gui
-                    .add_element(0, wave_menu::construct_wave_menu(ctx, director.get_wave() as i32 , &director.get_enemies()));
+                    .add_element(0, ui::wave_menu::construct_wave_menu(ctx, director.get_wave() as i32 , &director.get_enemies()));
                 }
             }
         }
