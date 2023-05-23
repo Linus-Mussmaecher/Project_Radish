@@ -66,7 +66,7 @@ impl Default for GameAction {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 /// An enum that is carried by remove actions to inform the remover of the source triggering the removal
 pub enum RemoveSource {
     /// This entity has to be removed because it has reached zero health
