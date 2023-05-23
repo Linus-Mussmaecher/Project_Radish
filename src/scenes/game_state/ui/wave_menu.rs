@@ -6,7 +6,59 @@ use mooeye::{ui_element::UiContainer, *};
 use super::game_state;
 use crate::PALETTE;
 
-pub fn construct_wave_menu(
+pub fn handle_wave_menu(
+    messages: &game_state::MessageSet,
+    gui: &mut mooeye::UiElement<game_state::GameMessage>,
+    ctx: &ggez::Context,
+    director: &mut game_state::director::Director,
+    data: &mut game_state::game_data::GameData,
+    caster: &mut game_state::components::SpellCaster,
+) {
+    // if neccessary: Spawn wave menu
+    if messages.iter().any(|message| {
+        matches!(
+            message,
+            &UiMessage::Extern(game_state::GameMessage::NextWave(_))
+        )
+    }) {
+        gui.add_element(
+            0,
+            construct_wave_menu(ctx, director.get_wave() as i32, &director.get_enemies()),
+        );
+    }
+
+    // close wave menu and activate next wave
+    if messages.contains(&UiMessage::Triggered(201)) {
+        gui.remove_elements(200);
+        // initialize next wave from director
+        director.next_wave();
+        // create wave announcer
+        gui.add_element(0, construct_wave_announcer(ctx, director.get_wave()));
+    }
+
+    // Add spell slot
+    if messages.contains(&UiMessage::Triggered(202)) && caster.can_add() && data.spend(250) {
+        caster.add_slot();
+        gui.add_element(
+            50,
+            super::game_ui::create_spellslot(ctx, caster.get_slots() - 1),
+        );
+    }
+
+    // reroll enemies
+    if messages.contains(&UiMessage::Triggered(204)) && data.spend(50) {
+        // reroll enemies
+        director.reroll_wave_enemies();
+        // recreate UI
+        gui.remove_elements(200);
+        gui.add_element(
+            0,
+            construct_wave_menu(ctx, director.get_wave() as i32, &director.get_enemies()),
+        );
+    }
+}
+
+fn construct_wave_menu(
     ctx: &ggez::Context,
     wave_survived: i32,
     enemies: &[&game_state::EnemyTemplate],
@@ -139,7 +191,7 @@ pub fn construct_wave_menu(
         )
         .build();
 
-        let spellbook = graphics::Image::from_path(ctx, "/sprites/ui/book.png")
+    let spellbook = graphics::Image::from_path(ctx, "/sprites/ui/book.png")
         .expect("[ERROR] Missing spellbook sprite.")
         .to_element_builder(202, ctx)
         .as_shrink()
@@ -161,7 +213,6 @@ pub fn construct_wave_menu(
         )
         .build();
 
-
     let house = graphics::Image::from_path(ctx, "/sprites/ui/house_add.png")
         .expect("[ERROR] Missing house sprite.")
         .to_element_builder(203, ctx)
@@ -172,8 +223,10 @@ pub fn construct_wave_menu(
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .with_tooltip(
             graphics::Text::new(
-                graphics::TextFragment::new("Purchase an additional town building.\n[O/TODO]\nCost: 200g")
-                    .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                graphics::TextFragment::new(
+                    "Purchase an additional town building.\n[O/TODO]\nCost: 200g",
+                )
+                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
             )
             .set_scale(24.)
             .set_font("Retro")
@@ -184,27 +237,27 @@ pub fn construct_wave_menu(
         )
         .build();
 
-        let next = graphics::Image::from_path(ctx, "/sprites/ui/next.png")
-            .expect("[ERROR] Missing reroll sprite.")
-            .to_element_builder(201, ctx)
-            .as_shrink()
-            .scaled(2., 2.)
-            .with_trigger_key(ggez::winit::event::VirtualKeyCode::P)
-            .with_visuals(super::BUTTON_VIS)
-            .with_hover_visuals(super::BUTTON_HOVER_VIS)
-            .with_tooltip(
-                graphics::Text::new(
-                    graphics::TextFragment::new("Start the next wave!\n[P]")
-                        .color(graphics::Color::from_rgb_u32(PALETTE[6])),
-                )
-                .set_scale(24.)
-                .set_font("Retro")
-                .to_owned()
-                .to_element_builder(0, ctx)
-                .with_visuals(super::BUTTON_VIS)
-                .build(),
+    let next = graphics::Image::from_path(ctx, "/sprites/ui/next.png")
+        .expect("[ERROR] Missing reroll sprite.")
+        .to_element_builder(201, ctx)
+        .as_shrink()
+        .scaled(2., 2.)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::P)
+        .with_visuals(super::BUTTON_VIS)
+        .with_hover_visuals(super::BUTTON_HOVER_VIS)
+        .with_tooltip(
+            graphics::Text::new(
+                graphics::TextFragment::new("Start the next wave!\n[P]")
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6])),
             )
-            .build();
+            .set_scale(24.)
+            .set_font("Retro")
+            .to_owned()
+            .to_element_builder(0, ctx)
+            .with_visuals(super::BUTTON_VIS)
+            .build(),
+        )
+        .build();
 
     let mut row2 = containers::HorizontalBox::new();
     row2.spacing = 16.;
@@ -247,10 +300,7 @@ pub fn construct_wave_menu(
     menu_box
 }
 
-pub fn construct_wave_announcer(
-    ctx: &ggez::Context,
-    wave: u32,
-) -> UiElement<game_state::GameMessage> {
+fn construct_wave_announcer(ctx: &ggez::Context, wave: u32) -> UiElement<game_state::GameMessage> {
     let mut dur = containers::DurationBox::new(
         Duration::from_secs(5),
         graphics::Text::new(

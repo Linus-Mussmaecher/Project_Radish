@@ -45,9 +45,116 @@ pub struct GameState {
     listeners: Vec<Box<dyn game_message::MessageReceiver>>,
 }
 
+impl scene_manager::Scene for GameState {
+    fn update(&mut self, ctx: &mut ggez::Context) -> Result<scene_manager::SceneSwitch, GameError> {
+
+        // +-------------------------------------------------------+
+        // |                     Preparation                       |
+        // +-------------------------------------------------------+
+
+        // create interaction struct and insert as resource
+        self.resources.insert(self.controller.get_interactions(ctx));
+
+        // make sure all entities have all default components
+        self.ensure_default_components();
+
+        // +-------------------------------------------------------+
+        // |                   Action Handling                     |
+        // +-------------------------------------------------------+
+
+        self.action_prod_schedule
+            .execute(&mut self.world, &mut self.resources);
+
+        // +-------------------------------------------------------+
+        // |                  Message Handling                     |
+        // +-------------------------------------------------------+
+
+        let mut switch = scene_manager::SceneSwitch::None;
+
+        // acquire resources
+        if_chain! {
+            if let Some(mut message_set) = self.resources.get_mut::<MessageSet>();
+            if let Some(mut director) = self.resources.get_mut::<director::Director>();
+            if let Some(mut data) = self.resources.get_mut::<game_data::GameData>();
+            if let Ok(mut player) = self.world.entry_mut(data.get_player());
+            if let Ok(caster) = player.get_component_mut::<components::SpellCaster>();
+            then{
+
+                // communicate with UI: Insert Game Messages and retrieve UI messages
+                let internal = self.gui.update(ctx, message_set.clone());
+                message_set.extend(&internal);
+
+                // handle wave menu
+                ui::wave_menu::handle_wave_menu(&message_set, &mut self.gui, ctx, &mut *director, &mut *data, caster);
+
+                // handle listeners
+                for message in message_set.iter() {
+                    for listener in self.listeners.iter_mut() {
+                        listener.receive(message, &mut self.gui, ctx);
+                    }
+                }
+
+                // Escape menu
+                if message_set.contains(&UiMessage::Triggered(1)) {
+                    switch =
+                        scene_manager::SceneSwitch::push(ui::in_game_menu::InGameMenu::new(ctx)?);
+                }
+
+                // clear game messages for next round
+                message_set.clear();
+            }
+        }
+
+        // +-------------------------------------------------------+
+        // |                   Game Over Check                     |
+        // +-------------------------------------------------------+
+
+        if let Some(game_data) = self.resources.get::<game_data::GameData>() {
+            if game_data.city_health <= 0 {
+                switch = scene_manager::SceneSwitch::push(
+                    crate::scenes::game_over_menu::GameOverMenu::new(ctx, game_data.get_score())?,
+                );
+            }
+        }
+
+        Ok(switch)
+    }
+
+    fn draw(&mut self, ctx: &mut ggez::Context, mouse_listen: bool) -> Result<(), GameError> {
+
+        // Get canvas & set sampler
+        let mut canvas =
+            graphics::Canvas::from_frame(ctx, graphics::Color::from_rgb_u32(crate::PALETTE[11]));
+        canvas.set_sampler(graphics::Sampler::nearest_clamp());
+
+        // Draw background
+
+        self.draw_background(ctx, &mut canvas);
+
+        // Draw world
+
+        components::graphics::draw_sprites(
+            &mut self.world,
+            &mut self.resources,
+            ctx,
+            &mut canvas,
+            mouse_listen,
+        )?;
+
+        // Draw GUI
+        self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);
+
+        // Finish
+        canvas.finish(ctx)?;
+        Ok(())
+    }
+}
+
+
 impl GameState {
     /// Creates a new game state.
     pub fn new(ctx: &ggez::Context) -> Result<Self, GameError> {
+        
         // --- WORLD CREATION ---
 
         // Create world
@@ -217,6 +324,40 @@ impl GameState {
         Ok(())
     }
 
+    /// A helper function that draw the background street.
+    fn draw_background(&self, ctx: &ggez::Context, canvas: &mut ggez::graphics::Canvas) {
+        // Draw street
+        let boundaries = self
+            .resources
+            .get::<graphics::Rect>()
+            .map(|r| *r)
+            .unwrap_or_default();
+
+        let (screen_w, screen_h) = ctx.gfx.drawable_size();
+        canvas.draw(
+            &graphics::Quad,
+            graphics::DrawParam::new()
+                .color(graphics::Color::from_rgb_u32(crate::PALETTE[10]))
+                .scale(Vec2::new(boundaries.w, screen_h))
+                .dest(Vec2::new((screen_w - boundaries.w) / 2., 0.)),
+        );
+        // street edges
+        canvas.draw(
+            &graphics::Quad,
+            graphics::DrawParam::new()
+                .color(graphics::Color::from_rgb_u32(crate::PALETTE[12]))
+                .scale(Vec2::new(8., screen_h))
+                .dest(Vec2::new((screen_w - boundaries.w) / 2. - 4., 0.)),
+        );
+        canvas.draw(
+            &graphics::Quad,
+            graphics::DrawParam::new()
+                .color(graphics::Color::from_rgb_u32(crate::PALETTE[12]))
+                .scale(Vec2::new(8., screen_h))
+                .dest(Vec2::new((screen_w + boundaries.w) / 2. - 4., 0.)),
+        );
+    }
+
     /// A helper function that ensures every entity in the world has a certain component subset
     fn ensure_default_components(&mut self) {
         // running buffer of added components
@@ -231,187 +372,5 @@ impl GameState {
         }
 
         buffer.flush(&mut self.world, &mut self.resources);
-    }
-}
-
-impl scene_manager::Scene for GameState {
-    fn update(&mut self, ctx: &mut ggez::Context) -> Result<scene_manager::SceneSwitch, GameError> {
-        // --- PREPARATION ---
-
-        // create interaction struct and insert as resource
-        self.resources.insert(self.controller.get_interactions(ctx));
-
-        // make sure all entities have all default components
-        self.ensure_default_components();
-
-        // --- ACTION HANDLING & SYSTEMS ---
-
-        // produce game actions of this frame
-        self.action_prod_schedule
-            .execute(&mut self.world, &mut self.resources);
-
-        // --- MESSAGE HANDLING ---
-
-        let mut switch = scene_manager::SceneSwitch::None;
-
-        // retrieve game messages
-        if let Some(mut message_set) = self.resources.get_mut::<MessageSet>() {
-            // ======== GAME MESSAGES ========
-
-            // check for next wave condition
-            for message in message_set.iter() {
-                if let &UiMessage::Extern(GameMessage::NextWave(_)) = message {
-                    if let Some(director) = self.resources.get::<director::Director>() {
-                        // Wave menu begin
-                        self.gui.add_element(
-                            0,
-                            ui::wave_menu::construct_wave_menu(
-                                ctx,
-                                director.get_wave() as i32,
-                                &director.get_enemies(),
-                            ),
-                        );
-                    }
-                }
-
-                for listener in self.listeners.iter_mut() {
-                    listener.receive(message, &mut self.gui, ctx);
-                }
-            }
-
-            // communicate with UI: Insert Game Messages and retrieve UI messages
-            let messages = self.gui.update(ctx, message_set.clone());
-
-            // clear game messages
-            message_set.clear();
-
-            // ======== UI MESSAGES ========
-
-            // Escape menu
-            if messages.contains(&UiMessage::Triggered(1)) {
-                switch = scene_manager::SceneSwitch::push(
-                    ui::in_game_menu::InGameMenu::new(ctx)?,
-                );
-            }
-
-            // -------- WAVE MENU --------
-
-            // Exit wave menu
-            if messages.contains(&UiMessage::Triggered(201)) {
-                self.gui.remove_elements(200);
-                if let Some(mut dir) = self.resources.get_mut::<director::Director>() {
-                    // initialize next wave from director
-                    dir.next_wave();
-                    // create wave announcer
-                    self.gui
-                        .add_element(0, ui::wave_menu::construct_wave_announcer(ctx, dir.get_wave()));
-                }
-            }
-
-            // Add spell slot
-            if_chain! {
-                if messages.contains(&UiMessage::Triggered(202));
-                if let Some(mut data) = self.resources.get_mut::<self::game_data::GameData>();
-                if let Ok(mut player) = self.world.entry_mut(data.get_player());
-                if let Ok(sc) = player.get_component_mut::<components::SpellCaster>();
-                if sc.can_add() && data.spend(250);
-                then {
-                    sc.add_slot();
-                    self.gui.add_element(
-                        50,
-                        ui::game_ui::create_spellslot(
-                            ctx,
-                            sc.get_slots() - 1,
-                        ),
-                    );
-                }
-            }
-
-            // reroll enemies
-            if_chain! {
-                if messages.contains(&UiMessage::Triggered(204));
-                if let Some(mut director) = self.resources.get_mut::<director::Director>();
-                if let Some(mut data) = self.resources.get_mut::<self::game_data::GameData>();
-                if data.spend(50);
-                then {
-                    // reroll enemies
-                    director.reroll_wave_enemies();
-                    // recreate UI
-                    self.gui.remove_elements(200);
-                    self.gui
-                    .add_element(0, ui::wave_menu::construct_wave_menu(ctx, director.get_wave() as i32 , &director.get_enemies()));
-                }
-            }
-        }
-
-        // -------- Game Over Check --------
-
-        if let Some(game_data) = self.resources.get::<game_data::GameData>() {
-            if game_data.city_health <= 0 {
-                switch = scene_manager::SceneSwitch::push(
-                    crate::scenes::game_over_menu::GameOverMenu::new(ctx, game_data.get_score())?,
-                );
-            }
-        }
-
-        Ok(switch)
-    }
-
-    fn draw(&mut self, ctx: &mut ggez::Context, mouse_listen: bool) -> Result<(), GameError> {
-        // Get canvas & set sampler
-        let mut canvas =
-            graphics::Canvas::from_frame(ctx, graphics::Color::from_rgb_u32(crate::PALETTE[11]));
-        canvas.set_sampler(graphics::Sampler::nearest_clamp());
-
-        // Draw background
-        {
-            // Draw street
-            let boundaries = self
-                .resources
-                .get::<graphics::Rect>()
-                .map(|r| *r)
-                .unwrap_or_default();
-
-            let (screen_w, screen_h) = ctx.gfx.drawable_size();
-            canvas.draw(
-                &graphics::Quad,
-                graphics::DrawParam::new()
-                    .color(graphics::Color::from_rgb_u32(crate::PALETTE[10]))
-                    .scale(Vec2::new(boundaries.w, screen_h))
-                    .dest(Vec2::new((screen_w - boundaries.w) / 2., 0.)),
-            );
-            // street edges
-            canvas.draw(
-                &graphics::Quad,
-                graphics::DrawParam::new()
-                    .color(graphics::Color::from_rgb_u32(crate::PALETTE[12]))
-                    .scale(Vec2::new(8., screen_h))
-                    .dest(Vec2::new((screen_w - boundaries.w) / 2. - 4., 0.)),
-            );
-            canvas.draw(
-                &graphics::Quad,
-                graphics::DrawParam::new()
-                    .color(graphics::Color::from_rgb_u32(crate::PALETTE[12]))
-                    .scale(Vec2::new(8., screen_h))
-                    .dest(Vec2::new((screen_w + boundaries.w) / 2. - 4., 0.)),
-            );
-        }
-
-        // Draw world
-
-        components::graphics::draw_sprites(
-            &mut self.world,
-            &mut self.resources,
-            ctx,
-            &mut canvas,
-            mouse_listen,
-        )?;
-
-        // Draw GUI
-        self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);
-
-        // Finish
-        canvas.finish(ctx)?;
-        Ok(())
     }
 }

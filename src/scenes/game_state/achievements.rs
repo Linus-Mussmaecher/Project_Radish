@@ -1,7 +1,10 @@
 use std::fs;
 
 use ggez::graphics;
-use mooeye::UiElement;
+use mooeye::{*, ui_element::UiContainer};
+use serde::{Serialize, Deserialize};
+
+use crate::PALETTE;
 
 use super::{game_message::MessageReceiver, GameMessage};
 
@@ -70,6 +73,63 @@ impl Achievement {
     /// Returns wether or not this achievement has been achieved often enough yet
     pub fn is_achieved(&self) -> bool {
         self.progress >= self.target
+    }
+
+    /// Returns a UiElement representing this achievement
+    pub fn achievement_info<T: Copy + Eq + std::hash::Hash + 'static>(
+        &self,
+        ctx: &ggez::Context,
+    ) -> mooeye::UiElement<T> {
+        let mut ach_box = containers::HorizontalBox::new();
+
+        if let Ok(trophy) = graphics::Image::from_path(ctx, "/sprites/achievements/a0_16_16.png") {
+            ach_box.add(trophy.to_element_builder(0, ctx).scaled(4., 4.).build());
+        }
+
+        ach_box.add(
+            graphics::Text::new(
+                graphics::TextFragment::new(&self.name)
+                    .color(graphics::Color::from_rgb_u32(PALETTE[7]))
+                    .scale(28.),
+            )
+            .add("\n")
+            .add(
+                graphics::TextFragment::new(&self.description)
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                    .scale(20.),
+            )
+            .add(
+                graphics::TextFragment::new(format!(
+                    "\n  {} / {}",
+                    self.progress,
+                    self.target
+                ))
+                .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                .scale(20.),
+            )
+            .set_font("Retro")
+            .set_wrap(true)
+            .set_bounds(ggez::glam::Vec2::new(300., 200.))
+            .to_owned()
+            .to_element_builder(0, ctx)
+            .build(),
+        );
+
+        if let Some(icon) = &self.icon {
+            ach_box.add(
+                icon.clone()
+                    .to_element_builder(0, ctx)
+                    .scaled(4., 4.)
+                    .build(),
+            );
+        }
+
+        let ach_box = ach_box
+            .to_element_builder(0, ctx)
+            .with_visuals(super::super::BUTTON_VIS)
+            .build();
+
+        containers::DurationBox::new(std::time::Duration::from_secs(15), ach_box).to_element(0, ctx)
     }
 }
 
@@ -215,7 +275,7 @@ impl MessageReceiver for AchievementSet {
                 if ach.is_achieved() != pre {
                     gui.add_element(
                         100,
-                        crate::scenes::main_menu::achievement_menu::achievement_info(ach, ctx),
+                        ach.achievement_info(ctx),
                     );
                 }
             }
@@ -232,5 +292,41 @@ impl Default for Achievement {
             1,
             |_| false,
         )
+    }
+}
+
+/// A struct that represents the score achieved in a single game. Allows Serde to .toml.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+struct Score {
+    /// The score as an integer.
+    score: i32,
+}
+
+/// A struct that represents a list of scores. Allows Serde to .toml.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct ScoreList {
+    /// The scores as [Score]-structs.
+    scores: Vec<Score>,
+}
+
+/// Loads the highscore list stored at ./data/highscores.toml and converts it to a vector of integer scores.
+/// Returns an empty list if none can be found.
+pub fn load_highscores() -> Vec<i32> {
+    if let Ok(file) = std::fs::read_to_string("./data/highscores.toml") {
+        toml::from_str::<ScoreList>(&file)
+            .map(|sl| sl.scores.iter().map(|s| s.score).collect())
+            .unwrap_or_else(|_| Vec::new())
+    } else {
+        Vec::new()
+    }
+}
+
+pub fn save_highscores(scores: Vec<i32>){
+    if let Ok(toml_string) = toml::to_string(&ScoreList {
+        scores: scores.iter().map(|&score| Score{score}).collect(),
+    }) {
+        if std::fs::write("./data/highscores.toml", &toml_string).is_err(){
+            println!("[ERROR] Could not save highscores.")
+        };
     }
 }

@@ -1,34 +1,8 @@
 use ggez::{graphics, GameError};
 use mooeye::{ui_element::UiContainer, *};
-use serde::{Deserialize, Serialize};
+use super::game_state::achievements;
 
 use crate::PALETTE;
-
-/// A struct that represents the score achieved in a single game. Allows Serde to .toml.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-struct Score {
-    /// The score as an integer.
-    score: i32,
-}
-
-/// A struct that represents a list of scores. Allows Serde to .toml.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct ScoreList {
-    /// The scores as [Score]-structs.
-    scores: Vec<Score>,
-}
-
-/// Loads the highscore list stored at ./data/highscores.toml and converts it to a vector of integer scores.
-/// Returns an empty list if none can be found.
-pub fn load_highscores() -> Vec<i32> {
-    if let Ok(file) = std::fs::read_to_string("./data/highscores.toml") {
-        toml::from_str::<ScoreList>(&file)
-            .map(|sl| sl.scores.iter().map(|s| s.score).collect())
-            .unwrap_or_else(|_| Vec::new())
-    } else {
-        Vec::new()
-    }
-}
 
 /// The Menu that is shown over the game state when the game ends.
 pub struct GameOverMenu {
@@ -42,30 +16,23 @@ impl GameOverMenu {
     pub fn new(ctx: &ggez::Context, score: i32) -> Result<Self, GameError> {
         // load highscores
 
-        let mut highscores: Vec<Score> =
-            if let Ok(file) = std::fs::read_to_string("./data/highscores.toml") {
-                toml::from_str::<ScoreList>(&file)
-                    .map(|sl| sl.scores)
-                    .unwrap_or_else(|_| Vec::new())
-            } else {
-                Vec::new()
-            };
+        let mut highscores = achievements::load_highscores();
 
         // if only a small amount of scores is recorded or the worst result from the list was beaten, insert the new result
         let own_index = if highscores.len() < 25
-            || score >= highscores.last().map(|a| a.score).unwrap_or_default()
+            || score >= highscores.last().map(|s| *s).unwrap_or_default()
         {
             // set default index: at the end of the list
             let mut index = highscores.len();
             // see if there is an appropriate earlier index
-            for (i, value) in highscores.iter().enumerate() {
-                if score >= value.score {
+            for (i, &value) in highscores.iter().enumerate() {
+                if score >= value {
                     index = i;
                     break;
                 }
             }
             // insert at appropriate index
-            highscores.insert(index, Score { score });
+            highscores.insert(index, score);
             // if list has grown too much, cut last element
             if highscores.len() > 25 {
                 highscores.pop();
@@ -75,13 +42,6 @@ impl GameOverMenu {
         } else {
             None
         };
-
-        // save highscores
-        if let Ok(toml_string) = toml::to_string(&ScoreList {
-            scores: highscores.clone(),
-        }) {
-            std::fs::write("./data/highscores.toml", &toml_string)?;
-        }
 
         // create UI
 
@@ -146,9 +106,9 @@ impl GameOverMenu {
 
         // add the first 5 (or less) scores as texts to the element
 
-        for (index, value) in highscores.iter().enumerate().take(5) {
+        for (index, &score) in highscores.iter().enumerate().take(5) {
             highscore_disp.add(
-                graphics::TextFragment::new(format!("\n  {:02}.{:>5}", index + 1, value.score))
+                graphics::TextFragment::new(format!("\n  {:02}.{:>5}", index + 1, score))
                     .color(graphics::Color::from_rgb_u32(
                         // if own score shows up, change color to make it stand out
                         if index == own_index.unwrap_or(128) {
@@ -211,6 +171,10 @@ impl GameOverMenu {
             .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Center)
             .with_padding((25., 25., 25., 25.))
             .build();
+
+        
+        // save highscores
+        achievements::save_highscores(highscores);
 
         Ok(Self { ui: main_box })
     }

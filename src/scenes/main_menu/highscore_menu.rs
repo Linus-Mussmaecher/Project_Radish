@@ -3,7 +3,7 @@ use mooeye::{ui_element::UiContainer, *};
 
 use crate::PALETTE;
 
-use super::super::game_over_menu;
+use super::super::game_state;
 
 pub struct HighscoreMenu {
     gui: UiElement<()>,
@@ -26,7 +26,7 @@ impl HighscoreMenu {
 
         let mut highscore_disp = graphics::Text::default();
 
-        for (index, value) in game_over_menu::load_highscores()
+        for (index, value) in game_state::achievements::load_highscores()
             .iter()
             .enumerate()
             .take(10)
