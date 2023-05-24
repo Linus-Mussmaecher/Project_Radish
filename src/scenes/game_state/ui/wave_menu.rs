@@ -139,7 +139,7 @@ fn construct_wave_menu(
         .expect("[ERROR] Missing reroll sprite.")
         .to_element_builder(204, ctx)
         .as_shrink()
-        .scaled(2., 2.)
+        .scaled(4., 4.)
         .with_padding((10., 10., 10., 10.))
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::I)
         .with_visuals(super::BUTTON_VIS)
@@ -173,7 +173,7 @@ fn construct_wave_menu(
         .expect("[ERROR] Missing mana sprite.")
         .to_element_builder(202, ctx)
         .as_shrink()
-        .scaled(2., 2.)
+        .scaled(4., 4.)
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::U)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
@@ -193,7 +193,7 @@ fn construct_wave_menu(
 
     let spellbook = graphics::Image::from_path(ctx, "/sprites/ui/book.png")
         .expect("[ERROR] Missing spellbook sprite.")
-        .to_element_builder(202, ctx)
+        .to_element_builder(203, ctx)
         .as_shrink()
         .scaled(4., 4.)
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::I)
@@ -215,9 +215,9 @@ fn construct_wave_menu(
 
     let house = graphics::Image::from_path(ctx, "/sprites/ui/house_add.png")
         .expect("[ERROR] Missing house sprite.")
-        .to_element_builder(203, ctx)
+        .to_element_builder(204, ctx)
         .as_shrink()
-        .scaled(2., 2.)
+        .scaled(4., 4.)
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::O)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
@@ -237,27 +237,27 @@ fn construct_wave_menu(
         )
         .build();
 
-    let next = graphics::Image::from_path(ctx, "/sprites/ui/next.png")
-        .expect("[ERROR] Missing reroll sprite.")
-        .to_element_builder(201, ctx)
-        .as_shrink()
-        .scaled(2., 2.)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::P)
-        .with_visuals(super::BUTTON_VIS)
-        .with_hover_visuals(super::BUTTON_HOVER_VIS)
-        .with_tooltip(
-            graphics::Text::new(
-                graphics::TextFragment::new("Start the next wave!\n[P]")
-                    .color(graphics::Color::from_rgb_u32(PALETTE[6])),
-            )
-            .set_scale(24.)
-            .set_font("Retro")
-            .to_owned()
-            .to_element_builder(0, ctx)
+        let next = graphics::Image::from_path(ctx, "/sprites/ui/next.png")
+            .expect("[ERROR] Missing reroll sprite.")
+            .to_element_builder(201, ctx)
+            .as_shrink()
+            .scaled(4., 4.)
+            .with_trigger_key(ggez::winit::event::VirtualKeyCode::P)
             .with_visuals(super::BUTTON_VIS)
-            .build(),
-        )
-        .build();
+            .with_hover_visuals(super::BUTTON_HOVER_VIS)
+            .with_tooltip(
+                graphics::Text::new(
+                    graphics::TextFragment::new("Start the next wave!\n[P]")
+                        .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                )
+                .set_scale(24.)
+                .set_font("Retro")
+                .to_owned()
+                .to_element_builder(0, ctx)
+                .with_visuals(super::BUTTON_VIS)
+                .build(),
+            )
+            .build();
 
     let mut row2 = containers::HorizontalBox::new();
     row2.spacing = 16.;

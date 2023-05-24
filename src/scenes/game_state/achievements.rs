@@ -180,8 +180,7 @@ pub struct AchievementSet {
 
 impl AchievementSet {
     pub fn load(ctx: &ggez::Context) -> Self {
-        let mut res = Vec::new();
-        res.reserve(8);
+        let mut res = Vec::with_capacity(8);
 
         res.push(Achievement::new(
             "First Blood",
