@@ -1667,7 +1667,7 @@ dependencies = [
 [[package]]
 name = "mooeye"
 version = "0.2.1"
-source = "git+https://github.com/Linus-Mussmaecher/mooeye#2c500bd016b57662aee9b5b1e1e4d02aca8b3f0b"
+source = "git+https://github.com/Linus-Mussmaecher/mooeye#aac9741b6d891ace9e56999472d30cda01d1d4a9"
 dependencies = [
  "ggez",
  "regex",
@@ -2803,9 +2803,9 @@ checksum = "5a76a9312f5ba4c2dec6b9161fdf25d87ad8a09256ccea5a556fef03c706a10f"
 
 [[package]]
 name = "toml_edit"
-version = "0.19.9"
+version = "0.19.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "92d964908cec0d030b812013af25a0e57fddfadb1e066ecc6681d86253129d4f"
+checksum = "2380d56e8670370eee6566b0bfd4265f65b3f432e8c6d85623f728d4fa31f739"
 dependencies = [
  "indexmap",
  "toml_datetime",

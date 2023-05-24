@@ -1,8 +1,12 @@
+use ggez::graphics;
 use legion::system;
+use mooeye::UiContent;
 use std::time::Duration;
 use tinyvec::TinyVec;
 
 use mooeye::sprite::Sprite;
+
+use crate::PALETTE;
 
 use super::super::{controller, game_message};
 
@@ -40,6 +44,11 @@ impl SpellCaster {
                 vec
             },
         }
+    }
+
+    /// Returns a reference to a slice of the spells this entity can cast.
+    pub fn get_spells(&self) -> &[Spell] {
+        &self.spells
     }
 
     /// Adds a new spell slot to this entity.
@@ -164,5 +173,38 @@ impl Spell {
         }
     }
 
-    
+    /// Returns a small UiElement representing this spell, consisting of the icon and a tooltip.
+    pub fn info_element_small<T: Copy + Eq + std::hash::Hash + 'static>(
+        &self,
+        ctx: &ggez::Context,
+    ) -> mooeye::UiElement<T> {
+        self.icon.clone()
+            .to_element_builder(0, ctx)
+            .with_visuals(crate::scenes::BUTTON_VIS)
+            .with_size(
+                mooeye::ui_element::Size::Fill(32., f32::INFINITY),
+                mooeye::ui_element::Size::Fill(32., f32::INFINITY),
+            )
+            .with_tooltip(
+                graphics::Text::new(
+                    graphics::TextFragment::new(&self.name)
+                        .color(graphics::Color::from_rgb_u32(PALETTE[7]))
+                        .scale(28.),
+                )
+                .add("\n")
+                .add(
+                    graphics::TextFragment::new(&self.description)
+                        .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                        .scale(20.),
+                )
+                .set_font("Retro")
+                .set_wrap(true)
+                .set_bounds(ggez::glam::Vec2::new(400., 200.))
+                .to_owned()
+                .to_element_builder(0, ctx)
+                .with_visuals(crate::scenes::BUTTON_VIS)
+                .build(),
+            )
+            .build()
+    }
 }

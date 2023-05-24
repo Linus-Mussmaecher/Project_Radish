@@ -16,7 +16,7 @@ pub fn construct_fireball(spritepool: &SpritePool) -> Spell {
         "Fireball",
         "Hurl a ball of fire, dealing a small amount of damage.",
         spritepool
-            .init_sprite_unchecked("/sprites/spells/fireball", Duration::from_secs_f32(1.3)),
+            .init_sprite_unchecked("/sprites/spells/fireball", Duration::ZERO),
         GameAction::spawn(|_, pos, sp, cmd| {
             cmd.push((
                 pos,
@@ -44,9 +44,9 @@ pub fn construct_fireball(spritepool: &SpritePool) -> Spell {
 pub fn construct_icemissile(spritepool: &SpritePool) -> Spell {
     Spell::new(
         "Ice Missile",
-        "Launch a fast icy projectile, that deals high damage on impact and drops an ice crystal that slows nearby enemies and deals area damage when exploding.",
+        "Launch a fast icy projectile that deals high damage on impact and drops an ice crystal that slows nearby enemies and deals area damage when exploding.",
         spritepool
-            .init_sprite_unchecked("/sprites/spells/icebomb", Duration::from_secs_f32(1.)),
+            .init_sprite_unchecked("/sprites/spells/icebomb", Duration::ZERO),
         GameAction::spawn(|_, pos, sp, cmd| {
             cmd.push((
                 pos,
@@ -115,7 +115,7 @@ pub fn construct_electrobomb(spritepool: &SpritePool) -> Spell {
         "Lightning Ball",
         "Launch a ball of lightning that pierces through enemies and deals area damage on every contact.",
         spritepool
-            .init_sprite_unchecked("/sprites/spells/fireball", Duration::from_secs_f32(1.)),
+            .init_sprite_unchecked("/sprites/spells/electroorb", Duration::ZERO),
         GameAction::spawn(|_, pos, sp, cmd| {
             cmd.push((
                 pos,
@@ -154,7 +154,7 @@ pub fn construct_conflagrate(spritepool: &SpritePool) -> Spell {
     Spell::new(
         "Conflagrate",
         "Burn the six nearest enemies for 5 seconds, dealing 30 damage per second.",
-        spritepool.init_sprite_unchecked("/sprites/spells/fireball", Duration::from_secs(1)),
+        spritepool.init_sprite_unchecked("/sprites/spells/fireball", Duration::ZERO),
         ActionEffect::once(
             ActionEffectTarget::new()
                 .with_enemies_only(true)

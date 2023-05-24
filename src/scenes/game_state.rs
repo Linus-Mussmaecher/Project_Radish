@@ -193,6 +193,7 @@ impl GameState {
         message_set.insert(UiMessage::Extern(GameMessage::UpdateCityHealth(
             game_data.city_health,
         )));
+        message_set.insert(UiMessage::Triggered(203));
 
         let mut resources = Resources::default();
         resources.insert(game_data);

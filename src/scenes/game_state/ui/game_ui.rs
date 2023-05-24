@@ -162,13 +162,13 @@ pub fn construct_game_ui(
 
     // Spells
 
-    let mut spell_box = containers::HorizontalBox::new();
+    let mut slot_box = containers::HorizontalBox::new();
 
     for i in 0..4 {
-        spell_box.add(create_spellslot(ctx, i));
+        slot_box.add(create_spellslot(ctx, i));
     }
 
-    let spell_box = spell_box
+    let slot_box = slot_box
         .to_element_builder(50, ctx)
         .with_visuals(mooeye::ui_element::Visuals {
             border_widths: [0., 3., 3., 3.],
@@ -176,7 +176,19 @@ pub fn construct_game_ui(
             ..super::BUTTON_VIS
         })
         .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Min)
-        .with_offset(-10., 0.)
+        .build();
+
+    main_box.add(slot_box);
+
+    let spell_box = containers::StackBox::new()
+        .to_element_builder(60, ctx)
+        .with_visuals(mooeye::ui_element::Visuals {
+            border_widths: [3., 3., 0., 3.],
+            corner_radii: [3., 0., 0., 3.],
+            ..super::BUTTON_VIS
+        })
+        .with_padding((5., 5., 0., 5.))
+        .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Max)
         .build();
 
     main_box.add(spell_box);

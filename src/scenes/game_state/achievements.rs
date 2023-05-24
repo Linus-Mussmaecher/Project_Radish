@@ -153,7 +153,7 @@ impl Achievement {
             .with_visuals(super::super::BUTTON_VIS)
             .build();
 
-        containers::DurationBox::new(std::time::Duration::from_secs(15), ach_box).to_element(0, ctx)
+        ach_box
     }
 }
 
@@ -249,8 +249,8 @@ impl AchievementSet {
             "Power Overwhelming!",
             "Cast 500 spells.",
             graphics::Image::from_path(ctx, "/sprites/ui/mana_add.png").ok(),
-            20,
-            |msg| matches!(msg, GameMessage::UpdateSpellSlots(_,0)),
+            500,
+            |msg| matches!(msg, GameMessage::UpdateSpellSlots(_, 0)),
         ));
 
         let progress: ProgressList = toml::from_str(
@@ -303,7 +303,14 @@ impl MessageReceiver for AchievementSet {
         if let mooeye::UiMessage::Extern(gm) = message {
             for ach in self.list.iter_mut() {
                 if ach.listen(gm) {
-                    gui.add_element(100, ach.info_element_large(ctx));
+                    gui.add_element(
+                        100,
+                        containers::DurationBox::new(
+                            std::time::Duration::from_secs(15),
+                            ach.info_element_large(ctx),
+                        )
+                        .to_element(0, ctx),
+                    );
                 }
             }
         }

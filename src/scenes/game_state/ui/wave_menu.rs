@@ -45,6 +45,17 @@ pub fn handle_wave_menu(
         );
     }
 
+    // spellbook update
+    if messages.contains(&UiMessage::Triggered(203)) {
+        gui.remove_elements(61);
+        let mut wrapbox = mooeye::containers::HorizontalBox::new();
+        for spell in caster.get_spells() {
+            wrapbox.add(spell.info_element_small(ctx));
+        }
+        gui.add_element(60, wrapbox
+            .to_element(0, ctx));
+    }
+
     // reroll enemies
     if messages.contains(&UiMessage::Triggered(204)) && data.spend(50) {
         // reroll enemies
@@ -237,27 +248,27 @@ fn construct_wave_menu(
         )
         .build();
 
-        let next = graphics::Image::from_path(ctx, "/sprites/ui/next.png")
-            .expect("[ERROR] Missing reroll sprite.")
-            .to_element_builder(201, ctx)
-            .as_shrink()
-            .scaled(4., 4.)
-            .with_trigger_key(ggez::winit::event::VirtualKeyCode::P)
-            .with_visuals(super::BUTTON_VIS)
-            .with_hover_visuals(super::BUTTON_HOVER_VIS)
-            .with_tooltip(
-                graphics::Text::new(
-                    graphics::TextFragment::new("Start the next wave!\n[P]")
-                        .color(graphics::Color::from_rgb_u32(PALETTE[6])),
-                )
-                .set_scale(24.)
-                .set_font("Retro")
-                .to_owned()
-                .to_element_builder(0, ctx)
-                .with_visuals(super::BUTTON_VIS)
-                .build(),
+    let next = graphics::Image::from_path(ctx, "/sprites/ui/next.png")
+        .expect("[ERROR] Missing reroll sprite.")
+        .to_element_builder(201, ctx)
+        .as_shrink()
+        .scaled(4., 4.)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::P)
+        .with_visuals(super::BUTTON_VIS)
+        .with_hover_visuals(super::BUTTON_HOVER_VIS)
+        .with_tooltip(
+            graphics::Text::new(
+                graphics::TextFragment::new("Start the next wave!\n[P]")
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6])),
             )
-            .build();
+            .set_scale(24.)
+            .set_font("Retro")
+            .to_owned()
+            .to_element_builder(0, ctx)
+            .with_visuals(super::BUTTON_VIS)
+            .build(),
+        )
+        .build();
 
     let mut row2 = containers::HorizontalBox::new();
     row2.spacing = 16.;
