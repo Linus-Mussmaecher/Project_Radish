@@ -155,10 +155,18 @@ impl AchievementSet {
 
         res.push(Achievement::new(
             "Build the wall!",
-            "Take 50 city damage.",
+            "Take city damage 50 times.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a8_16_16.png").ok(),
             50,
             |msg| matches!(msg, GameMessage::UpdateCityHealth(health) if *health < 10),
+        ));
+
+        res.push(Achievement::new(
+            "Power Overwhelming!",
+            "Cast 500 spells.",
+            graphics::Image::from_path(ctx, "/sprites/ui/mana_add.png").ok(),
+            20,
+            |msg| matches!(msg, GameMessage::UpdateSpellSlots(_,0)),
         ));
 
         let progress: ProgressList = toml::from_str(

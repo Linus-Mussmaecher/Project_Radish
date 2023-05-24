@@ -12,12 +12,12 @@ use crate::scenes::game_state::{
 use super::Spell;
 
 pub fn construct_fireball(spritepool: &SpritePool) -> Spell {
-    Spell {
-        spell_slots: tiny_vec!([f32; MAX_SPELL_SLOTS] => 1.5),
-        name: "Fireball!".to_owned(),
-        icon: spritepool
+    Spell::new(
+        "Fireball",
+        "Hurl a ball of fire, dealing a small amount of damage.",
+        spritepool
             .init_sprite_unchecked("/sprites/spells/fireball", Duration::from_secs_f32(1.3)),
-        spell_: GameAction::spawn(|_, pos, sp, cmd| {
+        GameAction::spawn(|_, pos, sp, cmd| {
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(10)),
@@ -36,18 +36,18 @@ pub fn construct_fireball(spritepool: &SpritePool) -> Spell {
                     )
                 }),
             ));
-        })
-        .into(),
-    }
+        }),
+        tiny_vec!([f32; MAX_SPELL_SLOTS] => 1.5),
+    )
 }
 
-pub fn construct_icebomb(spritepool: &SpritePool) -> Spell {
-    Spell {
-        spell_slots: tiny_vec!([f32; MAX_SPELL_SLOTS] => 1.5, 5.),
-        name: "Ice Bomb".to_owned(),
-        icon: spritepool
+pub fn construct_icemissile(spritepool: &SpritePool) -> Spell {
+    Spell::new(
+        "Ice Missile",
+        "Launch a fast icy projectile, that deals high damage on impact and drops an ice crystal that slows nearby enemies and deals area damage when exploding.",
+        spritepool
             .init_sprite_unchecked("/sprites/spells/icebomb", Duration::from_secs_f32(1.)),
-        spell_: GameAction::spawn(|_, pos, sp, cmd| {
+        GameAction::spawn(|_, pos, sp, cmd| {
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(10)),
@@ -67,9 +67,9 @@ pub fn construct_icebomb(spritepool: &SpritePool) -> Spell {
                     )
                 }),
             ));
-        })
-        .into(),
-    }
+        }),
+        tiny_vec!([f32; MAX_SPELL_SLOTS] => 1.5, 5.),
+    )
 }
 
 fn spawn_icebomb(
@@ -110,12 +110,13 @@ fn spawn_icebomb(
 }
 
 pub fn construct_electrobomb(spritepool: &SpritePool) -> Spell {
-    Spell {
-        spell_slots: tiny_vec!([f32; MAX_SPELL_SLOTS] => 2.5, 30.0),
-        name: "Ice Bomb".to_owned(),
-        icon: spritepool
+    Spell::new(
+        
+        "Lightning Ball",
+        "Launch a ball of lightning that pierces through enemies and deals area damage on every contact.",
+        spritepool
             .init_sprite_unchecked("/sprites/spells/fireball", Duration::from_secs_f32(1.)),
-        spell_: GameAction::spawn(|_, pos, sp, cmd| {
+        GameAction::spawn(|_, pos, sp, cmd| {
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(10)),
@@ -144,17 +145,17 @@ pub fn construct_electrobomb(spritepool: &SpritePool) -> Spell {
                     )
                 }),
             ));
-        })
-        .into(),
-    }
+        }),
+        tiny_vec!([f32; MAX_SPELL_SLOTS] => 1.5, 1.5, 20.)   
+    )
 }
 
 pub fn construct_conflagrate(spritepool: &SpritePool) -> Spell {
-    Spell {
-        spell_slots: tiny_vec!([f32; MAX_SPELL_SLOTS] => 4., 4., 10., 10.),
-        name: "Conflagrate".to_owned(),
-        icon: spritepool.init_sprite_unchecked("/sprites/spells/fireball", Duration::from_secs(1)),
-        spell_: ActionEffect::once(
+    Spell::new(
+        "Conflagrate",
+        "Burn the six nearest enemies for 5 seconds, dealing 30 damage per second.",
+        spritepool.init_sprite_unchecked("/sprites/spells/fireball", Duration::from_secs(1)),
+        ActionEffect::once(
             ActionEffectTarget::new()
                 .with_enemies_only(true)
                 .with_limit(6),
@@ -174,7 +175,7 @@ pub fn construct_conflagrate(spritepool: &SpritePool) -> Spell {
                     .with_duration(Duration::from_secs(5)),
                 ),
             ],
-        )
-        .into(),
-    }
+        ),
+        tiny_vec!([f32; MAX_SPELL_SLOTS] => 4., 4., 10., 10.)
+    )
 }

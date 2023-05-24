@@ -4,7 +4,7 @@ use tinyvec::TinyVec;
 
 use mooeye::sprite::Sprite;
 
-use super::super::{game_message, controller};
+use super::super::{controller, game_message};
 
 use super::{
     actions::{ActionContainer, GameAction},
@@ -131,30 +131,38 @@ pub fn spell_casting(
 #[allow(dead_code)]
 /// A spell struct.
 pub struct Spell {
-    /// The amount of spell slots this spell has to block to be cast.
-    spell_slots: TinyVec<[f32; MAX_SPELL_SLOTS]>,
+    // -------- COSMETIC --------
     /// The name of the spell.
     name: String,
+    /// A short description of the spell to be displayed in the spell book.
+    description: String,
     /// The visual representation of the spell in the spell bar or spell book.
     icon: Sprite,
+
+    // -------- FUNCTIONAL --------
     /// The actual action that is activated when casting the spell. This action is added to the caster!
     spell_: ActionContainer,
+    /// The amount of spell slots this spell has to block to be cast.
+    spell_slots: TinyVec<[f32; MAX_SPELL_SLOTS]>,
 }
 
-#[allow(dead_code)]
 impl Spell {
-    /// Returns the name of the spell.
-    pub fn get_name(&self) -> &str {
-        &self.name
+    /// Constructs a new spell.
+    fn new(
+        name: &str,
+        description: &str,
+        icon: Sprite,
+        spell_: impl Into<ActionContainer>,
+        spell_slots: TinyVec<[f32; MAX_SPELL_SLOTS]>,
+    ) -> Self {
+        Self {
+            name: name.to_owned(),
+            description: description.to_owned(),
+            icon,
+            spell_: spell_.into(),
+            spell_slots,
+        }
     }
 
-    /// Returns the icon of the spell.
-    pub fn get_icon(&self) -> &Sprite {
-        &self.icon
-    }
-
-    /// Returns a slice of floats representing the duration (in seconds) this spell will require to block slots for.
-    pub fn get_spell_slots(&self) -> &[f32] {
-        &self.spell_slots
-    }
+    
 }
