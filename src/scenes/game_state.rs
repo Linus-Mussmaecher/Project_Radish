@@ -315,7 +315,7 @@ impl GameState {
                 ),
                 components::Graphics::from({
                     let mut build = sprite_pool
-                        .init_sprite("/sprites/environment/building", Duration::from_secs(1))?;
+                        .init_sprite("/sprites/environment/building", Duration::ZERO)?;
                     build.set_variant(rand::random::<u32>());
                     build
                 }),
