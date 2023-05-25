@@ -78,7 +78,7 @@ impl Director {
     pub fn next_wave(&mut self) {
         if self.state == DirectorState::WaitingForMenu {
             self.wave += 1;
-            self.state = DirectorState::Spawning(200 + 600 * self.wave);
+            self.state = DirectorState::Spawning(100 + 400 * self.wave);
         }
     }
 
@@ -115,7 +115,7 @@ pub fn direct(
             // only spawn in 1-second intervalls
             if director.intervall >= Duration::from_secs(1) {
                 // grant credits
-                director.credits += 15 + director.total.as_secs() as u32 / 20 + 5 * director.wave;
+                director.credits += 10 + director.total.as_secs() as u32 / 22 + 3 * director.wave;
                 // reset intervall
                 director.intervall = Duration::ZERO;
 

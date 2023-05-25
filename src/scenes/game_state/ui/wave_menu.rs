@@ -13,7 +13,7 @@ const ID_WAVE_SUBMENU: u32 = 220;
 const ID_SPELLS: u32 = 201;
 const ID_ENEMIES: u32 = 202;
 const ID_HOUSE: u32 = 203;
-const ID_NEXT_WAVE: u32 = 204;
+pub const ID_NEXT_WAVE: u32 = 204;
 
 const ID_REROLL: u32 = 221;
 
@@ -509,11 +509,10 @@ fn construct_spell_menu(
         .iter()
         .enumerate()
         .fold(
-            containers::GridBox::new(6, 4),
+            containers::GridBox::new_spaced(6, 4, 8., 8.),
             |mut gbox, (ind, template)| {
                 gbox.add(
                     template
-                        .spell
                         .info_element_small(ID_SPELL_AVAIL_START + ind as u32, ctx),
                     ind % 6,
                     ind / 6,

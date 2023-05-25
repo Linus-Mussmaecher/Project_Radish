@@ -24,7 +24,7 @@ impl GameData {
         Self {
             player,
             score: 0,
-            gold: 0,
+            gold: 500,
             last_gold: 0,
             city_health: 10,
         }

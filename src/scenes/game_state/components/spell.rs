@@ -1,6 +1,6 @@
 use ggez::graphics;
 use legion::system;
-use mooeye::UiContent;
+use mooeye::{containers, ui_element, UiContent};
 use std::time::Duration;
 use tinyvec::TinyVec;
 
@@ -52,8 +52,8 @@ impl SpellCaster {
     }
 
     /// Equips a spell in the given slot.
-    pub fn equip_spell(&mut self, index: usize, spell: Spell){
-        if self.spells.len() > index{
+    pub fn equip_spell(&mut self, index: usize, spell: Spell) {
+        if self.spells.len() > index {
             self.spells[index] = spell;
         } else {
             self.spells.push(spell);
@@ -146,14 +146,13 @@ pub fn spell_casting(
     }
 }
 
-
 /// A set of spells that the user can unlock. The Option may contain a spell about to be equipped.
 pub type SpellPool = (Option<Spell>, Vec<SpellTemplate>);
 
 /// A struct that represents the possibility of a spell that can be equipped. It has a cost and a level.
 /// Level 0 implies the spell is not unlocked yet and has to be unlocked for the cost.
 #[derive(Clone, Debug)]
-pub struct SpellTemplate{
+pub struct SpellTemplate {
     /// The spells level. Level 0 implies the spell is not unlocked yet and has to be unlocked for the cost.
     pub level: u32,
     /// The cost to unlock the spell.
@@ -162,20 +161,112 @@ pub struct SpellTemplate{
     pub spell: Spell,
 }
 
-impl SpellTemplate{
+impl SpellTemplate {
     /// Creates a new spell template from a spell and a  cost.
-    pub fn new(spell: Spell, cost: i32) -> Self{
-        Self { level: 0, cost, spell }
+    pub fn new(spell: Spell, cost: i32) -> Self {
+        Self {
+            level: 0,
+            cost,
+            spell,
+        }
+    }
+
+    /// Returns a small UiElement representing this spell template, consisting of the icon and a tooltip.
+    pub fn info_element_small<T: Copy + Eq + std::hash::Hash + 'static>(
+        &self,
+        id: u32,
+        ctx: &ggez::Context,
+    ) -> mooeye::UiElement<T> {
+        let icon = self.spell.info_element_small(0, ctx);
+
+        let cost = graphics::Text::new(
+            graphics::TextFragment::new(format!("{}", self.cost))
+                .color(graphics::Color::from_rgb_u32(PALETTE[14])),
+        )
+        .set_scale(16.)
+        .set_font("Retro")
+        .to_owned()
+        .to_element_builder(0, ctx)
+        .with_padding((2., 2., 2., 2.))
+        .with_visuals(ui_element::Visuals {
+            background: graphics::Color::from_rgb_u32(PALETTE[8]),
+            border: graphics::Color::from_rgb_u32(PALETTE[8]),
+            border_widths: [0.; 4],
+            corner_radii: [10.; 4],
+        })
+        .as_shrink()
+        .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Max)
+        .build();
+
+        containers::StackBox::new()
+            .to_element_builder(id, ctx)
+            .with_wrapper_layout(icon.get_layout())
+            .with_child(if self.level == 0 {
+                cost
+            } else {
+                ().to_element(0, ctx)
+            })
+            .with_child(
+                crate::scenes::game_state::ui::game_ui::Covering::new(
+                    graphics::Color {
+                        a: 0.4,
+                        ..graphics::Color::from_rgb_u32(PALETTE[0])
+                    },
+                    if self.level == 0 { 1. } else { 0. },
+                )
+                .to_element(0, ctx),
+            )
+            .with_child(icon)
+            .with_tooltip(
+                graphics::Text::new(
+                    graphics::TextFragment::new(&self.spell.name)
+                        .color(graphics::Color::from_rgb_u32(PALETTE[7]))
+                        .scale(28.),
+                )
+                .add("\n")
+                .add(
+                    graphics::TextFragment::new(&self.spell.description)
+                        .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                        .scale(20.),
+                )
+                .add("\nCasting Slots:")
+                .add(
+                    self.spell
+                        .spell_slots
+                        .iter()
+                        .fold(String::new(), |mut old, &slot| {
+                            old.push_str(&format!("  {:.1}", slot));
+                            old
+                        }),
+                )
+                .add("\n")
+                .add(
+                    graphics::TextFragment::new(format!("Cost to unlock: {}g", self.cost))
+                        .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                        .scale(20.),
+                )
+                .set_font("Retro")
+                .set_wrap(true)
+                .set_bounds(ggez::glam::Vec2::new(400., 200.))
+                .to_owned()
+                .to_element_builder(0, ctx)
+                .with_visuals(crate::scenes::BUTTON_VIS)
+                .build(),
+            )
+            .build()
     }
 }
 
-pub fn init_spell_pool(sprite_pool: &mooeye::sprite::SpritePool) -> SpellPool{
-    (None, vec![
-        SpellTemplate::new(spell_list::construct_fireball(sprite_pool), 50),
-        SpellTemplate::new(spell_list::construct_icemissile(sprite_pool), 75),
-        SpellTemplate::new(spell_list::construct_electrobomb(sprite_pool), 90),
-        SpellTemplate::new(spell_list::construct_conflagrate(sprite_pool), 110),
-    ])
+pub fn init_spell_pool(sprite_pool: &mooeye::sprite::SpritePool) -> SpellPool {
+    (
+        None,
+        vec![
+            SpellTemplate::new(spell_list::construct_fireball(sprite_pool), 50),
+            SpellTemplate::new(spell_list::construct_icemissile(sprite_pool), 75),
+            SpellTemplate::new(spell_list::construct_electrobomb(sprite_pool), 90),
+            SpellTemplate::new(spell_list::construct_conflagrate(sprite_pool), 110),
+        ],
+    )
 }
 
 #[derive(Clone, Debug)]
@@ -220,12 +311,13 @@ impl Spell {
         id: u32,
         ctx: &ggez::Context,
     ) -> mooeye::UiElement<T> {
-        self.icon.clone()
+        self.icon
+            .clone()
             .to_element_builder(id, ctx)
             .with_visuals(crate::scenes::BUTTON_VIS)
             .with_size(
-                mooeye::ui_element::Size::Fixed(64.),
-                mooeye::ui_element::Size::Fixed(64.),
+                mooeye::ui_element::Size::Fixed(48.),
+                mooeye::ui_element::Size::Fixed(48.),
             )
             .with_tooltip(
                 graphics::Text::new(
@@ -240,10 +332,14 @@ impl Spell {
                         .scale(20.),
                 )
                 .add("\nCasting Slots:")
-                .add(self.spell_slots.iter().fold(String::new(), |mut old, &slot| {
-                    old.push_str(&format!("  {:.1}", slot));
-                    old
-                }))
+                .add(
+                    self.spell_slots
+                        .iter()
+                        .fold(String::new(), |mut old, &slot| {
+                            old.push_str(&format!("  {:.1}", slot));
+                            old
+                        }),
+                )
                 .set_font("Retro")
                 .set_wrap(true)
                 .set_bounds(ggez::glam::Vec2::new(400., 200.))

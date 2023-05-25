@@ -2,6 +2,7 @@ use ggez::{graphics, GameError};
 
 use mooeye::ui_element::UiContainer;
 use mooeye::*;
+use std::hash::Hash;
 use std::time::Duration;
 
 use super::game_state;
@@ -256,7 +257,7 @@ pub fn create_spellslot(ctx: &ggez::Context, i: usize) -> UiElement<game_state::
 
 /// A ui-element that covers another element by a certain amount.
 /// Change the covering amount by using messages and content-changing transitions.
-struct Covering {
+pub struct Covering {
     /// The covering percentage, between 0 and 1.
     covering: f32,
     /// The color of the covering.
@@ -270,7 +271,7 @@ impl Covering {
     }
 }
 
-impl UiContent<game_state::GameMessage> for Covering {
+impl<T: Copy + Eq + Hash>  UiContent<T> for Covering {
     fn draw_content(
         &mut self,
         _ctx: &mut ggez::Context,

@@ -191,10 +191,13 @@ impl GameState {
 
         let game_data = game_data::GameData::new(player);
         let mut message_set = MessageSet::new();
+        // insert this to make sure the city health is displayed correctly
         message_set.insert(UiMessage::Extern(GameMessage::UpdateCityHealth(
             game_data.city_health,
         )));
-        message_set.insert(UiMessage::Extern(GameMessage::UpdateGold(500)));
+        // send a message to 'init the next wave'. The director does not start in the waiting_for_menu state
+        // so nothing will happen on the director.next_wave() call in wave_menu, but the spells will be updated.
+        message_set.insert(UiMessage::Triggered(ui::wave_menu::ID_NEXT_WAVE));
 
         let mut resources = Resources::default();
         resources.insert(game_data);
