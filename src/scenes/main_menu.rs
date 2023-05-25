@@ -21,7 +21,7 @@ impl MainMenu {
         // title
 
         let title = graphics::Text::new(
-            graphics::TextFragment::new("PowerDefense")
+            graphics::TextFragment::new("Spellstruck")
                 .color(graphics::Color::from_rgb_u32(PALETTE[14])),
         )
         .set_font("Retro")

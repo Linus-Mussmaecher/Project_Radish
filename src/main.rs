@@ -22,7 +22,7 @@ fn main() -> GameResult {
             .window_setup(
                 conf::WindowSetup::default()
                     .icon("/sprites/spells/mana.png")
-                    .title("Power Defense"),
+                    .title("Spellstruck"),
             )
             .window_mode(
                 conf::WindowMode::default()

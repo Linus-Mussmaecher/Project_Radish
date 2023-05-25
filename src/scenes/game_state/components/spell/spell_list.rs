@@ -183,8 +183,43 @@ pub fn construct_ice_lance(sprite_pool: &SpritePool) -> Spell {
         "Ice Lance",
         "Launch a volley of 3 quick-striking ice lances, each dealing damage to a single target and increasing their damage taken.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/icebomb", Duration::ZERO),
-        GameAction::None,
-        tiny_vec!([f32; MAX_SPELL_SLOTS] => 1., 1., 1.))
+            ActionEffect::repeat(ActionEffectTarget::new_only_self(),
+                GameAction::spawn(|_, pos, sp, cmd|{
+                    cmd.push(
+                        (pos,
+                components::LifeDuration::new(Duration::from_secs(8)),
+                components::Graphics::from(sp.init_sprite_unchecked(
+                    "/sprites/spells/icebomb",
+                    Duration::from_secs_f32(0.2),
+                )),
+                components::Velocity::new(0., -450.),
+                components::Collision::new(32., 32., |e1, e2| {
+                    (
+                        vec![
+                            (e1, GameAction::AddImmunity { other: e2 }),
+                            (e1, GameAction::Remove(RemoveSource::Other)),
+                            (
+                                e2,
+                                GameAction::TakeDamage { dmg: 8 }
+                            ),
+                            (
+                                e2,
+                                ActionEffect::transform(ActionEffectTarget::new_only_self(), |act|{
+                                    match act {
+                                        GameAction::TakeDamage{dmg} => {*dmg = (*dmg as f32 * 1.5) as i32;},
+                                        _ => {}
+                                    }
+                                }).into()
+                            )
+                        ],
+                        MessageSet::new(),
+                    )
+                }),
+                    ));
+                }),
+            Duration::from_secs_f32(0.2))
+            .with_duration(Duration::from_secs_f32(0.7)),
+        tiny_vec!([f32; MAX_SPELL_SLOTS] => 2., 2., 2.))
 }
 
 pub fn construct_overload(sprite_pool: &SpritePool) -> Spell {

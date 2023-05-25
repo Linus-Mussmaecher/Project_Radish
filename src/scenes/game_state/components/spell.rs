@@ -209,7 +209,7 @@ impl SpellTemplate {
             .with_child(
                 crate::scenes::game_state::ui::game_ui::Covering::new(
                     graphics::Color {
-                        a: 0.4,
+                        a: 0.7,
                         ..graphics::Color::from_rgb_u32(PALETTE[0])
                     },
                     if self.level == 0 { 1. } else { 0. },
@@ -217,42 +217,6 @@ impl SpellTemplate {
                 .to_element(0, ctx),
             )
             .with_child(icon)
-            .with_tooltip(
-                graphics::Text::new(
-                    graphics::TextFragment::new(&self.spell.name)
-                        .color(graphics::Color::from_rgb_u32(PALETTE[7]))
-                        .scale(28.),
-                )
-                .add("\n")
-                .add(
-                    graphics::TextFragment::new(&self.spell.description)
-                        .color(graphics::Color::from_rgb_u32(PALETTE[6]))
-                        .scale(20.),
-                )
-                .add("\nCasting Slots:")
-                .add(
-                    self.spell
-                        .spell_slots
-                        .iter()
-                        .fold(String::new(), |mut old, &slot| {
-                            old.push_str(&format!("  {:.1}", slot));
-                            old
-                        }),
-                )
-                .add("\n")
-                .add(
-                    graphics::TextFragment::new(format!("Cost to unlock: {}g", self.cost))
-                        .color(graphics::Color::from_rgb_u32(PALETTE[6]))
-                        .scale(20.),
-                )
-                .set_font("Retro")
-                .set_wrap(true)
-                .set_bounds(ggez::glam::Vec2::new(400., 200.))
-                .to_owned()
-                .to_element_builder(0, ctx)
-                .with_visuals(crate::scenes::BUTTON_VIS)
-                .build(),
-            )
             .build()
     }
 }
