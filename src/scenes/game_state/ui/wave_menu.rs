@@ -4,7 +4,7 @@ use ggez::graphics;
 use mooeye::{ui_element::UiContainer, *};
 
 use super::game_state;
-use crate::{PALETTE};
+use crate::PALETTE;
 
 const ID_WAVE_MENU: u32 = 200;
 const ID_WAVE_SUBMENU_CONT: u32 = 210;
@@ -16,7 +16,10 @@ const ID_HOUSE: u32 = 203;
 const ID_NEXT_WAVE: u32 = 204;
 
 const ID_REROLL: u32 = 221;
+
 const ID_MANA_ADD: u32 = 222;
+const ID_SPELL_EQUIP_START: u32 = 223;
+const ID_SPELL_AVAIL_START: u32 = 230;
 
 pub fn handle_wave_menu(
     messages: &game_state::MessageSet,
@@ -25,7 +28,7 @@ pub fn handle_wave_menu(
     director: &mut game_state::director::Director,
     data: &mut game_state::game_data::GameData,
     caster: &mut game_state::components::SpellCaster,
-    spell_pool: &Vec<game_state::components::spell::Spell>,
+    spell_pool: &mut game_state::components::spell::SpellPool,
 ) {
     // if neccessary: Spawn wave menu
     if messages.iter().any(|message| {
@@ -49,7 +52,10 @@ pub fn handle_wave_menu(
     // spells submenu
     if messages.contains(&UiMessage::Triggered(ID_SPELLS)) {
         gui.remove_elements(ID_WAVE_SUBMENU);
-        gui.add_element(ID_WAVE_SUBMENU_CONT, construct_spell_menu(ctx, caster, spell_pool));
+        gui.add_element(
+            ID_WAVE_SUBMENU_CONT,
+            construct_spell_menu(ctx, caster, spell_pool),
+        );
     }
 
     // build submenu
@@ -65,6 +71,56 @@ pub fn handle_wave_menu(
             super::game_ui::ID_MANA_BAR,
             super::game_ui::create_spellslot(ctx, caster.get_slots() - 1),
         );
+    }
+
+    // unlock and equip spells
+    for message in messages {
+        // remember if anything has changed
+        let mut triggered = false;
+        match message {
+
+            // check for clicks if a spell in the shop index-range 
+
+            &UiMessage::Triggered(id)
+                if id >= ID_SPELL_AVAIL_START
+                    && id < ID_SPELL_AVAIL_START + spell_pool.1.len() as u32 => {
+                        // calculate index
+                        let index = (id - ID_SPELL_AVAIL_START) as usize;
+                        // check if a spell is at that index
+                        if let Some(template) = spell_pool.1.get_mut(index){
+                            // if spell was not yet purchased, attempt to purchase it
+                            if template.level == 0 && data.spend(template.cost){
+                                template.level = 1;
+                            }
+                            // if spell is (now) unlocked, store a copy
+                            if template.level > 0{
+                                spell_pool.0 = Some(template.spell.clone());
+                                triggered = true;
+                            }
+                        }
+                    }
+
+            // check for clicks if a spell in the equipped spell index-range
+
+            &UiMessage::Triggered(id)
+                if id >= ID_SPELL_EQUIP_START && id < ID_SPELL_EQUIP_START + 4 => {
+                    // calculate index
+                    let index = (id - ID_SPELL_EQUIP_START) as usize;
+                    // check if a spell is stored and remove it
+                    if let Some(stored) = spell_pool.0.take(){
+                        // equip the spell
+                        caster.equip_spell(index, stored);
+                        triggered = true;
+                    }
+                }
+            _ => {}
+        }
+        // reload menu if neccessary
+        if triggered {
+            gui.remove_elements(ID_WAVE_SUBMENU);
+            gui.add_element(ID_WAVE_SUBMENU_CONT, construct_spell_menu(ctx, caster, spell_pool));
+        }
+
     }
 
     // reroll
@@ -86,9 +142,6 @@ pub fn handle_wave_menu(
         gui.add_element(0, construct_wave_announcer(ctx, director.get_wave()));
         // make sure spells are correct
         gui.remove_elements(super::game_ui::ID_SPELL_BAR_CHILDREN);
-        for spell in caster.get_spells(){
-            gui.add_element(super::game_ui::ID_SPELL_BAR, spell.info_element_small(super::game_ui::ID_SPELL_BAR_CHILDREN, ctx));
-        }
         gui.add_element(
             super::game_ui::ID_SPELL_BAR,
             caster
@@ -244,7 +297,7 @@ fn construct_wave_menu(
         .build();
 
     let next = graphics::Image::from_path(ctx, "/sprites/ui/next.png")
-        .expect("[ERROR] Missing reroll sprite.")
+        .expect("[ERROR] Missing next sprite.")
         .to_element_builder(ID_NEXT_WAVE, ctx)
         .as_shrink()
         .scaled(4., 4.)
@@ -389,12 +442,12 @@ fn construct_enemies_menu(
         .as_shrink()
         .scaled(4., 4.)
         .with_padding((10., 10., 10., 10.))
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::I)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::M)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .with_tooltip(
             graphics::Text::new(
-                graphics::TextFragment::new("Reroll the enemy selection.\nCost: 50g")
+                graphics::TextFragment::new("Reroll the enemy selection.\n[M]\nCost: 50g")
                     .color(graphics::Color::from_rgb_u32(PALETTE[6])),
             )
             .set_scale(24.)
@@ -426,7 +479,7 @@ fn construct_enemies_menu(
 fn construct_spell_menu(
     ctx: &ggez::Context,
     caster: &mut game_state::components::SpellCaster,
-    spell_pool: &Vec<game_state::components::spell::Spell>,
+    spell_pool: &game_state::components::spell::SpellPool,
 ) -> UiElement<game_state::GameMessage> {
     // ---- Title ----
 
@@ -440,7 +493,6 @@ fn construct_spell_menu(
     .to_element_builder(0, ctx)
     .build();
 
-
     // available spells
 
     let available_title = graphics::Text::new(
@@ -452,16 +504,25 @@ fn construct_spell_menu(
     .to_element_builder(0, ctx)
     .build();
 
-    let available = spell_pool.iter().enumerate().fold(
-        containers::GridBox::new(6, 4), 
-        |mut gbox, (ind, spell)| {
-            gbox.add(spell.info_element_small(220 + ind as u32, ctx), ind % 6, ind / 6);
-            gbox
-        }
-    ).to_element_builder(0, ctx)
-    
-    .build();
-
+    let available = spell_pool
+        .1
+        .iter()
+        .enumerate()
+        .fold(
+            containers::GridBox::new(6, 4),
+            |mut gbox, (ind, template)| {
+                gbox.add(
+                    template
+                        .spell
+                        .info_element_small(ID_SPELL_AVAIL_START + ind as u32, ctx),
+                    ind % 6,
+                    ind / 6,
+                ).expect("Unexpected Index out of bounds when adding spell pool to grid.");
+                gbox
+            },
+        )
+        .to_element_builder(0, ctx)
+        .build();
 
     let loadout_title = graphics::Text::new(
         graphics::TextFragment::new("Loadout:").color(graphics::Color::from_rgb_u32(PALETTE[6])),
@@ -477,9 +538,10 @@ fn construct_spell_menu(
     let loadout = caster
         .get_spells()
         .iter()
+        .enumerate()
         .fold(
             containers::HorizontalBox::new_spaced(16.).to_element_builder(0, ctx),
-            |loadout, spell| loadout.with_child(spell.info_element_small(0,ctx)),
+            |loadout, (index, spell)| loadout.with_child(spell.info_element_small(ID_SPELL_EQUIP_START + index as u32, ctx)),
         )
         .with_alignment(ui_element::Alignment::Center, None)
         .as_shrink()

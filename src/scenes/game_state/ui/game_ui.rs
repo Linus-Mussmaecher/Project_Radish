@@ -17,7 +17,7 @@ pub const ID_MANA_BAR: u32 = 50;
 ///  - Menu button
 ///  - Gold & City health display
 ///  - Cooldown display for the players spell slots
-///  - TODO: Indicator for currently equipped spells
+///  - Indicator for currently equipped spells
 ///  - Vertical box to display messages (achievements etc.)
 pub fn construct_game_ui(
     ctx: &ggez::Context,

@@ -51,6 +51,15 @@ impl SpellCaster {
         &self.spells
     }
 
+    /// Equips a spell in the given slot.
+    pub fn equip_spell(&mut self, index: usize, spell: Spell){
+        if self.spells.len() > index{
+            self.spells[index] = spell;
+        } else {
+            self.spells.push(spell);
+        }
+    }
+
     /// Adds a new spell slot to this entity.
     pub fn add_slot(&mut self) {
         if self.spell_slots.len() < MAX_SPELL_SLOTS {
@@ -138,18 +147,38 @@ pub fn spell_casting(
 }
 
 
-pub type SpellPool = (Option<Spell>, Vec<Spell>);
+/// A set of spells that the user can unlock. The Option may contain a spell about to be equipped.
+pub type SpellPool = (Option<Spell>, Vec<SpellTemplate>);
+
+/// A struct that represents the possibility of a spell that can be equipped. It has a cost and a level.
+/// Level 0 implies the spell is not unlocked yet and has to be unlocked for the cost.
+#[derive(Clone, Debug)]
+pub struct SpellTemplate{
+    /// The spells level. Level 0 implies the spell is not unlocked yet and has to be unlocked for the cost.
+    pub level: u32,
+    /// The cost to unlock the spell.
+    pub cost: i32,
+    /// The spell itself.
+    pub spell: Spell,
+}
+
+impl SpellTemplate{
+    /// Creates a new spell template from a spell and a  cost.
+    pub fn new(spell: Spell, cost: i32) -> Self{
+        Self { level: 0, cost, spell }
+    }
+}
 
 pub fn init_spell_pool(sprite_pool: &mooeye::sprite::SpritePool) -> SpellPool{
     (None, vec![
-        spell_list::construct_fireball(sprite_pool),
-        spell_list::construct_icemissile(sprite_pool),
-        spell_list::construct_electrobomb(sprite_pool),
-        spell_list::construct_conflagrate(sprite_pool),
+        SpellTemplate::new(spell_list::construct_fireball(sprite_pool), 50),
+        SpellTemplate::new(spell_list::construct_icemissile(sprite_pool), 75),
+        SpellTemplate::new(spell_list::construct_electrobomb(sprite_pool), 90),
+        SpellTemplate::new(spell_list::construct_conflagrate(sprite_pool), 110),
     ])
 }
 
-#[allow(dead_code)]
+#[derive(Clone, Debug)]
 /// A spell struct.
 pub struct Spell {
     // -------- COSMETIC --------
