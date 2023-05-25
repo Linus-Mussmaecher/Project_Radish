@@ -20,7 +20,7 @@ impl GameOverMenu {
 
         // if only a small amount of scores is recorded or the worst result from the list was beaten, insert the new result
         let own_index = if highscores.len() < 25
-            || score >= highscores.last().map(|s| *s).unwrap_or_default()
+            || score >= highscores.last().map(|&s| s).unwrap_or_default()
         {
             // set default index: at the end of the list
             let mut index = highscores.len();

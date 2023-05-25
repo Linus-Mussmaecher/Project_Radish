@@ -50,7 +50,7 @@ impl Director {
     pub fn new(sprite_pool: &sprite::SpritePool) -> Self {
         Self {
             wave: 1,
-            state: DirectorState::Spawning(450),
+            state: DirectorState::Spawning(50), //TODO: back to 450 after testing
             intervall: Duration::ZERO,
             total: Duration::ZERO,
             credits: 0,
@@ -99,7 +99,7 @@ pub fn direct(
     subworld: &mut legion::world::SubWorld,
     enemy_query: &mut legion::Query<&components::Enemy>,
     cmd: &mut CommandBuffer,
-    #[resource] spritepool: &sprite::SpritePool,
+    #[resource] sprite_pool: &sprite::SpritePool,
     #[resource] boundaries: &graphics::Rect,
     #[resource] director: &mut Director,
     #[resource] ix: &controller::Interactions,
@@ -147,7 +147,7 @@ pub fn direct(
                         // spawn
                         if (enemy_template.spawner._spawner)(
                             cmd,
-                            spritepool,
+                            sprite_pool,
                             ggez::glam::Vec2::new(rand::random::<f32>() * boundaries.w, -20.),
                         )
                         .is_ok()

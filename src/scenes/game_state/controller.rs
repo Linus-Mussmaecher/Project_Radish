@@ -94,16 +94,16 @@ impl Controller {
             delta: ctx.time.delta(),
         };
 
-        for Mapping {
+        for &Mapping {
             keycode,
             held,
             command,
         } in self.command_map.iter()
         {
-            if ctx.keyboard.is_key_pressed(*keycode) && *held
-                || ctx.keyboard.is_key_just_released(*keycode) && !*held
+            if ctx.keyboard.is_key_pressed(keycode) && held
+                || ctx.keyboard.is_key_just_released(keycode) && !held
             {
-                inter.commands.insert(*command, true);
+                inter.commands.insert(command, true);
             }
         }
 

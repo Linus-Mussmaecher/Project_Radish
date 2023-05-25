@@ -8,6 +8,10 @@ use super::game_state;
 
 use crate::PALETTE;
 
+pub const ID_SPELL_BAR: u32 = 60;
+pub const ID_SPELL_BAR_CHILDREN: u32 = 61;
+pub const ID_MANA_BAR: u32 = 50;
+
 /// Constructs the UiElement that forms the main UI of the game.
 /// Consists of
 ///  - Menu button
@@ -169,7 +173,7 @@ pub fn construct_game_ui(
     }
 
     let slot_box = slot_box
-        .to_element_builder(50, ctx)
+        .to_element_builder(ID_MANA_BAR, ctx)
         .with_visuals(mooeye::ui_element::Visuals {
             border_widths: [0., 3., 3., 3.],
             corner_radii: [0., 3., 3., 0.],
@@ -181,7 +185,7 @@ pub fn construct_game_ui(
     main_box.add(slot_box);
 
     let spell_box = containers::StackBox::new()
-        .to_element_builder(60, ctx)
+        .to_element_builder(ID_SPELL_BAR, ctx)
         .with_visuals(mooeye::ui_element::Visuals {
             border_widths: [3., 3., 0., 3.],
             corner_radii: [3., 0., 0., 3.],

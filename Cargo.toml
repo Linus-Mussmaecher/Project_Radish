@@ -15,7 +15,6 @@ legion = "^0.4"
 # Serialization
 serde = "^1.0"
 toml = "^0.4"
-serde_with = "^2.3"
 # Random
 rand = "^0.8"
 # other

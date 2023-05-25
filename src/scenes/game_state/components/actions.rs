@@ -380,13 +380,13 @@ pub fn resolve_executive_actions(
     ent: &Entity,
     actions: &Actions,
     pos: Option<&Position>,
-    #[resource] spritepool: &sprite::SpritePool,
+    #[resource] sprite_pool: &sprite::SpritePool,
     cmd: &mut CommandBuffer,
 ) {
     for action in actions.get_actions() {
         match action {
             GameAction::Spawn(spawner) => {
-                (spawner.spawner)(*ent, pos.map(|p| *p).unwrap_or_default(), spritepool, cmd)
+                (spawner.spawner)(*ent, pos.map(|p| *p).unwrap_or_default(), sprite_pool, cmd)
             }
             _ => {}
         }

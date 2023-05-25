@@ -137,6 +137,18 @@ pub fn spell_casting(
     }
 }
 
+
+pub type SpellPool = (Option<Spell>, Vec<Spell>);
+
+pub fn init_spell_pool(sprite_pool: &mooeye::sprite::SpritePool) -> SpellPool{
+    (None, vec![
+        spell_list::construct_fireball(sprite_pool),
+        spell_list::construct_icemissile(sprite_pool),
+        spell_list::construct_electrobomb(sprite_pool),
+        spell_list::construct_conflagrate(sprite_pool),
+    ])
+}
+
 #[allow(dead_code)]
 /// A spell struct.
 pub struct Spell {
@@ -176,14 +188,15 @@ impl Spell {
     /// Returns a small UiElement representing this spell, consisting of the icon and a tooltip.
     pub fn info_element_small<T: Copy + Eq + std::hash::Hash + 'static>(
         &self,
+        id: u32,
         ctx: &ggez::Context,
     ) -> mooeye::UiElement<T> {
         self.icon.clone()
-            .to_element_builder(0, ctx)
+            .to_element_builder(id, ctx)
             .with_visuals(crate::scenes::BUTTON_VIS)
             .with_size(
-                mooeye::ui_element::Size::Fill(32., f32::INFINITY),
-                mooeye::ui_element::Size::Fill(32., f32::INFINITY),
+                mooeye::ui_element::Size::Fixed(64.),
+                mooeye::ui_element::Size::Fixed(64.),
             )
             .with_tooltip(
                 graphics::Text::new(
@@ -197,6 +210,11 @@ impl Spell {
                         .color(graphics::Color::from_rgb_u32(PALETTE[6]))
                         .scale(20.),
                 )
+                .add("\nCasting Slots:")
+                .add(self.spell_slots.iter().fold(String::new(), |mut old, &slot| {
+                    old.push_str(&format!("  {:.1}", slot));
+                    old
+                }))
                 .set_font("Retro")
                 .set_wrap(true)
                 .set_bounds(ggez::glam::Vec2::new(400., 200.))

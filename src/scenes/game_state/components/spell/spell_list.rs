@@ -11,11 +11,11 @@ use crate::scenes::game_state::{
 
 use super::Spell;
 
-pub fn construct_fireball(spritepool: &SpritePool) -> Spell {
+pub fn construct_fireball(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Fireball",
         "Hurl a ball of fire, dealing a small amount of damage.",
-        spritepool
+        sprite_pool
             .init_sprite_unchecked("/sprites/spells/fireball", Duration::ZERO),
         GameAction::spawn(|_, pos, sp, cmd| {
             cmd.push((
@@ -41,11 +41,11 @@ pub fn construct_fireball(spritepool: &SpritePool) -> Spell {
     )
 }
 
-pub fn construct_icemissile(spritepool: &SpritePool) -> Spell {
+pub fn construct_icemissile(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Ice Missile",
         "Launch a fast icy projectile that deals high damage on impact and drops an ice crystal that slows nearby enemies and deals area damage when exploding.",
-        spritepool
+        sprite_pool
             .init_sprite_unchecked("/sprites/spells/icebomb", Duration::ZERO),
         GameAction::spawn(|_, pos, sp, cmd| {
             cmd.push((
@@ -75,14 +75,14 @@ pub fn construct_icemissile(spritepool: &SpritePool) -> Spell {
 fn spawn_icebomb(
     _: Entity,
     pos: components::Position,
-    spritepool: &SpritePool,
+    sprite_pool: &SpritePool,
     cmd: &mut CommandBuffer,
 ) {
     cmd.push((
         pos,
         components::LifeDuration::new(Duration::from_secs(5)),
         {
-            let mut sprite = spritepool
+            let mut sprite = sprite_pool
                 .init_sprite_unchecked("/sprites/spells/icebomb", Duration::from_secs_f32(0.25));
             sprite.set_variant(1);
             components::Graphics::from(sprite)
@@ -109,12 +109,12 @@ fn spawn_icebomb(
     ));
 }
 
-pub fn construct_electrobomb(spritepool: &SpritePool) -> Spell {
+pub fn construct_electrobomb(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         
         "Lightning Ball",
         "Launch a ball of lightning that pierces through enemies and deals area damage on every contact.",
-        spritepool
+        sprite_pool
             .init_sprite_unchecked("/sprites/spells/electroorb", Duration::ZERO),
         GameAction::spawn(|_, pos, sp, cmd| {
             cmd.push((
@@ -150,11 +150,11 @@ pub fn construct_electrobomb(spritepool: &SpritePool) -> Spell {
     )
 }
 
-pub fn construct_conflagrate(spritepool: &SpritePool) -> Spell {
+pub fn construct_conflagrate(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Conflagrate",
         "Burn the six nearest enemies for 5 seconds, dealing 30 damage per second.",
-        spritepool.init_sprite_unchecked("/sprites/spells/fireball", Duration::ZERO),
+        sprite_pool.init_sprite_unchecked("/sprites/spells/fireball", Duration::ZERO),
         ActionEffect::once(
             ActionEffectTarget::new()
                 .with_enemies_only(true)
@@ -168,7 +168,7 @@ pub fn construct_conflagrate(spritepool: &SpritePool) -> Spell {
                 .with_duration(Duration::from_secs(5))
                 .into(),
                 GameAction::AddParticle(
-                    Particle::new(spritepool.init_sprite_unchecked(
+                    Particle::new(sprite_pool.init_sprite_unchecked(
                         "/sprites/spells/burning",
                         Duration::from_secs_f32(0.25),
                     ))
