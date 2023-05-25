@@ -18,21 +18,19 @@ impl Control {
 
 #[system(for_each)]
 /// A system that manages the translation of orders coming from the controller (via the interactions resource) to actions of control components.
-pub fn control(control: &Control, actions: &mut Actions, #[resource] ix: &controller::Interactions) {
+pub fn control(
+    control: &Control,
+    actions: &mut Actions,
+    #[resource] ix: &controller::Interactions,
+) {
     // Movement
 
     let mut del = Vec2::ZERO;
 
-    if let Some(true) = ix
-        .commands
-        .get(&controller::Command::MoveLeft)
-    {
+    if let Some(true) = ix.commands.get(&controller::Command::MoveLeft) {
         del.x -= 1.;
     }
-    if let Some(true) = ix
-        .commands
-        .get(&controller::Command::MoveRight)
-    {
+    if let Some(true) = ix.commands.get(&controller::Command::MoveRight) {
         del.x += 1.;
     }
 
@@ -42,28 +40,16 @@ pub fn control(control: &Control, actions: &mut Actions, #[resource] ix: &contro
 
     // Spell casting
 
-    if let Some(true) = ix
-        .commands
-        .get(&controller::Command::Spell0)
-    {
+    if let Some(true) = ix.commands.get(&controller::Command::Spell0) {
         actions.push(super::actions::GameAction::CastSpell(0));
     }
-    if let Some(true) = ix
-        .commands
-        .get(&controller::Command::Spell1)
-    {
+    if let Some(true) = ix.commands.get(&controller::Command::Spell1) {
         actions.push(super::actions::GameAction::CastSpell(1));
     }
-    if let Some(true) = ix
-        .commands
-        .get(&controller::Command::Spell2)
-    {
+    if let Some(true) = ix.commands.get(&controller::Command::Spell2) {
         actions.push(super::actions::GameAction::CastSpell(2));
     }
-    if let Some(true) = ix
-        .commands
-        .get(&controller::Command::Spell3)
-    {
+    if let Some(true) = ix.commands.get(&controller::Command::Spell3) {
         actions.push(super::actions::GameAction::CastSpell(3));
     }
 }

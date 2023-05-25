@@ -91,7 +91,10 @@ impl scene_manager::Scene for InGameMenu {
         }
 
         if messages.contains(&UiMessage::Triggered(2)) {
-            res = scene_manager::SceneSwitch::replace(crate::scenes::main_menu::MainMenu::new(ctx)?, 2);
+            res = scene_manager::SceneSwitch::replace(
+                crate::scenes::main_menu::MainMenu::new(ctx)?,
+                2,
+            );
         }
 
         if messages.contains(&UiMessage::Triggered(3)) {

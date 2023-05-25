@@ -15,8 +15,7 @@ pub fn construct_fireball(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Fireball",
         "Hurl a ball of fire, dealing a small amount of damage.",
-        sprite_pool
-            .init_sprite_unchecked("/sprites/spells/fireball", Duration::ZERO),
+        sprite_pool.init_sprite_unchecked("/sprites/spells/fireball", Duration::ZERO),
         GameAction::spawn(|_, pos, sp, cmd| {
             cmd.push((
                 pos,
@@ -41,9 +40,9 @@ pub fn construct_fireball(sprite_pool: &SpritePool) -> Spell {
     )
 }
 
-pub fn construct_icemissile(sprite_pool: &SpritePool) -> Spell {
+pub fn construct_ice_bomb(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
-        "Ice Missile",
+        "Ice Bomb",
         "Launch a fast icy projectile that deals high damage on impact and drops an ice crystal that slows nearby enemies and deals area damage when exploding.",
         sprite_pool
             .init_sprite_unchecked("/sprites/spells/icebomb", Duration::ZERO),
@@ -109,9 +108,8 @@ fn spawn_icebomb(
     ));
 }
 
-pub fn construct_electrobomb(sprite_pool: &SpritePool) -> Spell {
+pub fn construct_lightning_orb(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
-        
         "Lightning Ball",
         "Launch a ball of lightning that pierces through enemies and deals area damage on every contact.",
         sprite_pool
@@ -176,6 +174,51 @@ pub fn construct_conflagrate(sprite_pool: &SpritePool) -> Spell {
                 ),
             ],
         ),
-        tiny_vec!([f32; MAX_SPELL_SLOTS] => 4., 4., 10., 10.)
+        tiny_vec!([f32; MAX_SPELL_SLOTS] => 4., 4., 10., 10.),
     )
+}
+
+pub fn construct_ice_lance(sprite_pool: &SpritePool) -> Spell {
+    Spell::new(
+        "Ice Lance",
+        "Launch a volley of 3 quick-striking ice lances, each dealing damage to a single target and increasing their damage taken.",
+        sprite_pool.init_sprite_unchecked("/sprites/spells/icebomb", Duration::ZERO),
+        GameAction::None,
+        tiny_vec!([f32; MAX_SPELL_SLOTS] => 1., 1., 1.))
+}
+
+pub fn construct_overload(sprite_pool: &SpritePool) -> Spell {
+    Spell::new(
+        "Overload",
+        "Shoot out an electric spark that overloads the first two enemies hit. When they die within a short timeframe, nearby enemies take high damage.",
+        sprite_pool.init_sprite_unchecked("/sprites/spells/electroorb", Duration::ZERO),
+        GameAction::None,
+        tiny_vec!([f32; MAX_SPELL_SLOTS] => 3., 5.))
+}
+
+pub fn construct_scorch(sprite_pool: &SpritePool) -> Spell {
+    Spell::new(
+        "Scorch",
+        "Hurl a short ranged fireball, dealing low impact damage but igniting the area hit for 10 seconds, dealing damage over time to all enemies inside.",
+        sprite_pool.init_sprite_unchecked("/sprites/spells/fireball", Duration::ZERO),
+        GameAction::None,
+        tiny_vec!([f32; MAX_SPELL_SLOTS] => 2., 5.,10.,))
+}
+
+pub fn construct_shard(sprite_pool: &SpritePool) -> Spell {
+    Spell::new(
+        "Shard of Ice",
+        "Throw a shard of ice dealing moderate damage and slowing. On hit, split into three smaller shards that deal less damage but slow more.",
+        sprite_pool.init_sprite_unchecked("/sprites/spells/icebomb", Duration::ZERO),
+        GameAction::None,
+        tiny_vec!([f32; MAX_SPELL_SLOTS] => 1.5))
+}
+
+pub fn construct_arcane_missiles(sprite_pool: &SpritePool) -> Spell {
+    Spell::new(
+        "Arcane Missiles",
+        "Infuse your self with arcane power. Every second for the next 10 seconds, launch an arcane missile towards the nearest enemy, dealing moderate damage.",
+        sprite_pool.init_sprite_unchecked("/sprites/spells/electroorb", Duration::ZERO),
+        GameAction::None,
+        tiny_vec!([f32; MAX_SPELL_SLOTS] => 0.1, 0.1, 0.1, 5., 5., 10.))
 }

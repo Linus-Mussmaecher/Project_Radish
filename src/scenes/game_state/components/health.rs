@@ -154,7 +154,11 @@ pub fn enemy_death_sprite(
 
 #[system(for_each)]
 /// Applies all [TakeDamage] actions to their respective entities.
-pub fn resolve_damage(health: &mut Health, actions: &Actions, #[resource] ix: &super::super::controller::Interactions) {
+pub fn resolve_damage(
+    health: &mut Health,
+    actions: &Actions,
+    #[resource] ix: &super::super::controller::Interactions,
+) {
     // update snapshot health
     let health_float = health.curr_health as f32;
     if health_float < health.snapshot_health && health.snapshot_delay.is_zero() {

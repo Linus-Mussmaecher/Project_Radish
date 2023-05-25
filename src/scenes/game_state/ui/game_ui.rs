@@ -271,7 +271,7 @@ impl Covering {
     }
 }
 
-impl<T: Copy + Eq + Hash>  UiContent<T> for Covering {
+impl<T: Copy + Eq + Hash> UiContent<T> for Covering {
     fn draw_content(
         &mut self,
         _ctx: &mut ggez::Context,

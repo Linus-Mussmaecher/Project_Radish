@@ -78,49 +78,50 @@ pub fn handle_wave_menu(
         // remember if anything has changed
         let mut triggered = false;
         match message {
-
-            // check for clicks if a spell in the shop index-range 
-
+            // check for clicks if a spell in the shop index-range
             &UiMessage::Triggered(id)
                 if id >= ID_SPELL_AVAIL_START
-                    && id < ID_SPELL_AVAIL_START + spell_pool.1.len() as u32 => {
-                        // calculate index
-                        let index = (id - ID_SPELL_AVAIL_START) as usize;
-                        // check if a spell is at that index
-                        if let Some(template) = spell_pool.1.get_mut(index){
-                            // if spell was not yet purchased, attempt to purchase it
-                            if template.level == 0 && data.spend(template.cost){
-                                template.level = 1;
-                            }
-                            // if spell is (now) unlocked, store a copy
-                            if template.level > 0{
-                                spell_pool.0 = Some(template.spell.clone());
-                                triggered = true;
-                            }
-                        }
+                    && id < ID_SPELL_AVAIL_START + spell_pool.1.len() as u32 =>
+            {
+                // calculate index
+                let index = (id - ID_SPELL_AVAIL_START) as usize;
+                // check if a spell is at that index
+                if let Some(template) = spell_pool.1.get_mut(index) {
+                    // if spell was not yet purchased, attempt to purchase it
+                    if template.level == 0 && data.spend(template.cost) {
+                        template.level = 1;
                     }
-
-            // check for clicks if a spell in the equipped spell index-range
-
-            &UiMessage::Triggered(id)
-                if id >= ID_SPELL_EQUIP_START && id < ID_SPELL_EQUIP_START + 4 => {
-                    // calculate index
-                    let index = (id - ID_SPELL_EQUIP_START) as usize;
-                    // check if a spell is stored and remove it
-                    if let Some(stored) = spell_pool.0.take(){
-                        // equip the spell
-                        caster.equip_spell(index, stored);
+                    // if spell is (now) unlocked, store a copy
+                    if template.level > 0 {
+                        spell_pool.0 = Some(template.spell.clone());
                         triggered = true;
                     }
                 }
+            }
+
+            // check for clicks if a spell in the equipped spell index-range
+            &UiMessage::Triggered(id)
+                if id >= ID_SPELL_EQUIP_START && id < ID_SPELL_EQUIP_START + 4 =>
+            {
+                // calculate index
+                let index = (id - ID_SPELL_EQUIP_START) as usize;
+                // check if a spell is stored and remove it
+                if let Some(stored) = spell_pool.0.take() {
+                    // equip the spell
+                    caster.equip_spell(index, stored);
+                    triggered = true;
+                }
+            }
             _ => {}
         }
         // reload menu if neccessary
         if triggered {
             gui.remove_elements(ID_WAVE_SUBMENU);
-            gui.add_element(ID_WAVE_SUBMENU_CONT, construct_spell_menu(ctx, caster, spell_pool));
+            gui.add_element(
+                ID_WAVE_SUBMENU_CONT,
+                construct_spell_menu(ctx, caster, spell_pool),
+            );
         }
-
     }
 
     // reroll
@@ -512,11 +513,11 @@ fn construct_spell_menu(
             containers::GridBox::new_spaced(6, 4, 8., 8.),
             |mut gbox, (ind, template)| {
                 gbox.add(
-                    template
-                        .info_element_small(ID_SPELL_AVAIL_START + ind as u32, ctx),
+                    template.info_element_small(ID_SPELL_AVAIL_START + ind as u32, ctx),
                     ind % 6,
                     ind / 6,
-                ).expect("Unexpected Index out of bounds when adding spell pool to grid.");
+                )
+                .expect("Unexpected Index out of bounds when adding spell pool to grid.");
                 gbox
             },
         )
@@ -540,7 +541,10 @@ fn construct_spell_menu(
         .enumerate()
         .fold(
             containers::HorizontalBox::new_spaced(16.).to_element_builder(0, ctx),
-            |loadout, (index, spell)| loadout.with_child(spell.info_element_small(ID_SPELL_EQUIP_START + index as u32, ctx)),
+            |loadout, (index, spell)| {
+                loadout
+                    .with_child(spell.info_element_small(ID_SPELL_EQUIP_START + index as u32, ctx))
+            },
         )
         .with_alignment(ui_element::Alignment::Center, None)
         .as_shrink()
@@ -551,7 +555,7 @@ fn construct_spell_menu(
         .to_element_builder(ID_MANA_ADD, ctx)
         .as_shrink()
         .scaled(4., 4.)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::U)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::M)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .with_tooltip(

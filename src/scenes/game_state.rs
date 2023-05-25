@@ -47,7 +47,6 @@ pub struct GameState {
 
 impl scene_manager::Scene for GameState {
     fn update(&mut self, ctx: &mut ggez::Context) -> Result<scene_manager::SceneSwitch, GameError> {
-
         // +-------------------------------------------------------+
         // |                     Preparation                       |
         // +-------------------------------------------------------+
@@ -122,7 +121,6 @@ impl scene_manager::Scene for GameState {
     }
 
     fn draw(&mut self, ctx: &mut ggez::Context, mouse_listen: bool) -> Result<(), GameError> {
-
         // Get canvas & set sampler
         let mut canvas =
             graphics::Canvas::from_frame(ctx, graphics::Color::from_rgb_u32(crate::PALETTE[11]));
@@ -151,11 +149,9 @@ impl scene_manager::Scene for GameState {
     }
 }
 
-
 impl GameState {
     /// Creates a new game state.
     pub fn new(ctx: &ggez::Context) -> Result<Self, GameError> {
-        
         // --- WORLD CREATION ---
 
         // Create world
@@ -179,8 +175,8 @@ impl GameState {
             components::SpellCaster::new(
                 vec![
                     spell_list::construct_fireball(&sprite_pool),
-                    spell_list::construct_icemissile(&sprite_pool),
-                    spell_list::construct_electrobomb(&sprite_pool),
+                    spell_list::construct_ice_bomb(&sprite_pool),
+                    spell_list::construct_lightning_orb(&sprite_pool),
                     spell_list::construct_conflagrate(&sprite_pool),
                 ],
                 4,
@@ -320,8 +316,8 @@ impl GameState {
                     y * building_size + boundaries.h,
                 ),
                 components::Graphics::from({
-                    let mut build = sprite_pool
-                        .init_sprite("/sprites/environment/building", Duration::ZERO)?;
+                    let mut build =
+                        sprite_pool.init_sprite("/sprites/environment/building", Duration::ZERO)?;
                     build.set_variant(rand::random::<u32>());
                     build
                 }),

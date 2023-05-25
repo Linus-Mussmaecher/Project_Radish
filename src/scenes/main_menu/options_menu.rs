@@ -62,7 +62,8 @@ impl OptionsMenu {
 
         Ok(Self {
             gui: credits_box,
-            controller: super::game_state::Controller::from_path("./data/keymap.toml").unwrap_or_default(),
+            controller: super::game_state::Controller::from_path("./data/keymap.toml")
+                .unwrap_or_default(),
         })
     }
 }

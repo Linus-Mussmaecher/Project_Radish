@@ -1,6 +1,6 @@
+use super::game_state::achievements;
 use ggez::{graphics, GameError};
 use mooeye::{ui_element::UiContainer, *};
-use super::game_state::achievements;
 
 use crate::PALETTE;
 
@@ -172,7 +172,6 @@ impl GameOverMenu {
             .with_padding((25., 25., 25., 25.))
             .build();
 
-        
         // save highscores
         achievements::save_highscores(highscores);
 

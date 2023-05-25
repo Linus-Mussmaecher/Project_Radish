@@ -51,7 +51,11 @@ impl From<Velocity> for Vec2 {
 
 #[system(for_each)]
 /// Moves entities with the velocity component.
-pub fn velocity(vel: &Velocity, actions: &mut Actions, #[resource] ix: &super::super::Interactions) {
+pub fn velocity(
+    vel: &Velocity,
+    actions: &mut Actions,
+    #[resource] ix: &super::super::Interactions,
+) {
     actions.push(super::actions::GameAction::Move {
         delta: Vec2::from(*vel) * ix.delta.as_secs_f32(),
     })

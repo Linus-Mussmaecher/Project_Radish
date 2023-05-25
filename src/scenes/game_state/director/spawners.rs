@@ -84,7 +84,8 @@ pub fn spawn_dodge_skeleton(
                             _ => {}
                         };
                     },
-                ).with_duration(Duration::from_secs(2))
+                )
+                .with_duration(Duration::from_secs(2))
                 .into(),
             ),
             Duration::from_secs(8),

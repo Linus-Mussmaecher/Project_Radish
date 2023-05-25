@@ -11,7 +11,6 @@ const PALETTE: [u32; 16] = [
 ];
 
 fn main() -> GameResult {
-
     // for debugging
     //std::env::set_var("RUST_BACKTRACE", "1");
 
