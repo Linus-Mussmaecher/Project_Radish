@@ -73,6 +73,8 @@ pub enum RemoveSource {
     HealthLoss,
     /// This entity has to be removed because its [components::LifeDuration] has run out.
     TimedOut,
+    /// A projectile having collided and thus being removed
+    ProjectileCollision,
     /// Any other reasong for removal.
     Other,
 }
@@ -143,6 +145,20 @@ impl ActionEffect {
         }
     }
 
+    /// Creates a one-time effect that triggers on the entities death. By default, does not expire.
+    pub fn on_death(
+        target: ActionEffectTarget,
+        reason: RemoveSource,
+        actions: impl Into<ActionContainer>,
+    ) -> Self {
+        Self {
+            target,
+            content: ActionEffectType::OnDeath(reason, actions.into()),
+            duration: None,
+            alive_duration: Duration::ZERO,
+        }
+    }
+
     /// Modifies an action effect to only last for a set amount of time.
     pub fn with_duration(mut self, duration: Duration) -> Self {
         self.duration = Some(duration);
@@ -182,6 +198,8 @@ enum ActionEffectType {
     },
     /// One-time effect: Applies actions to entities once.
     Once(ActionContainer),
+    /// One-time on-death effect. Applies actions once if the entity is killed by the specified remove source.
+    OnDeath(RemoveSource, ActionContainer),
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -295,6 +313,12 @@ impl From<Vec<GameAction>> for ActionContainer {
     }
 }
 
+impl Default for ActionContainer{
+    fn default() -> Self {
+        Self::ApplySingle(GameAction::None)
+    }
+}
+
 /// A component that handles an entities interaction with the world via an action queue
 pub struct Actions {
     /// The actions to be performed on this entity.
@@ -327,6 +351,7 @@ impl Actions {
         }
         // ignore None
         else if !matches!(action, GameAction::None) {
+            // push the action
             self.action_queue.push(action);
         }
     }
@@ -451,6 +476,11 @@ pub fn handle_effects(world: &mut legion::world::SubWorld, #[resource] ix: &Inte
                             .map(|d| d <= effect.alive_duration + ix.delta)
                             .unwrap_or(false)
                         {
+                            applies.push((*target, actions.clone()));
+                        }
+                    }
+                    ActionEffectType::OnDeath(reason, actions) => {
+                        if src_act.action_queue.iter().any(|act| matches!(act, &GameAction::Remove(source) if source == *reason)){
                             applies.push((*target, actions.clone()));
                         }
                     }

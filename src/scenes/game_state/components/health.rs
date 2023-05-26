@@ -56,25 +56,6 @@ impl Enemy {
     }
 }
 
-/// A struct that contains a actions and messages send by an entity on death.
-pub struct OnDeath {
-    death_actions: actions::ActionContainer,
-    death_messages: game_message::MessageSet,
-}
-
-impl OnDeath {
-    /// Creates a new OnDeath component. The carrying entity will trigger the passed closure when its health reaches 0.
-    pub fn new(
-        death_actions: impl Into<actions::ActionContainer>,
-        death_messages: game_message::MessageSet,
-    ) -> Self {
-        Self {
-            death_actions: death_actions.into(),
-            death_messages,
-        }
-    }
-}
-
 #[system(for_each)]
 /// Removes entities with zero health or less
 pub fn remove_entities(entity: &Entity, actions: &Actions, cmd: &mut CommandBuffer) {
@@ -92,7 +73,6 @@ pub fn remove_entities(entity: &Entity, actions: &Actions, cmd: &mut CommandBuff
 pub fn destroy_by_health(
     health: &Health,
     enemy: Option<&Enemy>,
-    on_death: Option<&OnDeath>,
     actions: &mut Actions,
     #[resource] messages: &mut game_message::MessageSet,
 ) {
@@ -111,12 +91,6 @@ pub fn destroy_by_health(
         actions.push(actions::GameAction::Remove(
             actions::RemoveSource::HealthLoss,
         ));
-
-        // death rattle
-        if let Some(on_death) = on_death {
-            actions.push_container(on_death.death_actions.clone());
-            messages.extend(on_death.death_messages.clone());
-        }
     }
 }
 

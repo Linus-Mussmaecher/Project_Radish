@@ -28,7 +28,7 @@ pub fn construct_fireball(sprite_pool: &SpritePool) -> Spell {
                 components::Collision::new(32., 32., |e1, e2| {
                     (
                         vec![
-                            (e1, GameAction::Remove(RemoveSource::Other)),
+                            (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                             (e2, GameAction::TakeDamage { dmg: 20 }),
                         ],
                         MessageSet::new(),
@@ -58,7 +58,7 @@ pub fn construct_ice_bomb(sprite_pool: &SpritePool) -> Spell {
                 components::Collision::new(32., 32., |e1, e2| {
                     (
                         vec![
-                            (e1, GameAction::Remove(RemoveSource::Other)),
+                            (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                             (e2, GameAction::TakeDamage { dmg: 25 }),
                             (e1, GameAction::spawn(spawn_icebomb)),
                         ],
@@ -197,7 +197,7 @@ pub fn construct_ice_lance(sprite_pool: &SpritePool) -> Spell {
                     (
                         vec![
                             (e1, GameAction::AddImmunity { other: e2 }),
-                            (e1, GameAction::Remove(RemoveSource::Other)),
+                            (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                             (
                                 e2,
                                 GameAction::TakeDamage { dmg: 8 }
@@ -239,28 +239,15 @@ pub fn construct_overload(sprite_pool: &SpritePool) -> Spell {
                 components::Collision::new(32., 32., |e1, e2| {
                     (
                         vec![
-                            (e1, GameAction::Remove(RemoveSource::Other)),
+                            (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                             (e2, GameAction::TakeDamage { dmg: 10 }),
-                            (e2, ActionEffect::react(ActionEffectTarget::new_only_self(), |action|
-                                if let GameAction::Remove(RemoveSource::HealthLoss) = action{
-                                    GameAction::spawn(|_, pos, _, cmd| {
-                                        cmd.push((
-                                            pos,
-                                            components::OnDeath::new(
-                                                ActionEffect::once(
-                                                    ActionEffectTarget::new()
-                                                    .with_enemies_only(true)
-                                                    .with_range(128.),
-                                                    GameAction::TakeDamage { dmg: 60 }
-                                                ),
-                                                MessageSet::new()
-                                            )
-                                        ));
-                                    }).into()
-                                } else {
-                                    GameAction::None.into()
-                                }
-                        ).with_duration(Duration::from_secs(8)).into())
+                            (e2, ActionEffect::on_death(
+                                ActionEffectTarget::new()
+                                    .with_enemies_only(true)
+                                    .with_range(128.) ,
+                                RemoveSource::HealthLoss,
+                                GameAction::TakeDamage { dmg: 60 } ,
+                            ).with_duration(Duration::from_secs(8)).into())
                         ],
                         MessageSet::new(),
                     )
@@ -287,14 +274,14 @@ pub fn construct_scorch(sprite_pool: &SpritePool) -> Spell {
                 components::Collision::new(32., 32., |e1, e2| {
                     (
                         vec![
-                            (e1, GameAction::Remove(RemoveSource::Other)),
+                            (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                             (e2, GameAction::TakeDamage { dmg: 20 }),
                         ],
                         MessageSet::new(),
                     )
                 }),
-                components::OnDeath::new(
-                    GameAction::spawn(|_, pos, sp, cmd|{
+                components::Actions::new()
+                    .with_effect(ActionEffect::on_death(ActionEffectTarget::new_only_self(), RemoveSource::ProjectileCollision, GameAction::spawn(|_, pos, sp, cmd|{
                         cmd.push((
                             pos,
                             components::LifeDuration::from(Duration::from_secs(10)),
@@ -303,11 +290,10 @@ pub fn construct_scorch(sprite_pool: &SpritePool) -> Spell {
                             components::Actions::new()
                             .with_effect(
                                 ActionEffect::repeat(ActionEffectTarget::new().with_enemies_only(true).with_range(128.),
-                                GameAction::TakeDamage { dmg: 10 }, Duration::from_secs_f32(0.5))
+                                GameAction::TakeDamage { dmg: 5 }, Duration::from_secs_f32(0.5))
                             )
                         ));
-                    }),
-                    MessageSet::new()),
+                    }))),
             ));
         }),
         tiny_vec!([f32; MAX_SPELL_SLOTS] => 2., 5.,10.,))

@@ -1,7 +1,5 @@
 use std::time::Duration;
 
-use crate::scenes::game_state::game_message;
-
 use super::{components, components::actions};
 use ggez::GameError;
 use legion::systems::CommandBuffer;
@@ -138,27 +136,28 @@ pub fn spawn_tank_skeleton(
             "/sprites/enemies/skeleton_tank",
             Duration::from_secs_f32(0.25),
         )?),
-        components::actions::Actions::new().with_effect(actions::ActionEffect::transform(
-            actions::ActionEffectTarget::new()
-                .with_range(196.)
-                .with_enemies_only(true)
-                .with_affect_self(true),
-            |act| {
-                match act {
-                    // reduce dmg by 1, but if would be reduced to 0, onyl 20% chance to do so
-                    actions::GameAction::TakeDamage { dmg } => {
-                        *dmg = (*dmg as f32 * 0.7) as i32;
+        components::actions::Actions::new()
+            .with_effect(actions::ActionEffect::transform(
+                actions::ActionEffectTarget::new()
+                    .with_range(196.)
+                    .with_enemies_only(true)
+                    .with_affect_self(true),
+                |act| {
+                    match act {
+                        // reduce dmg by 1, but if would be reduced to 0, onyl 20% chance to do so
+                        actions::GameAction::TakeDamage { dmg } => {
+                            *dmg = (*dmg as f32 * 0.7) as i32;
+                        }
+                        _ => {}
                     }
-                    _ => {}
-                }
-            },
-        )),
-        components::OnDeath::new(
-            actions::ActionEffect::once(
+                },
+            ))
+            .with_effect(actions::ActionEffect::on_death(
                 actions::ActionEffectTarget::new()
                     .with_range(256.)
                     .with_limit(5)
                     .with_enemies_only(true),
+                actions::RemoveSource::HealthLoss,
                 vec![
                     actions::GameAction::TakeHealing { heal: 40 },
                     actions::GameAction::AddParticle(
@@ -173,10 +172,7 @@ pub fn spawn_tank_skeleton(
                         .with_relative_position(0., -64.),
                     ),
                 ],
-            )
-            .with_duration(Duration::ZERO),
-            game_message::MessageSet::new(),
-        ),
+            )),
         components::Enemy::new(2, 20),
         components::Health::new(75),
         components::Collision::new_basic(64., 64.),
@@ -201,25 +197,26 @@ pub fn spawn_charge_skeleton(
             Duration::from_secs_f32(0.25),
         )?),
         // concurrently small speed boost to nearby allies
-        components::actions::Actions::new().with_effect(actions::ActionEffect::transform(
-            actions::ActionEffectTarget::new()
-                .with_affect_self(true)
-                .with_range(256.),
-            |act| {
-                match act {
-                    // speed up nearby allies by 50%
-                    actions::GameAction::Move { delta } => *delta *= 1.5,
-                    _ => {}
-                };
-            },
-        )),
-        // on death: speed up nearby allies for a time
-        components::OnDeath::new(
-            actions::ActionEffect::once(
+        components::actions::Actions::new()
+            .with_effect(actions::ActionEffect::transform(
+                actions::ActionEffectTarget::new()
+                    .with_affect_self(true)
+                    .with_range(256.),
+                |act| {
+                    match act {
+                        // speed up nearby allies by 50%
+                        actions::GameAction::Move { delta } => *delta *= 1.5,
+                        _ => {}
+                    };
+                },
+            ))
+            // on death: speed up nearby allies for a time
+            .with_effect(actions::ActionEffect::on_death(
                 actions::ActionEffectTarget::new()
                     .with_range(196.)
                     .with_limit(8)
                     .with_enemies_only(true),
+                actions::RemoveSource::HealthLoss,
                 vec![
                     actions::GameAction::AddParticle(
                         components::graphics::Particle::new(
@@ -245,9 +242,7 @@ pub fn spawn_charge_skeleton(
                     .with_duration(Duration::from_secs(5))
                     .into(),
                 ],
-            ),
-            game_message::MessageSet::new(),
-        ),
+            )),
         components::Enemy::new(2, 20),
         components::Health::new(75),
         components::Collision::new_basic(64., 64.),
@@ -425,8 +420,9 @@ pub fn spawn_splitter(
         components::Graphics::from(
             sprite_pool.init_sprite("/sprites/enemies/golem", Duration::from_secs_f32(0.25))?,
         ),
-        // on death: speed up nearby allies for a time
-        components::OnDeath::new(
+        components::actions::Actions::new().with_effect(actions::ActionEffect::on_death(
+            actions::ActionEffectTarget::new_only_self(),
+            actions::RemoveSource::HealthLoss,
             actions::GameAction::spawn(|_, vec, sprite_pool, cmd| {
                 for _ in 0..3 {
                     if spawn_basic_skeleton(
@@ -443,8 +439,7 @@ pub fn spawn_splitter(
                     };
                 }
             }),
-            game_message::MessageSet::new(),
-        ),
+        )),
         components::Enemy::new(3, 20),
         components::Health::new(200),
         components::Collision::new_basic(64., 64.),
