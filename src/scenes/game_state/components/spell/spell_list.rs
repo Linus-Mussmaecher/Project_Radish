@@ -225,9 +225,48 @@ pub fn construct_ice_lance(sprite_pool: &SpritePool) -> Spell {
 pub fn construct_overload(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Overload",
-        "Shoot out an electric spark that overloads the first two enemies hit. When they die within a short timeframe, nearby enemies take high damage.",
+        "Shoot out an electric spark that overloads the first enemy hit. When they die within a short timeframe, nearby enemies take high damage.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/electroorb", Duration::ZERO),
-        GameAction::None,
+        GameAction::spawn(|_, pos, sp, cmd| {
+            cmd.push((
+                pos,
+                components::LifeDuration::new(Duration::from_secs(10)),
+                components::Graphics::from(sp.init_sprite_unchecked(
+                    "/sprites/spells/electroorb",
+                    Duration::from_secs_f32(0.2),
+                )),
+                components::Velocity::new(0., -300.),
+                components::Collision::new(32., 32., |e1, e2| {
+                    (
+                        vec![
+                            (e1, GameAction::Remove(RemoveSource::Other)),
+                            (e2, GameAction::TakeDamage { dmg: 10 }),
+                            (e2, ActionEffect::react(ActionEffectTarget::new_only_self(), |action|
+                                if let GameAction::Remove(RemoveSource::HealthLoss) = action{
+                                    GameAction::spawn(|_, pos, _, cmd| {
+                                        cmd.push((
+                                            pos,
+                                            components::OnDeath::new(
+                                                ActionEffect::once(
+                                                    ActionEffectTarget::new()
+                                                    .with_enemies_only(true)
+                                                    .with_range(128.),
+                                                    GameAction::TakeDamage { dmg: 60 }
+                                                ),
+                                                MessageSet::new()
+                                            )
+                                        ));
+                                    }).into()
+                                } else {
+                                    GameAction::None.into()
+                                }
+                        ).with_duration(Duration::from_secs(8)).into())
+                        ],
+                        MessageSet::new(),
+                    )
+                }),
+            ));
+        }),
         tiny_vec!([f32; MAX_SPELL_SLOTS] => 3., 5.))
 }
 
@@ -236,7 +275,41 @@ pub fn construct_scorch(sprite_pool: &SpritePool) -> Spell {
         "Scorch",
         "Hurl a short ranged fireball, dealing low impact damage but igniting the area hit for 10 seconds, dealing damage over time to all enemies inside.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/fireball", Duration::ZERO),
-        GameAction::None,
+        GameAction::spawn(|_, pos, sp, cmd| {
+            cmd.push((
+                pos,
+                components::LifeDuration::new(Duration::from_secs(2)),
+                components::Graphics::from(sp.init_sprite_unchecked(
+                    "/sprites/spells/fireball",
+                    Duration::from_secs_f32(0.2),
+                )),
+                components::Velocity::new(0., -200.),
+                components::Collision::new(32., 32., |e1, e2| {
+                    (
+                        vec![
+                            (e1, GameAction::Remove(RemoveSource::Other)),
+                            (e2, GameAction::TakeDamage { dmg: 20 }),
+                        ],
+                        MessageSet::new(),
+                    )
+                }),
+                components::OnDeath::new(
+                    GameAction::spawn(|_, pos, sp, cmd|{
+                        cmd.push((
+                            pos,
+                            components::LifeDuration::from(Duration::from_secs(10)),
+                            components::Graphics::from(sp.init_sprite_unchecked(
+                                "/sprites/spells/fireball", Duration::from_secs_f32(0.2))),
+                            components::Actions::new()
+                            .with_effect(
+                                ActionEffect::repeat(ActionEffectTarget::new().with_enemies_only(true).with_range(128.),
+                                GameAction::TakeDamage { dmg: 10 }, Duration::from_secs_f32(0.5))
+                            )
+                        ));
+                    }),
+                    MessageSet::new()),
+            ));
+        }),
         tiny_vec!([f32; MAX_SPELL_SLOTS] => 2., 5.,10.,))
 }
 
