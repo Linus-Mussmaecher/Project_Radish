@@ -193,7 +193,8 @@ pub fn construct_game_ui(
             ..super::BUTTON_VIS
         })
         .with_padding((5., 5., 0., 5.))
-        .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Max)
+        .with_alignment(ui_element::Alignment::Min, ui_element::Alignment::Max)
+        .with_offset(64., None)
         .build();
 
     main_box.add(spell_box);

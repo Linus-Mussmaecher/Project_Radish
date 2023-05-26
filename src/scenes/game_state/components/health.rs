@@ -167,6 +167,6 @@ pub fn enemy(
         Some(pos) => pos.y >= boundaries.h,
     } {
         actions.push(actions::GameAction::TakeCityDamage { dmg: enemy.damage });
-        actions.push(actions::GameAction::Remove(actions::RemoveSource::Other));
+        actions.push(actions::GameAction::Remove(actions::RemoveSource::EnemyReachedBottom));
     }
 }

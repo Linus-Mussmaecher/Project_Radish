@@ -53,6 +53,12 @@ impl Collision {
     fn get_collider(&self, pos: Vec2) -> Rect {
         Rect::new(pos.x - self.w / 2., pos.y - self.h / 2., self.w, self.h)
     }
+
+    /// Builder function that makes an entity immune to collisions from this entity.
+    pub fn with_immunity(mut self, entity: Entity) -> Self{
+        self.immunity.push(entity);
+        self
+    }
 }
 
 /// A component that manages wether this element respects the game boundaries.

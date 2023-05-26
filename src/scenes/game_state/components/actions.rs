@@ -75,8 +75,8 @@ pub enum RemoveSource {
     TimedOut,
     /// A projectile having collided and thus being removed
     ProjectileCollision,
-    /// Any other reasong for removal.
-    Other,
+    /// An enemy reaching the bottom of the screen.
+    EnemyReachedBottom,
 }
 
 #[derive(Debug, Clone)]

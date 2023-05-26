@@ -175,7 +175,7 @@ impl GameState {
             components::SpellCaster::new(
                 vec![
                     spell_list::construct_fireball(&sprite_pool),
-                    spell_list::construct_ice_bomb(&sprite_pool),
+                    spell_list::construct_shard(&sprite_pool),
                     spell_list::construct_overload(&sprite_pool),
                     spell_list::construct_scorch(&sprite_pool),
                 ],

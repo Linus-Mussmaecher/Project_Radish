@@ -275,25 +275,24 @@ pub fn construct_scorch(sprite_pool: &SpritePool) -> Spell {
                     (
                         vec![
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
+                            (e1, GameAction::spawn(|_, pos, sp, cmd|{
+                                cmd.push((
+                                    pos,
+                                    components::LifeDuration::from(Duration::from_secs(10)),
+                                    components::Graphics::from(sp.init_sprite_unchecked(
+                                        "/sprites/spells/burning_ground", Duration::from_secs_f32(0.2))),
+                                    components::Actions::new()
+                                    .with_effect(
+                                        ActionEffect::repeat(ActionEffectTarget::new().with_enemies_only(true).with_range(128.),
+                                        GameAction::TakeDamage { dmg: 5 }, Duration::from_secs_f32(0.5))
+                                    )
+                                ));
+                            })),
                             (e2, GameAction::TakeDamage { dmg: 20 }),
                         ],
                         MessageSet::new(),
                     )
                 }),
-                components::Actions::new()
-                    .with_effect(ActionEffect::on_death(ActionEffectTarget::new_only_self(), RemoveSource::ProjectileCollision, GameAction::spawn(|_, pos, sp, cmd|{
-                        cmd.push((
-                            pos,
-                            components::LifeDuration::from(Duration::from_secs(10)),
-                            components::Graphics::from(sp.init_sprite_unchecked(
-                                "/sprites/spells/fireball", Duration::from_secs_f32(0.2))),
-                            components::Actions::new()
-                            .with_effect(
-                                ActionEffect::repeat(ActionEffectTarget::new().with_enemies_only(true).with_range(128.),
-                                GameAction::TakeDamage { dmg: 5 }, Duration::from_secs_f32(0.5))
-                            )
-                        ));
-                    }))),
             ));
         }),
         tiny_vec!([f32; MAX_SPELL_SLOTS] => 2., 5.,10.,))
@@ -304,8 +303,48 @@ pub fn construct_shard(sprite_pool: &SpritePool) -> Spell {
         "Shard of Ice",
         "Throw a shard of ice dealing moderate damage and slowing. On hit, split into three smaller shards that deal less damage but slow more.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/icebomb", Duration::ZERO),
-        GameAction::None,
-        tiny_vec!([f32; MAX_SPELL_SLOTS] => 1.5))
+        GameAction::spawn(|_, pos, sp, cmd|{
+            cmd.push((
+                pos,
+                components::Velocity::new(0., -250.),
+                components::LifeDuration::new(Duration::from_secs(10)),
+                components::Graphics::from(sp.init_sprite_unchecked("/sprites/spells/icebomb", Duration::from_secs_f32(0.25))),
+                components::Collision::new(32., 32., |e1, e2| {
+                    (
+                        vec![
+                            (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
+                            (e2, GameAction::TakeDamage { dmg: 20 }),
+                            (e2, ActionEffect::transform(ActionEffectTarget::new_only_self(), |action| match action {
+                                GameAction::Move { delta } => *delta *= 0.9,
+                                _ => {}
+                            }).with_duration(Duration::from_secs(3)).into()),
+                            (e2, GameAction::spawn(|enemy, pos, sp, cmd| {
+                                for i in 0..3{
+                                    cmd.push((
+                                        pos + ggez::glam::Vec2::new(-34. + 34. * i as f32, 0.),
+                                        components::Velocity::new((-30 + 30 * i) as f32, -250.),
+                                        components::LifeDuration::new(Duration::from_secs(10)),
+                                        components::Graphics::from(sp.init_sprite_unchecked("/sprites/spells/icebomb", Duration::from_secs_f32(0.25))),
+                                        components::Collision::new(32., 32., |e1, e2| {
+                                            (vec![     
+                                                (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
+                                                (e2, GameAction::TakeDamage { dmg: 8 }),
+                                                (e2, ActionEffect::transform(ActionEffectTarget::new_only_self(), |action| match action {
+                                                    GameAction::Move { delta } => *delta *= 0.7,
+                                                    _ => {}
+                                                }).with_duration(Duration::from_secs(3)).into()),
+                                            ], MessageSet::new())
+                                        }).with_immunity(enemy),
+                                    ));
+                                }
+                            })),
+                        ],
+                        MessageSet::new(),
+                    )
+                })
+            ));
+        }),
+        tiny_vec!([f32; MAX_SPELL_SLOTS] => 2.5))
 }
 
 pub fn construct_arcane_missiles(sprite_pool: &SpritePool) -> Spell {

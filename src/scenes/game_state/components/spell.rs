@@ -163,9 +163,9 @@ pub struct SpellTemplate {
 
 impl SpellTemplate {
     /// Creates a new spell template from a spell and a  cost.
-    pub fn new(spell: Spell, cost: i32) -> Self {
+    pub fn new(spell: Spell, cost: i32, level: u32) -> Self {
         Self {
-            level: 0,
+            level,
             cost,
             spell,
         }
@@ -225,15 +225,15 @@ pub fn init_spell_pool(sprite_pool: &mooeye::sprite::SpritePool) -> SpellPool {
     (
         None,
         vec![
-            SpellTemplate::new(spell_list::construct_fireball(sprite_pool), 50),
-            SpellTemplate::new(spell_list::construct_ice_bomb(sprite_pool), 75),
-            SpellTemplate::new(spell_list::construct_lightning_orb(sprite_pool), 90),
-            SpellTemplate::new(spell_list::construct_conflagrate(sprite_pool), 110),
-            SpellTemplate::new(spell_list::construct_shard(sprite_pool), 60),
-            SpellTemplate::new(spell_list::construct_ice_lance(sprite_pool), 80),
-            SpellTemplate::new(spell_list::construct_scorch(sprite_pool), 90),
-            SpellTemplate::new(spell_list::construct_overload(sprite_pool), 120),
-            SpellTemplate::new(spell_list::construct_arcane_missiles(sprite_pool), 150),
+            SpellTemplate::new(spell_list::construct_fireball(sprite_pool), 50, 1),
+            SpellTemplate::new(spell_list::construct_ice_bomb(sprite_pool), 75, 1),
+            SpellTemplate::new(spell_list::construct_lightning_orb(sprite_pool), 90, 0),
+            SpellTemplate::new(spell_list::construct_conflagrate(sprite_pool), 110, 0),
+            SpellTemplate::new(spell_list::construct_shard(sprite_pool), 60, 0),
+            SpellTemplate::new(spell_list::construct_ice_lance(sprite_pool), 80, 0),
+            SpellTemplate::new(spell_list::construct_scorch(sprite_pool), 90, 0),
+            SpellTemplate::new(spell_list::construct_overload(sprite_pool), 120, 0),
+            SpellTemplate::new(spell_list::construct_arcane_missiles(sprite_pool), 150, 0),
         ],
     )
 }
