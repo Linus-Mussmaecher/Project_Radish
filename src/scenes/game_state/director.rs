@@ -50,7 +50,7 @@ impl Director {
     pub fn new(sprite_pool: &sprite::SpritePool) -> Self {
         Self {
             wave: 1,
-            state: DirectorState::Spawning(50), //TODO: back to 450 after testing
+            state: DirectorState::Spawning(450),
             intervall: Duration::ZERO,
             total: Duration::ZERO,
             credits: 0,

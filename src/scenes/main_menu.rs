@@ -18,6 +18,10 @@ pub struct MainMenu {
 
 impl MainMenu {
     pub fn new(ctx: &ggez::Context) -> Result<Self, GameError> {
+        //TODO: audio
+        //ggez::audio::Source::new(ctx, "/audio/music/Song1.mp3")?.play_detached(ctx).unwrap();
+        
+
         // title
 
         let title = graphics::Text::new(

@@ -234,6 +234,7 @@ pub fn init_spell_pool(sprite_pool: &mooeye::sprite::SpritePool) -> SpellPool {
             SpellTemplate::new(spell_list::construct_scorch(sprite_pool), 90, 0),
             SpellTemplate::new(spell_list::construct_overload(sprite_pool), 120, 0),
             SpellTemplate::new(spell_list::construct_arcane_missiles(sprite_pool), 150, 0),
+            SpellTemplate::new(spell_list::construct_arcane_blast(sprite_pool), 140, 0),
         ],
     )
 }
