@@ -23,9 +23,6 @@ pub const ID_MANA_BAR: u32 = 50;
 pub fn construct_game_ui(
     ctx: &ggez::Context,
 ) -> Result<UiElement<super::super::GameMessage>, GameError> {
-    // main box
-    let mut main_box = containers::StackBox::new();
-
     // options icon
     let cog_icon = graphics::Image::from_path(ctx, "/sprites/ui/cog.png")?
         .to_element_builder(1, ctx)
@@ -36,8 +33,6 @@ pub fn construct_game_ui(
         .with_offset(-10., -10.)
         .as_shrink()
         .build();
-
-    main_box.add(cog_icon);
 
     // gold display
     let gold_icon = sprite::Sprite::from_path_fmt(
@@ -56,6 +51,18 @@ pub fn construct_game_ui(
     .set_font("Retro")
     .to_owned()
     .to_element_builder(0, ctx)
+    .with_tooltip(
+        graphics::Text::new(
+            graphics::TextFragment::new("Your current amount of gold.")
+                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+        )
+        .set_scale(24.)
+        .set_font("Retro")
+        .to_owned()
+        .to_element_builder(0, ctx)
+        .with_visuals(super::BUTTON_VIS)
+        .build(),
+    )
     .with_message_handler(|message_set, _, transitions| {
         for message in message_set {
             if let ui_element::UiMessage::Extern(game_state::GameMessage::UpdateGold(new_gold)) =
@@ -77,30 +84,6 @@ pub fn construct_game_ui(
     })
     .build();
 
-    let mut gold_box = containers::HorizontalBox::new();
-    gold_box.add(gold_icon);
-    gold_box.add(gold_text);
-    let gold_box = gold_box
-        .to_element_builder(0, ctx)
-        .with_visuals(super::BUTTON_VIS)
-        .with_alignment(ui_element::Alignment::Min, ui_element::Alignment::Min)
-        .with_offset(10., 10.)
-        .with_tooltip(
-            graphics::Text::new(
-                graphics::TextFragment::new("Your current amount of gold.")
-                    .color(graphics::Color::from_rgb_u32(PALETTE[6])),
-            )
-            .set_scale(24.)
-            .set_font("Retro")
-            .to_owned()
-            .to_element_builder(0, ctx)
-            .with_visuals(super::BUTTON_VIS)
-            .build(),
-        )
-        .build();
-
-    main_box.add(gold_box);
-
     // city health display
 
     let city_display = sprite::Sprite::from_path_fmt(
@@ -119,6 +102,18 @@ pub fn construct_game_ui(
     .set_font("Retro")
     .to_owned()
     .to_element_builder(0, ctx)
+    .with_tooltip(
+        graphics::Text::new(
+            graphics::TextFragment::new("The health your city currently has left.")
+                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+        )
+        .set_scale(24.)
+        .set_font("Retro")
+        .to_owned()
+        .to_element_builder(0, ctx)
+        .with_visuals(super::BUTTON_VIS)
+        .build(),
+    )
     .with_message_handler(|message_set, _, transitions| {
         for message in message_set {
             if let ui_element::UiMessage::Extern(game_state::GameMessage::UpdateCityHealth(
@@ -141,29 +136,17 @@ pub fn construct_game_ui(
     })
     .build();
 
-    let mut city_box = containers::HorizontalBox::new();
-    city_box.add(city_display);
-    city_box.add(city_text);
-    let city_box = city_box
-        .to_element_builder(0, ctx)
-        .with_visuals(super::BUTTON_VIS)
-        .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Min)
-        .with_offset(-10., 10.)
-        .with_tooltip(
-            graphics::Text::new(
-                graphics::TextFragment::new("The health your city currently has left.")
-                    .color(graphics::Color::from_rgb_u32(PALETTE[6])),
-            )
-            .set_scale(24.)
-            .set_font("Retro")
-            .to_owned()
-            .to_element_builder(0, ctx)
-            .with_visuals(super::BUTTON_VIS)
-            .build(),
-        )
-        .build();
+    let mut data_box = containers::GridBox::new(2, 2);
+    data_box.add(gold_icon, 0, 0)?;
+    data_box.add(gold_text, 1, 0)?;
+    data_box.add(city_display, 0, 1)?;
+    data_box.add(city_text, 1, 1)?;
 
-    main_box.add(city_box);
+    let data_box = data_box.to_element_builder(0, ctx)
+    .with_visuals(super::BUTTON_VIS)
+    .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Min)
+    .with_offset(-8., 8.)
+    .build();
 
     // Spells
 
@@ -180,10 +163,9 @@ pub fn construct_game_ui(
             corner_radii: [0., 3., 3., 0.],
             ..super::BUTTON_VIS
         })
-        .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Min)
+        .with_alignment(ui_element::Alignment::Min, ui_element::Alignment::Min)
+        .with_offset(16., None)
         .build();
-
-    main_box.add(slot_box);
 
     let spell_box = containers::StackBox::new()
         .to_element_builder(ID_SPELL_BAR, ctx)
@@ -197,8 +179,6 @@ pub fn construct_game_ui(
         .with_offset(64., None)
         .build();
 
-    main_box.add(spell_box);
-
     let message_box = containers::VerticalBox::new()
         .to_element_builder(100, ctx)
         .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Max)
@@ -209,9 +189,15 @@ pub fn construct_game_ui(
         )
         .build();
 
-    main_box.add(message_box);
-
-    Ok(main_box.to_element_builder(0, ctx).as_fill().build())
+    Ok(containers::StackBox::new()
+        .to_element_builder(0, ctx)
+        .with_child(message_box)
+        .with_child(data_box)
+        .with_child(slot_box)
+        .with_child(spell_box)
+        .with_child(cog_icon)
+        .as_fill()
+        .build())
 }
 
 pub fn create_spellslot(ctx: &ggez::Context, i: usize) -> UiElement<game_state::GameMessage> {
