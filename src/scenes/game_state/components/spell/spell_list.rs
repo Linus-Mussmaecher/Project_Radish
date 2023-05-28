@@ -471,7 +471,7 @@ pub(super)fn construct_arcane_blast(sprite_pool: &SpritePool) -> Spell {
 pub(super)fn construct_blackhole(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Blackhole",
-        "Launch a slow-moving ball of antimatter. After travelling for 2 seconds without colliding, it will spawn a blackhole that attracts enemies for 6 seconds, then deals damage to close enemies.",
+        "Launch a slow-moving ball of antimatter. After travelling for 2 seconds without colliding, it will spawn a blackhole that attracts enemies for 6 seconds, then damages and shortly silences close enemies.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/blackhole", Duration::ZERO),
         GameAction::spawn(|_, pos, sp, cmd| {
             cmd.push((
@@ -526,7 +526,10 @@ pub(super)fn construct_blackhole(sprite_pool: &SpritePool) -> Spell {
                                     .with_effect(ActionEffect::on_death(
                                         ActionEffectTarget::new().with_range(64.).with_enemies_only(true),
                                         RemoveSource::TimedOut,
-                                        GameAction::TakeDamage { dmg: 30 },
+                                        vec![
+                                            GameAction::TakeDamage { dmg: 30 },
+                                            GameAction::Silence(Duration::new(1, 0))
+                                        ],
                                     ))
                             ));
                         }),
@@ -540,7 +543,7 @@ pub(super)fn construct_blackhole(sprite_pool: &SpritePool) -> Spell {
 pub(super)fn construct_mind_wipe(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Mind wipe",
-        "Launch a bolt of dark energy that deals a medium amount of damage to the first enemy hit. After a short delay, deal the same damage again and remove all effects (ongoing effects, passives, on-death effects) from the target.",
+        "Launch a bolt of dark energy that deals a medium amount of damage to the first enemy hit. After a short delay, deal the same damage again and silence the target for 15 seconds.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/icons/mindwipe_icon", Duration::ZERO),
         GameAction::spawn(|_, pos, sp, cmd| {
             cmd.push((
@@ -558,7 +561,7 @@ pub(super)fn construct_mind_wipe(sprite_pool: &SpritePool) -> Spell {
                             (e2, GameAction::TakeDamage { dmg: 42 }),
                             (e2, ActionEffect::once(ActionEffectTarget::new_only_self(), vec![
                                 GameAction::TakeDamage { dmg: 42 },
-                                GameAction::ClearEffects,
+                                GameAction::Silence(Duration::new(15, 0)),
                             ]).with_duration(Duration::new(2, 0)).into()),
                         ],
                         MessageSet::new(),

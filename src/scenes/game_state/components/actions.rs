@@ -34,10 +34,10 @@ pub enum GameAction {
     CastSpell(usize),
     /// Executes a closure that is supposed to spawn an entity into the world. TODO: Closure evil, somehow serialize this?
     Spawn(SpawnerBox),
+    /// Silences the entity for a duration.
+    Silence(Duration),
     /// Applies a (temporary or permanent) effect to the target
     ApplyEffect(Box<ActionEffect>),
-    /// Clears all effects currently active on the target.
-    ClearEffects,
 }
 
 /// A box that contains a spawner lambda-functor.
@@ -327,6 +327,8 @@ pub struct Actions {
     action_queue: TinyVec<[GameAction; 4]>,
     /// The effects that currently apply to this entity.
     effects: TinyVec<[ActionEffect; 4]>,
+    /// The remaining duration this entity is silenced for, making effects not trigger.
+    silence: Duration,
 }
 
 impl Actions {
@@ -335,6 +337,7 @@ impl Actions {
         Self {
             action_queue: TinyVec::new(),
             effects: TinyVec::new(),
+            silence: Duration::ZERO,
         }
     }
 
@@ -397,11 +400,18 @@ impl Actions {
 #[legion::system(for_each)]
 /// System that clears all actions queues.
 pub fn clear(actions: &mut Actions) {
-    if actions.action_queue.iter().any(|act| matches!(act, GameAction::ClearEffects)){
-        actions.effects.clear();
-    }
     // clear action queue
     actions.action_queue.clear();
+}
+
+#[legion::system(for_each)]
+/// System that clears all actions queues.
+pub fn apply_silence(actions: &mut Actions) {
+    for act in actions.action_queue.iter() {
+        if let GameAction::Silence(duration) = act{
+            actions.silence += *duration;
+        }
+    }
 }
 
 #[system(for_each)]
@@ -436,6 +446,10 @@ pub fn handle_effects(world: &mut legion::world::SubWorld, #[resource] ix: &Inte
 
     // iterate over all sources of effects
     for (src_ent, src_pos, src_act) in <(Entity, &Position, &Actions)>::query().iter(world) {
+        // skip silenced entities
+        if !src_act.silence.is_zero(){
+            continue;
+        }
         // iterate over all their effects
         for effect in src_act.effects.iter() {
             // generate a target list of entities affected
@@ -494,6 +508,8 @@ pub fn handle_effects(world: &mut legion::world::SubWorld, #[resource] ix: &Inte
         }
     }
 
+    
+
     // apply remembered transforms to all entities
     for (target, transform) in transforms {
         if let Ok(mut entry) = world.entry_mut(target) {
@@ -523,6 +539,9 @@ pub fn handle_effects(world: &mut legion::world::SubWorld, #[resource] ix: &Inte
 
     // iterate over all sources of effects
     for src_act in <&mut Actions>::query().iter_mut(world) {
+        // reduce silence duration
+        src_act.silence = src_act.silence.saturating_sub(ix.delta);
+
         // iterate over all their effects
         for effect in src_act.effects.iter_mut() {
             // Increase counting durations

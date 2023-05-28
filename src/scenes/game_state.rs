@@ -223,6 +223,7 @@ impl GameState {
                 .add_system(components::collision::boundary_collision_system())
                 .add_system(components::collision::resolve_immunities_system())
                 .add_system(components::health::resolve_damage_system())
+                .add_system(components::actions::apply_silence_system())
                 .add_system(game_data::resolve_gama_data_system())
                 .add_system(components::health::enemy_death_sprite_system())
                 .add_system(components::health::remove_entities_system())
