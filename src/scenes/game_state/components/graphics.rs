@@ -19,17 +19,12 @@ pub const PIXEL_SIZE: f32 = 4.;
 /// The graphics component of an entity, containing a sprite to be drawn to the screen and a container for multiple additional particles.
 pub struct Graphics {
     /// The main sprite to represent this object.
-    sprite: Sprite,
+    pub sprite: Sprite,
     /// Container for particles added to this and managed by this object.
     particles: TinyVec<[Particle; 4]>,
 }
 
 impl Graphics {
-    /// Retunrs the underlying sprite of the object.
-    pub fn get_sprite(&self) -> &Sprite {
-        &self.sprite
-    }
-
     /// Returns the objects size in the world, already multiplied by PIXEL_SIZE.
     pub fn get_size(&self) -> (f32, f32) {
         (

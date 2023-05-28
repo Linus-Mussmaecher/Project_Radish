@@ -169,7 +169,7 @@ impl GameState {
             components::BoundaryCollision::new(true, false, false),
             components::Control::new(150.),
             components::Graphics::from(
-                sprite_pool.init_sprite("/sprites/mage", Duration::from_secs_f32(0.25))?,
+                sprite_pool.init_sprite("/sprites/mage2", Duration::from_secs_f32(0.25))?,
             ),
             components::SpellCaster::new(
                 components::spell::init_default_spells(&sprite_pool),
@@ -177,7 +177,7 @@ impl GameState {
             ),
         ));
 
-        // --- RESOURCE INITIALIZATION
+        // --- RESOURCE INITIALIZATION ---
 
         let game_data = game_data::GameData::new(player);
         let mut message_set = MessageSet::new();

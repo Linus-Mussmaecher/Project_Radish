@@ -21,17 +21,23 @@ impl Control {
 pub fn control(
     control: &Control,
     actions: &mut Actions,
+    gfx: Option<&mut super::Graphics>,
     #[resource] ix: &controller::Interactions,
 ) {
     // Movement
 
     let mut del = Vec2::ZERO;
 
+    let mut pref_state = 0;
+
     if let Some(true) = ix.commands.get(&controller::Command::MoveLeft) {
         del.x -= 1.;
+        pref_state = 2;
     }
+
     if let Some(true) = ix.commands.get(&controller::Command::MoveRight) {
         del.x += 1.;
+        pref_state = 1;
     }
 
     actions.push(super::actions::GameAction::Move {
@@ -51,5 +57,12 @@ pub fn control(
     }
     if let Some(true) = ix.commands.get(&controller::Command::Spell3) {
         actions.push(super::actions::GameAction::CastSpell(3));
+    }
+
+    if let Some(gfx) = gfx{
+        //TODO: This should already be a check in set_variant in mooeye.
+        if gfx.sprite.get_variant() != pref_state{
+            gfx.sprite.set_variant(pref_state);
+        }
     }
 }

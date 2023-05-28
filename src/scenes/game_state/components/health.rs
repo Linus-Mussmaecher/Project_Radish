@@ -115,10 +115,10 @@ pub fn enemy_death_sprite(
             vel.map(|v| Velocity::new((f32::EPSILON).copysign(v.get_dx()), 0.))
                 .unwrap_or(Velocity::new(0., 0.)),
             LifeDuration::new(
-                gfx.get_sprite().get_cycle_time() - gfx.get_sprite().get_frame_time(),
+                gfx.sprite.get_cycle_time() - gfx.sprite.get_frame_time(),
             ),
             {
-                let mut death_sprite = gfx.get_sprite().clone();
+                let mut death_sprite = gfx.sprite.clone();
                 death_sprite.set_variant(1);
                 Graphics::from(death_sprite)
             },

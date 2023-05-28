@@ -323,7 +323,7 @@ pub fn spawn_wizard_skeleton(
                 ],
                 Duration::from_secs(8),
             )),
-        components::Enemy::new(3, 35),
+        components::Enemy::new(3, 25),
         components::Health::new(150),
         components::Collision::new_basic(64., 64.),
     ));
@@ -399,7 +399,7 @@ pub fn spawn_wizard_skeleton2(
                 ],
                 Duration::from_secs(5),
             )),
-        components::Enemy::new(3, 35),
+        components::Enemy::new(3, 25),
         components::Health::new(150),
         components::Collision::new_basic(64., 64.),
     ));
@@ -496,7 +496,7 @@ pub fn spawn_ghost(
                 _ => actions::GameAction::None.into(),
             },
         )),
-        components::Enemy::new(3, 40),
+        components::Enemy::new(2, 30),
         components::Health::new(100),
         components::Collision::new_basic(64., 64.),
     ));

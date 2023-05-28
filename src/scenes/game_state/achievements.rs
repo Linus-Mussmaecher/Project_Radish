@@ -248,9 +248,17 @@ impl AchievementSet {
         res.push(Achievement::new(
             "Power Overwhelming!",
             "Cast 500 spells.",
-            graphics::Image::from_path(ctx, "/sprites/ui/mana_add.png").ok(),
+            graphics::Image::from_path(ctx, "/sprites/achievements/a9_16_16.png").ok(),
             500,
-            |msg| matches!(msg, GameMessage::UpdateSpellSlots(_, 0)),
+            |msg| matches!(msg, GameMessage::UpdateSpellSlots(_, 31)),
+        ));
+
+        res.push(Achievement::new(
+            "Who you gonna call?",
+            "Kill 15 ghosts.",
+            graphics::Image::from_path(ctx, "/sprites/achievements/a10_16_16.png").ok(),
+            15,
+            |msg| matches!(msg, &GameMessage::EnemyKilled(gold) if gold == 30),
         ));
 
         let progress: ProgressList = toml::from_str(
