@@ -1,4 +1,4 @@
-use ggez::{winit::event::VirtualKeyCode, Context};
+use ggez::{winit::event::VirtualKeyCode, Context, event::ScanCode};
 use std::{collections::HashMap, fs, path::Path, time::Duration};
 
 use serde::{Deserialize, Serialize};
@@ -44,6 +44,7 @@ impl Default for Command {
 #[derive(Serialize, Deserialize, Debug, Eq, Hash, PartialEq)]
 struct Mapping {
     keycode: VirtualKeyCode,
+    scancode: ScanCode,
     held: bool,
     command: Command,
 }
@@ -52,6 +53,16 @@ impl Mapping {
     pub fn new(keycode: VirtualKeyCode, held: bool, command: Command) -> Self {
         Self {
             keycode,
+            scancode: 0,
+            held,
+            command,
+        }
+    }
+
+    pub fn new_with_scancode(keycode: VirtualKeyCode, held: bool, command: Command, scancode: ScanCode) -> Self {
+        Self {
+            keycode,
+            scancode,
             held,
             command,
         }
@@ -96,12 +107,13 @@ impl Controller {
 
         for &Mapping {
             keycode,
+            scancode,
             held,
             command,
         } in self.command_map.iter()
         {
-            if ctx.keyboard.is_key_pressed(keycode) && held
-                || ctx.keyboard.is_key_just_released(keycode) && !held
+            if (ctx.keyboard.is_key_pressed(keycode) || ctx.keyboard.is_scancode_pressed(scancode)) && held
+                || (ctx.keyboard.is_key_just_released(keycode) || ctx.keyboard.is_scancode_just_released(scancode)) && !held
             {
                 inter.commands.insert(command, true);
             }
@@ -127,7 +139,7 @@ impl Default for Controller {
                 Mapping::new(VirtualKeyCode::C, false, Command::Spell2),
                 Mapping::new(VirtualKeyCode::L, false, Command::Spell2),
                 Mapping::new(VirtualKeyCode::V, false, Command::Spell3),
-                Mapping::new(VirtualKeyCode::Semicolon, false, Command::Spell3),
+                Mapping::new_with_scancode(VirtualKeyCode::Semicolon, false, Command::Spell3, 39),
             ]),
         }
     }
