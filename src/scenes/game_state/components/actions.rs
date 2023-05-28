@@ -36,6 +36,8 @@ pub enum GameAction {
     Spawn(SpawnerBox),
     /// Applies a (temporary or permanent) effect to the target
     ApplyEffect(Box<ActionEffect>),
+    /// Clears all effects currently active on the target.
+    ClearEffects,
 }
 
 /// A box that contains a spawner lambda-functor.
@@ -395,6 +397,9 @@ impl Actions {
 #[legion::system(for_each)]
 /// System that clears all actions queues.
 pub fn clear(actions: &mut Actions) {
+    if actions.action_queue.iter().any(|act| matches!(act, GameAction::ClearEffects)){
+        actions.effects.clear();
+    }
     // clear action queue
     actions.action_queue.clear();
 }

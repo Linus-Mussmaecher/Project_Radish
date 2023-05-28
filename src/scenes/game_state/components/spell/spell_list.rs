@@ -11,7 +11,7 @@ use crate::scenes::game_state::{
 
 use super::Spell;
 
-pub fn construct_fireball(sprite_pool: &SpritePool) -> Spell {
+pub(super)fn construct_fireball(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Fireball",
         "Hurl a ball of fire, dealing a small amount of damage.",
@@ -40,7 +40,7 @@ pub fn construct_fireball(sprite_pool: &SpritePool) -> Spell {
     )
 }
 
-pub fn construct_ice_bomb(sprite_pool: &SpritePool) -> Spell {
+pub(super)fn construct_ice_bomb(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Ice Bomb",
         "Launch a fast icy projectile that deals high damage on impact and drops an ice crystal that slows nearby enemies and deals area damage when exploding.",
@@ -108,7 +108,7 @@ fn spawn_icebomb(
     ));
 }
 
-pub fn construct_lightning_orb(sprite_pool: &SpritePool) -> Spell {
+pub(super)fn construct_lightning_orb(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Lightning Ball",
         "Launch a ball of lightning that pierces through enemies and deals area damage on every contact.",
@@ -148,10 +148,10 @@ pub fn construct_lightning_orb(sprite_pool: &SpritePool) -> Spell {
     )
 }
 
-pub fn construct_conflagrate(sprite_pool: &SpritePool) -> Spell {
+pub(super)fn construct_conflagrate(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Conflagrate",
-        "Burn the six nearest enemies for 5 seconds, dealing 30 damage per second.",
+        "Burn the three nearest enemies for 8 seconds, dealing high damage over time",
         sprite_pool.init_sprite_unchecked("/sprites/spells/icons/conflagrate_icon", Duration::ZERO),
         ActionEffect::once(
             ActionEffectTarget::new()
@@ -160,17 +160,17 @@ pub fn construct_conflagrate(sprite_pool: &SpritePool) -> Spell {
             vec![
                 ActionEffect::repeat(
                     ActionEffectTarget::new_only_self(),
-                    GameAction::TakeDamage { dmg: 15 },
-                    Duration::from_secs_f32(0.7),
+                    GameAction::TakeDamage { dmg: 40 },
+                    Duration::from_secs_f32(0.5),
                 )
-                .with_duration(Duration::from_secs(5))
+                .with_duration(Duration::from_secs(8))
                 .into(),
                 GameAction::AddParticle(
                     Particle::new(sprite_pool.init_sprite_unchecked(
                         "/sprites/spells/burning",
                         Duration::from_secs_f32(0.25),
                     ))
-                    .with_duration(Duration::from_secs(5)),
+                    .with_duration(Duration::from_secs(8)),
                 ),
             ],
         ),
@@ -178,7 +178,7 @@ pub fn construct_conflagrate(sprite_pool: &SpritePool) -> Spell {
     )
 }
 
-pub fn construct_ice_lance(sprite_pool: &SpritePool) -> Spell {
+pub(super)fn construct_ice_lance(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Ice Lance",
         "Launch a volley of 3 quick-striking ice lances, each dealing damage to a single target and increasing their damage taken.",
@@ -222,7 +222,7 @@ pub fn construct_ice_lance(sprite_pool: &SpritePool) -> Spell {
         tiny_vec!([f32; MAX_SPELL_SLOTS] => 2., 2., 2.))
 }
 
-pub fn construct_overload(sprite_pool: &SpritePool) -> Spell {
+pub(super)fn construct_overload(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Overload",
         "Shoot out an electric spark that overloads the first enemy hit. When they die within a short timeframe, nearby enemies take high damage.",
@@ -246,7 +246,7 @@ pub fn construct_overload(sprite_pool: &SpritePool) -> Spell {
                             (e2, ActionEffect::on_death(
                                 ActionEffectTarget::new()
                                     .with_enemies_only(true)
-                                    .with_range(128.) ,
+                                    .with_range(160.) ,
                                 RemoveSource::HealthLoss,
                                 GameAction::TakeDamage { dmg: 60 } ,
                             ).with_duration(Duration::from_secs(8)).into()),
@@ -260,7 +260,7 @@ pub fn construct_overload(sprite_pool: &SpritePool) -> Spell {
         tiny_vec!([f32; MAX_SPELL_SLOTS] => 3., 5.))
 }
 
-pub fn construct_scorch(sprite_pool: &SpritePool) -> Spell {
+pub(super)fn construct_scorch(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Scorch",
         "Hurl a short ranged fireball, dealing low impact damage but igniting the area hit for 10 seconds, dealing damage over time to all enemies inside.",
@@ -301,7 +301,7 @@ pub fn construct_scorch(sprite_pool: &SpritePool) -> Spell {
         tiny_vec!([f32; MAX_SPELL_SLOTS] => 2., 5.,10.,))
 }
 
-pub fn construct_shard(sprite_pool: &SpritePool) -> Spell {
+pub(super)fn construct_shard(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Shard of Ice",
         "Throw a shard of ice dealing moderate damage and slowing. On hit, split into three smaller shards that deal less damage but slow more.",
@@ -360,7 +360,7 @@ pub fn construct_shard(sprite_pool: &SpritePool) -> Spell {
         tiny_vec!([f32; MAX_SPELL_SLOTS] => 2.5))
 }
 
-pub fn construct_arcane_missiles(sprite_pool: &SpritePool) -> Spell {
+pub(super)fn construct_arcane_missiles(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Arcane Missiles",
         "Infuse your self with arcane power. Every second for the next 10 seconds, launch an arcane missile towards the nearest enemy, dealing moderate damage.",
@@ -417,7 +417,7 @@ pub fn construct_arcane_missiles(sprite_pool: &SpritePool) -> Spell {
         tiny_vec!([f32; MAX_SPELL_SLOTS] => 2., 2., 2., 2., 10., 10.))
 }
 
-pub fn construct_arcane_blast(sprite_pool: &SpritePool) -> Spell {
+pub(super)fn construct_arcane_blast(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Arcane Blast",
         "Launch an orb of arcane energy dealing medium damage. On hitting an enemy, 8 smaller orbs are created centered on the target hit and striking inwards for the same amount of damage.",
@@ -468,7 +468,7 @@ pub fn construct_arcane_blast(sprite_pool: &SpritePool) -> Spell {
         tiny_vec!([f32; MAX_SPELL_SLOTS] => 5.,10., 15.))
 }
 
-pub fn construct_blackhole(sprite_pool: &SpritePool) -> Spell {
+pub(super)fn construct_blackhole(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Blackhole",
         "Launch a slow-moving ball of antimatter. After travelling for 2 seconds without colliding, it will spawn a blackhole that attracts enemies for 6 seconds, then deals damage to close enemies.",
@@ -516,7 +516,7 @@ pub fn construct_blackhole(sprite_pool: &SpritePool) -> Spell {
                                                         .iter_mut(world)
                                                         .filter(|(_, pos, _)| pos.distance(pos_src) < 175.)
                                                     {
-                                                        act_tar.push(GameAction::Move { delta: (pos_src - *pos_tar).clamp_length_max(0.7) })
+                                                        act_tar.push(GameAction::Move { delta: (pos_src - *pos_tar).clamp_length_max(1.) })
                                                     }
                                                 });
                                             }),
@@ -534,5 +534,38 @@ pub fn construct_blackhole(sprite_pool: &SpritePool) -> Spell {
             ));
         }),
         tiny_vec!([f32; MAX_SPELL_SLOTS] => 6., 6., 6., 6.),
+    )
+}
+
+pub(super)fn construct_mind_wipe(sprite_pool: &SpritePool) -> Spell {
+    Spell::new(
+        "Mind wipe",
+        "Launch a bolt of dark energy that deals a medium amount of damage to the first enemy hit. After a short delay, deal the same damage again and remove all effects (ongoing effects, passives, on-death effects) from the target.",
+        sprite_pool.init_sprite_unchecked("/sprites/spells/icons/mindwipe_icon", Duration::ZERO),
+        GameAction::spawn(|_, pos, sp, cmd| {
+            cmd.push((
+                pos,
+                components::LifeDuration::new(Duration::from_secs(10)),
+                components::Graphics::from(sp.init_sprite_unchecked(
+                    "/sprites/spells/mindwipe",
+                    Duration::from_secs_f32(0.2),
+                )),
+                components::Velocity::new(0., -250.),
+                components::Collision::new(32., 32., |e1, e2| {
+                    (
+                        vec![
+                            (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
+                            (e2, GameAction::TakeDamage { dmg: 42 }),
+                            (e2, ActionEffect::once(ActionEffectTarget::new_only_self(), vec![
+                                GameAction::TakeDamage { dmg: 42 },
+                                GameAction::ClearEffects,
+                            ]).with_duration(Duration::new(2, 0)).into()),
+                        ],
+                        MessageSet::new(),
+                    )
+                }),
+            ));
+        }),
+        tiny_vec!([f32; MAX_SPELL_SLOTS] => 3., 3., 6.),
     )
 }

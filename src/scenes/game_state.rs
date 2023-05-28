@@ -17,7 +17,6 @@ mod director;
 pub use director::EnemyTemplate;
 
 mod components;
-use self::components::spell::spell_list;
 
 mod controller;
 pub use controller::Controller;
@@ -173,12 +172,7 @@ impl GameState {
                 sprite_pool.init_sprite("/sprites/mage", Duration::from_secs_f32(0.25))?,
             ),
             components::SpellCaster::new(
-                vec![
-                    spell_list::construct_fireball(&sprite_pool),
-                    spell_list::construct_ice_bomb(&sprite_pool),
-                    spell_list::construct_fireball(&sprite_pool),
-                    spell_list::construct_fireball(&sprite_pool),
-                ],
+                components::spell::init_default_spells(&sprite_pool),
                 4,
             ),
         ));

@@ -16,10 +16,39 @@ use super::{
 };
 
 /// A mod containing construction functions for all spells.
-pub mod spell_list;
+mod spell_list;
 
 /// The maximum amount of Spell Slots an entity can (by default) have.
 pub const MAX_SPELL_SLOTS: usize = 8;
+
+pub fn init_spell_pool(sprite_pool: &mooeye::sprite::SpritePool) -> SpellPool {
+    (
+        None,
+        vec![
+            SpellTemplate::new(spell_list::construct_fireball(sprite_pool), 50, 1),
+            SpellTemplate::new(spell_list::construct_ice_bomb(sprite_pool), 75, 1),
+            SpellTemplate::new(spell_list::construct_lightning_orb(sprite_pool), 90, 0),
+            SpellTemplate::new(spell_list::construct_conflagrate(sprite_pool), 110, 0),
+            SpellTemplate::new(spell_list::construct_shard(sprite_pool), 60, 0),
+            SpellTemplate::new(spell_list::construct_ice_lance(sprite_pool), 80, 0),
+            SpellTemplate::new(spell_list::construct_scorch(sprite_pool), 90, 0),
+            SpellTemplate::new(spell_list::construct_overload(sprite_pool), 120, 0),
+            SpellTemplate::new(spell_list::construct_arcane_missiles(sprite_pool), 150, 0),
+            SpellTemplate::new(spell_list::construct_arcane_blast(sprite_pool), 140, 0),
+            SpellTemplate::new(spell_list::construct_blackhole(sprite_pool), 200, 0),
+            SpellTemplate::new(spell_list::construct_mind_wipe(sprite_pool), 200, 0),
+        ],
+    )
+}
+
+pub fn init_default_spells(sprite_pool: &mooeye::sprite::SpritePool) -> Vec<Spell> {
+    vec![
+        spell_list::construct_fireball(&sprite_pool),
+        spell_list::construct_ice_bomb(&sprite_pool),
+        Spell::not_available(&sprite_pool, "Purchase & equip more spells between waves."),
+        Spell::not_available(&sprite_pool, "Purchase & equip more spells between waves."),
+    ]
+}
 
 /// A component managing spell casting and spell slots.
 pub struct SpellCaster {
@@ -217,25 +246,6 @@ impl SpellTemplate {
     }
 }
 
-pub fn init_spell_pool(sprite_pool: &mooeye::sprite::SpritePool) -> SpellPool {
-    (
-        None,
-        vec![
-            SpellTemplate::new(spell_list::construct_fireball(sprite_pool), 50, 1),
-            SpellTemplate::new(spell_list::construct_ice_bomb(sprite_pool), 75, 1),
-            SpellTemplate::new(spell_list::construct_lightning_orb(sprite_pool), 90, 0),
-            SpellTemplate::new(spell_list::construct_conflagrate(sprite_pool), 110, 0),
-            SpellTemplate::new(spell_list::construct_shard(sprite_pool), 60, 0),
-            SpellTemplate::new(spell_list::construct_ice_lance(sprite_pool), 80, 0),
-            SpellTemplate::new(spell_list::construct_scorch(sprite_pool), 90, 0),
-            SpellTemplate::new(spell_list::construct_overload(sprite_pool), 120, 0),
-            SpellTemplate::new(spell_list::construct_arcane_missiles(sprite_pool), 150, 0),
-            SpellTemplate::new(spell_list::construct_arcane_blast(sprite_pool), 140, 0),
-            SpellTemplate::new(spell_list::construct_blackhole(sprite_pool), 200, 0),
-        ],
-    )
-}
-
 #[derive(Clone, Debug)]
 /// A spell struct.
 pub struct Spell {
@@ -269,6 +279,16 @@ impl Spell {
             icon,
             spell_: spell_.into(),
             spell_slots,
+        }
+    }
+
+    fn not_available(sprite_pool: &mooeye::sprite::SpritePool, reason: &str, ) -> Self {
+        Self {
+            name: "Spell not avialable".to_owned(),
+            description: reason.to_owned(),
+            icon: sprite_pool.init_sprite_unchecked("/sprites/ui/lock", Duration::ZERO),
+            spell_: GameAction::None.into(),
+            spell_slots: TinyVec::new(),
         }
     }
 
