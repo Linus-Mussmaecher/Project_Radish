@@ -164,11 +164,7 @@ pub struct SpellTemplate {
 impl SpellTemplate {
     /// Creates a new spell template from a spell and a  cost.
     pub fn new(spell: Spell, cost: i32, level: u32) -> Self {
-        Self {
-            level,
-            cost,
-            spell,
-        }
+        Self { level, cost, spell }
     }
 
     /// Returns a small UiElement representing this spell template, consisting of the icon and a tooltip.
@@ -235,6 +231,7 @@ pub fn init_spell_pool(sprite_pool: &mooeye::sprite::SpritePool) -> SpellPool {
             SpellTemplate::new(spell_list::construct_overload(sprite_pool), 120, 0),
             SpellTemplate::new(spell_list::construct_arcane_missiles(sprite_pool), 150, 0),
             SpellTemplate::new(spell_list::construct_arcane_blast(sprite_pool), 140, 0),
+            SpellTemplate::new(spell_list::construct_blackhole(sprite_pool), 200, 0),
         ],
     )
 }
@@ -301,14 +298,21 @@ impl Spell {
                         .color(graphics::Color::from_rgb_u32(PALETTE[6]))
                         .scale(20.),
                 )
-                .add("\nCasting Slots:")
                 .add(
-                    self.spell_slots
-                        .iter()
-                        .fold(String::new(), |mut old, &slot| {
+                    graphics::TextFragment::new("\nCasting slots:")
+                        .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                        .scale(20.),
+                )
+                .add(
+                    graphics::TextFragment::new(self.spell_slots.iter().fold(
+                        String::new(),
+                        |mut old, &slot| {
                             old.push_str(&format!("  {:.1}", slot));
                             old
-                        }),
+                        },
+                    ))
+                    .color(graphics::Color::from_rgb_u32(PALETTE[4]))
+                    .scale(20.),
                 )
                 .set_font("Retro")
                 .set_wrap(true)

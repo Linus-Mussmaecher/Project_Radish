@@ -24,7 +24,7 @@ impl GameData {
         Self {
             player,
             score: 0,
-            gold: 1000,
+            gold: if cfg!(DEBUG) {1000} else {0},
             last_gold: 0,
             city_health: 10,
         }

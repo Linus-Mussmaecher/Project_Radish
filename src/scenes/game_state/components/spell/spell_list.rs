@@ -467,3 +467,72 @@ pub fn construct_arcane_blast(sprite_pool: &SpritePool) -> Spell {
         }),
         tiny_vec!([f32; MAX_SPELL_SLOTS] => 5.,10., 15.))
 }
+
+pub fn construct_blackhole(sprite_pool: &SpritePool) -> Spell {
+    Spell::new(
+        "Blackhole",
+        "Launch a slow-moving ball of antimatter. After travelling for 2 seconds without colliding, it will spawn a blackhole that attracts enemies for 6 seconds, then deals damage to close enemies.",
+        sprite_pool.init_sprite_unchecked("/sprites/spells/blackhole", Duration::ZERO),
+        GameAction::spawn(|_, pos, sp, cmd| {
+            cmd.push((
+                pos,
+                components::LifeDuration::new(Duration::from_secs(2)),
+                components::Graphics::from(sp.init_sprite_unchecked(
+                    "/sprites/spells/blackhole_mini",
+                    Duration::from_secs_f32(0.2),
+                )),
+                components::Velocity::new(0., -180.),
+                components::Collision::new(16., 16., |e1, e2| {
+                    (
+                        vec![
+                            (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
+                            (e2, GameAction::TakeDamage { dmg: 80 }),
+                        ],
+                        MessageSet::new(),
+                    )
+                }),
+                components::Actions::new()
+                    .with_effect(ActionEffect::on_death(
+                        ActionEffectTarget::new_only_self(),
+                        RemoveSource::TimedOut, 
+                        GameAction::spawn(|_, pos, sp, cmd|{
+                            cmd.push((
+                                pos,
+                                components::LifeDuration::new(Duration::from_secs(6)),
+                                components::Graphics::from(sp.init_sprite_unchecked(
+                                    "/sprites/spells/blackhole",
+                                    Duration::from_secs_f32(0.1),
+                                )),
+                                components::Actions::new()
+                                    .with_effect(
+                                        ActionEffect::repeat(
+                                            ActionEffectTarget::new_only_self(), 
+                                            GameAction::spawn(|_, pos_src, _, cmd|{
+                                                // execute the following every seconds:
+                                                cmd.exec_mut(move |world, _|{
+                                
+                                                    // iterator over all (close) enemies
+                                                    for (_, pos_tar, act_tar) in <(&components::Velocity, &components::Position, &mut Actions)>::query()
+                                                        .iter_mut(world)
+                                                        .filter(|(_, pos, _)| pos.distance(pos_src) < 175.)
+                                                    {
+                                                        act_tar.push(GameAction::Move { delta: (pos_src - *pos_tar).clamp_length_max(0.7) })
+                                                    }
+                                                });
+                                            }),
+                                            Duration::from_secs_f32(0.02)
+                                        ).with_duration(Duration::new(6, 0))
+                                    )
+                                    .with_effect(ActionEffect::on_death(
+                                        ActionEffectTarget::new().with_range(64.).with_enemies_only(true),
+                                        RemoveSource::TimedOut,
+                                        GameAction::TakeDamage { dmg: 30 },
+                                    ))
+                            ));
+                        }),
+                )),
+            ));
+        }),
+        tiny_vec!([f32; MAX_SPELL_SLOTS] => 6., 6., 6., 6.),
+    )
+}
