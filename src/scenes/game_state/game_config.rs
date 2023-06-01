@@ -1,0 +1,55 @@
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
+pub struct GameConfig {
+    // --- Director Config ---
+    /// The base amounts of credits per second
+    pub base_credits: f32,
+    /// The amount of additional credits granted each second per round passed.
+    pub wave_credits: f32,
+    /// The initial enemies
+    pub wave_enemies: [usize; super::director::WAVE_SIZE],
+
+    // --- Spell Config ---
+    pub base_spells: [usize; 4],
+    pub base_slots: usize,
+
+    // --- Game Data Config ---
+
+    pub starting_gold: i32,
+    pub starting_city_health: i32,
+
+    // --- Other ---
+    pub base_speed: f32,
+}
+
+impl GameConfig{
+    /// Constructs a default game config for debugging the game
+    pub fn debug() -> Self{
+        Self{
+            base_credits: 10.,
+            wave_credits: 5.,
+            wave_enemies: [1,2,3,4],
+            base_spells: [1,2,3,4],
+            base_slots: 4,
+            base_speed: 150.,
+            starting_gold: 10000,
+            starting_city_health: 10,
+        }
+    }
+}
+
+impl Default for GameConfig {
+    fn default() -> Self {
+        Self {
+            base_credits: 10.,
+            wave_credits: 5.,
+            wave_enemies: [0,0,1,1],
+            base_spells: [1,2,0,0],
+            base_slots: 4,
+            base_speed: 150.,
+            starting_gold: 0,
+            starting_city_health: 10,
+        }
+    }
+}

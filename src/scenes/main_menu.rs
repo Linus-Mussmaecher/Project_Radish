@@ -8,7 +8,7 @@ use super::BUTTON_HOVER_VIS;
 use super::BUTTON_VIS;
 
 use ggez::{graphics, GameError};
-use mooeye::{ui_element::UiContainer, *};
+use mooeye::*;
 
 use crate::PALETTE;
 
@@ -19,8 +19,11 @@ pub struct MainMenu {
 impl MainMenu {
     pub fn new(ctx: &ggez::Context) -> Result<Self, GameError> {
         //TODO: audio
-        ggez::audio::SoundSource::play_detached(&mut ggez::audio::Source::new(ctx, "/audio/music/Song1.mp3")?, ctx).unwrap();
-        
+        ggez::audio::SoundSource::play_detached(
+            &mut ggez::audio::Source::new(ctx, "/audio/music/Song1.mp3")?,
+            ctx,
+        )
+        .unwrap();
 
         // title
 
@@ -42,6 +45,18 @@ impl MainMenu {
         .to_owned()
         .to_element_builder(1, ctx)
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::P)
+        .with_visuals(super::BUTTON_VIS)
+        .with_hover_visuals(super::BUTTON_HOVER_VIS)
+        .build();
+
+        let debug = graphics::Text::new(
+            graphics::TextFragment::new("Debug").color(graphics::Color::from_rgb_u32(PALETTE[6])),
+        )
+        .set_font("Retro")
+        .set_scale(32.)
+        .to_owned()
+        .to_element_builder(2, ctx)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::D)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
@@ -113,27 +128,24 @@ impl MainMenu {
         .build();
 
         // Container
-
-        let mut menu_box = mooeye::containers::VerticalBox::new();
-        menu_box.add(play);
-        menu_box.add(highscores);
-        menu_box.add(achievements);
-        menu_box.add(options);
-        menu_box.add(credits);
-        menu_box.add(quit);
-        menu_box.spacing = 25.;
-        let menu_box = menu_box
+        let menu_box = mooeye::containers::VerticalBox::new_spaced(25.)
             .to_element_builder(0, ctx)
+            .with_child(play)
+            .with_child(debug)
+            .with_child(highscores)
+            .with_child(achievements)
+            .with_child(options)
+            .with_child(credits)
+            .with_child(quit)
             .with_visuals(super::BUTTON_VIS)
             .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Min)
             .with_padding((25., 25., 25., 25.))
             .build();
 
-        let mut big_box = mooeye::containers::VerticalBox::new();
-        big_box.add(title);
-        big_box.add(menu_box);
-        let big_box = big_box
+        let big_box = mooeye::containers::VerticalBox::new()
             .to_element_builder(0, ctx)
+            .with_child(title)
+            .with_child(menu_box)
             .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Min)
             .with_padding((25., 25., 25., 25.))
             .build();
@@ -152,12 +164,17 @@ impl scene_manager::Scene for MainMenu {
         let mut res = mooeye::scene_manager::SceneSwitch::None;
 
         if messages.contains(&mooeye::UiMessage::Triggered(1)) {
-            res = mooeye::scene_manager::SceneSwitch::replace(game_state::GameState::new(ctx)?, 1);
+            res = mooeye::scene_manager::SceneSwitch::replace(
+                game_state::GameState::new(ctx, game_state::GameConfig::default())?,
+                1,
+            );
         }
 
-        // Former tutorial. TODO: Custom mode?
         if messages.contains(&mooeye::UiMessage::Triggered(2)) {
-            res = mooeye::scene_manager::SceneSwitch::replace(game_state::GameState::new(ctx)?, 1);
+            res = mooeye::scene_manager::SceneSwitch::replace(
+                game_state::GameState::new(ctx, game_state::GameConfig::debug())?,
+                1,
+            );
         }
 
         if messages.contains(&mooeye::UiMessage::Triggered(3)) {

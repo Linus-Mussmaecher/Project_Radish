@@ -41,13 +41,21 @@ pub fn init_spell_pool(sprite_pool: &mooeye::sprite::SpritePool) -> SpellPool {
     )
 }
 
-pub fn init_default_spells(sprite_pool: &mooeye::sprite::SpritePool) -> Vec<Spell> {
-    vec![
-        spell_list::construct_fireball(&sprite_pool),
-        spell_list::construct_ice_bomb(&sprite_pool),
-        Spell::not_available(&sprite_pool, "Purchase & equip more spells between waves."),
-        Spell::not_available(&sprite_pool, "Purchase & equip more spells between waves."),
-    ]
+pub fn init_base_spells(
+    spell_pool: &SpellPool,
+    sprite_pool: &mooeye::sprite::SpritePool,
+    spells: &[usize],
+) -> Vec<Spell> {
+    spells
+        .iter()
+        .map(|&index| {
+            if index == 0 || index > spell_pool.1.len() {
+                Spell::not_available(sprite_pool, "Purchase & equip more spells between waves!")
+            } else {
+                spell_pool.1[index].spell.clone()
+            }
+        })
+        .collect()
 }
 
 /// A component managing spell casting and spell slots.
@@ -282,7 +290,7 @@ impl Spell {
         }
     }
 
-    fn not_available(sprite_pool: &mooeye::sprite::SpritePool, reason: &str, ) -> Self {
+    fn not_available(sprite_pool: &mooeye::sprite::SpritePool, reason: &str) -> Self {
         Self {
             name: "Spell not avialable".to_owned(),
             description: reason.to_owned(),

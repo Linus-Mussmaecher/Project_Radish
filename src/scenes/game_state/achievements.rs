@@ -159,18 +159,18 @@ impl Achievement {
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Copy)]
 struct Progress {
-    prog: u32,
+    progress: u32,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 struct ProgressList {
-    progresses: Vec<Progress>,
+    achievements: Vec<Progress>,
 }
 
 impl Default for ProgressList {
     fn default() -> Self {
         Self {
-            progresses: Default::default(),
+            achievements: Default::default(),
         }
     }
 }
@@ -266,8 +266,8 @@ impl AchievementSet {
         )
         .unwrap_or_default();
 
-        for i in 0..progress.progresses.len().min(res.len()) {
-            res[i].progress = progress.progresses[i].prog;
+        for i in 0..progress.achievements.len().min(res.len()) {
+            res[i].progress = progress.achievements[i].progress;
         }
 
         Self { list: res }
@@ -275,12 +275,12 @@ impl AchievementSet {
 
     pub fn save(&self) {
         let mut progress = ProgressList {
-            progresses: Vec::new(),
+            achievements: Vec::new(),
         };
 
         for ach in self.list.iter() {
-            progress.progresses.push(Progress {
-                prog: ach.get_progress(),
+            progress.achievements.push(Progress {
+                progress: ach.get_progress(),
             });
         }
 

@@ -25,6 +25,9 @@ pub use controller::Interactions;
 pub mod achievements;
 pub use achievements::Achievement;
 
+mod game_config;
+pub use game_config::GameConfig;
+
 mod ui;
 
 /// The main struct representing the current game state.
@@ -74,7 +77,8 @@ impl scene_manager::Scene for GameState {
             if let Some(mut message_set) = self.resources.get_mut::<MessageSet>();
             if let Some(mut director) = self.resources.get_mut::<director::Director>();
             if let Some(mut data) = self.resources.get_mut::<game_data::GameData>();
-            if let Ok(mut player) = self.world.entry_mut(data.get_player());
+            if let Some(player_ent) = self.resources.get::<Entity>();
+            if let Ok(mut player) = self.world.entry_mut(*player_ent);
             if let Ok(caster) = player.get_component_mut::<components::SpellCaster>();
             if let Some(mut spell_pool) = self.resources.get_mut::<components::spell::SpellPool>();
             then{
@@ -150,15 +154,18 @@ impl scene_manager::Scene for GameState {
 
 impl GameState {
     /// Creates a new game state.
-    pub fn new(ctx: &ggez::Context) -> Result<Self, GameError> {
+    pub fn new(ctx: &ggez::Context, config: GameConfig) -> Result<Self, GameError> {
         // --- WORLD CREATION ---
 
         // Create world
         let mut world = World::default();
 
-        // Create some resources neccessary for world init
+        // --- RESOURCE INITIALIZATION ---
         let boundaries = graphics::Rect::new(0., 0., 600., 900.);
         let sprite_pool = sprite::SpritePool::new().with_folder(ctx, "/sprites", true);
+        let spell_pool = components::spell::init_spell_pool(&sprite_pool);
+        let game_data = game_data::GameData::new(config.starting_gold, config.starting_city_health);
+        let director = director::Director::new(&sprite_pool, &config);
 
         Self::initalize_environment(&boundaries, &sprite_pool, &mut world)?;
 
@@ -167,19 +174,16 @@ impl GameState {
         let player = world.push((
             components::Position::new(boundaries.w / 2., boundaries.h - 64.),
             components::BoundaryCollision::new(true, false, false),
-            components::Control::new(150.),
+            components::Control::new(config.base_speed),
             components::Graphics::from(
                 sprite_pool.init_sprite("/sprites/mage2", Duration::from_secs_f32(0.25))?,
             ),
             components::SpellCaster::new(
-                components::spell::init_default_spells(&sprite_pool),
-                4,
+                components::spell::init_base_spells(&spell_pool, &sprite_pool, &config.base_spells),
+                config.base_slots,
             ),
         ));
 
-        // --- RESOURCE INITIALIZATION ---
-
-        let game_data = game_data::GameData::new(player);
         let mut message_set = MessageSet::new();
         // insert this to make sure the city health is displayed correctly
         message_set.insert(UiMessage::Extern(GameMessage::UpdateCityHealth(
@@ -189,12 +193,15 @@ impl GameState {
         // so nothing will happen on the director.next_wave() call in wave_menu, but the spells will be updated.
         message_set.insert(UiMessage::Triggered(ui::wave_menu::ID_NEXT_WAVE));
 
+        // --- RESOURCE INSERTION ---
+
         let mut resources = Resources::default();
+        resources.insert(player);
         resources.insert(game_data);
         resources.insert(message_set);
         resources.insert(boundaries);
-        resources.insert(director::Director::new(&sprite_pool));
-        resources.insert(components::spell::init_spell_pool(&sprite_pool));
+        resources.insert(director);
+        resources.insert(spell_pool);
         resources.insert(sprite_pool);
 
         // --- SYSTEM REGISTRY / UI CONSTRUCTION / CONTROLLER INITIALIZATION ---

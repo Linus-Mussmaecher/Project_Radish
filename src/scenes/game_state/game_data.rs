@@ -6,8 +6,6 @@ use legion::*;
 
 /// A struct that holds some general data about the game play.
 pub struct GameData {
-    /// The entity representing the player character.
-    player: Entity,
     /// The current total score achieved.
     score: i32,
     /// The gold the player currently holds (= score - gold spent).
@@ -19,14 +17,13 @@ pub struct GameData {
 }
 
 impl GameData {
-    /// Creates a new GameData struct with the passed player and default game play parameters.
-    pub fn new(player: Entity) -> Self {
+    /// Creates a new GameData struct with the passed game play parameters.
+    pub fn new(gold: i32, city_health: i32) -> Self {
         Self {
-            player,
             score: 0,
-            gold: if cfg!(DEBUG) {1000} else {0},
+            gold,
             last_gold: 0,
-            city_health: 10,
+            city_health,
         }
     }
 
@@ -51,11 +48,6 @@ impl GameData {
     /// Returns the current score.
     pub fn get_score(&self) -> i32 {
         self.score
-    }
-
-    /// Returns the player entity.
-    pub fn get_player(&self) -> Entity {
-        self.player
     }
 }
 

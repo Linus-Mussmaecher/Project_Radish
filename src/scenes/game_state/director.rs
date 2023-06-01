@@ -6,56 +6,56 @@ use legion::{system, systems::CommandBuffer};
 use mooeye::sprite;
 use rand::random;
 
+/// The maximum amount of different enemy templates per wave
+pub(super) const WAVE_SIZE: usize = 4;
+
 mod spawners;
 mod templates;
-
-/// The state of a [Director].
-/// States should be used only in sequence.
-/// One rotation = one wave.
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-enum DirectorState {
-    /// The director is currently spawning enemies.
-    /// The payload is the wave_pool left to spawn until this wave ends.
-    Spawning(u32),
-    /// The director has emptied its wave pool and is waiting for all spawned enemies to be removed.
-    WaitingForDead,
-    /// All enemies have despawned and the director has notified the player of the end of the wave.
-    /// The director is waiting for the player to init the next wave.
-    WaitingForMenu,
-}
-
 /// The director struct is responsible for spawning waves of enemies.
 /// A director regularly earns credit points and spends them on units from a customizable enemy set until a wave threshhold is reached.
 /// Then, the director rerolls the enemy pool and starts a new wave.
 #[derive(Clone)]
 pub struct Director {
+    // --- ONGOING VALUES ---
+
     /// The current wave number.
     wave: u32,
     /// The current state of the director.
     state: DirectorState,
+
     /// The time since the director last spawned units.
     intervall: Duration,
-    /// The entire existence duration of this director.
-    total: Duration,
     /// The current amount of credits this director can spend.
     credits: u32,
+
+    /// The enemies
+    wave_enemies: [usize; WAVE_SIZE],
     /// The enemy posse the director can select spawns from, containing their costs and a spawning function pointer.
     enemies: Vec<EnemyTemplate>,
-    /// The enemies
-    wave_enemies: [usize; 4],
+
+    // --- CONFIGURATION ---
+
+    /// The base amounts of credits per second
+    base_credits: f32,
+    /// The amount of additional credits granted each second per round passed.
+    wave_credits: f32,
 }
 
 impl Director {
     /// Spawns a new director with default parameters.
-    pub fn new(sprite_pool: &sprite::SpritePool) -> Self {
+    pub fn new(sprite_pool: &sprite::SpritePool, config: &super::GameConfig) -> Self {
         Self {
             wave: 1,
             state: DirectorState::Spawning(450),
-            intervall: Duration::ZERO,
-            total: Duration::ZERO,
+
+            intervall: Duration::ZERO,            
             credits: 0,
+
+            wave_enemies: config.wave_enemies,
             enemies: templates::generate_templates(sprite_pool).unwrap_or_default(),
-            wave_enemies: [0, 0, 1, 1],
+
+            base_credits: config.base_credits,
+            wave_credits: config.wave_credits,
         }
     }
 
@@ -65,12 +65,8 @@ impl Director {
     }
 
     /// Returns a reference with the current wave's enemies
-    pub fn get_enemies(&self) -> [&EnemyTemplate; 4] {
-        [0, 1, 2, 3].map(|i| {
-            self.enemies
-                .get(self.wave_enemies[i])
-                .expect("Could not resolve table.")
-        })
+    pub fn get_enemies(&self) -> [&EnemyTemplate; WAVE_SIZE] {
+        self.wave_enemies.map(|i| &self.enemies[i])
     }
 
     /// If currently in the last [DirectorState] of a wave cycle, reset to the first one, increase the wave number
@@ -78,13 +74,15 @@ impl Director {
     pub fn next_wave(&mut self) {
         if self.state == DirectorState::WaitingForMenu {
             self.wave += 1;
-            self.state = DirectorState::Spawning(100 + 400 * self.wave);
+            self.state = DirectorState::Spawning(
+                30 * (self.base_credits + 2. * self.wave_credits * self.wave as f32) as u32,
+            );
         }
     }
 
     pub fn reroll_wave_enemies(&mut self) {
         // get 4 random indices of enemies
-        for i in 0..4 {
+        for i in 0..WAVE_SIZE {
             self.wave_enemies[i] = rand::random::<usize>() % self.enemies.len();
         }
         // sort the wave_enemies array
@@ -108,14 +106,15 @@ pub fn direct(
     // add time since last frame to counters
 
     director.intervall += ix.delta;
-    director.total += ix.delta;
 
     match director.state {
         DirectorState::Spawning(wave_pool) => {
             // only spawn in 1-second intervalls
             if director.intervall >= Duration::from_secs(1) {
                 // grant credits
-                director.credits += 10 + director.total.as_secs() as u32 / 22 + 3 * director.wave;
+                director.credits += (director.base_credits
+                    + director.wave_credits * director.wave as f32)
+                    as u32;
                 // reset intervall
                 director.intervall = Duration::ZERO;
 
@@ -181,6 +180,21 @@ pub fn direct(
     }
 }
 
+/// The state of a [Director].
+/// States should be used only in sequence.
+/// One rotation = one wave.
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+enum DirectorState {
+    /// The director is currently spawning enemies.
+    /// The payload is the wave_pool left to spawn until this wave ends.
+    Spawning(u32),
+    /// The director has emptied its wave pool and is waiting for all spawned enemies to be removed.
+    WaitingForDead,
+    /// All enemies have despawned and the director has notified the player of the end of the wave.
+    /// The director is waiting for the player to init the next wave.
+    WaitingForMenu,
+}
+
 #[derive(Debug, Clone)]
 /// A template for spawning an enemy. Also contains descriptions and icon to display in wave menu.
 pub struct EnemyTemplate {
@@ -197,6 +211,7 @@ pub struct EnemyTemplate {
 }
 
 impl EnemyTemplate {
+    // Creates a new enemy template.
     pub fn new(
         icon: sprite::Sprite,
         name: &str,
