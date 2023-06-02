@@ -232,7 +232,7 @@ impl SpellTemplate {
                 self.spell = Spell::not_available(
                     sprite_pool,
                     &format!(
-                        "Complete the {} achievement to unlock this spell for future runs.",
+                        "Complete the achievement '{}' to unlock this spell for future games.",
                         ach.get_name()
                     ),
                 );
@@ -273,7 +273,7 @@ impl SpellTemplate {
         containers::StackBox::new()
             .to_element_builder(id, ctx)
             .with_wrapper_layout(icon.get_layout())
-            .with_child(if self.level == 0 {
+            .with_child(if self.level == 0 && self.cost != 0 {
                 cost
             } else {
                 ().to_element(0, ctx)
