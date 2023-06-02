@@ -163,9 +163,13 @@ impl GameState {
         // --- RESOURCE INITIALIZATION ---
         let boundaries = graphics::Rect::new(0., 0., 600., 900.);
         let sprite_pool = sprite::SpritePool::new().with_folder(ctx, "/sprites", true);
-        let spell_pool = components::spell::init_spell_pool(&sprite_pool);
+        let achievement_set = achievements::AchievementSet::load(ctx);
+        let spell_pool = components::spell::init_spell_pool(&sprite_pool, &achievement_set);
         let game_data = game_data::GameData::new(config.starting_gold, config.starting_city_health);
         let director = director::Director::new(&sprite_pool, &config);
+
+        let mut listeners: Vec<Box<dyn game_message::MessageReceiver>> = Vec::new();
+        listeners.push(Box::new(achievement_set));
 
         Self::initalize_environment(&boundaries, &sprite_pool, &mut world)?;
 
@@ -236,11 +240,7 @@ impl GameState {
                 .add_system(components::health::remove_entities_system())
                 .add_system(components::actions::clear_system())
                 .build(),
-            listeners: {
-                let mut list: Vec<Box<dyn game_message::MessageReceiver>> = Vec::new();
-                list.push(Box::new(achievements::AchievementSet::load(ctx)));
-                list
-            },
+            listeners,
             resources,
             controller: Controller::from_path("./data/keymap.toml").unwrap_or_default(),
         })

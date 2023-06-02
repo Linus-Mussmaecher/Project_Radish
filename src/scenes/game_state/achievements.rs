@@ -62,7 +62,11 @@ impl Achievement {
         self.progress >= self.target
     }
 
-    /// Returns a small UiElement representing this achievement, consisting of the icon and a tooltip.
+    pub fn get_name(&self) -> &str{
+        &self.name
+    }
+
+    /// Returns a ksmall UiElement representing this achievement, consisting of the icon and a tooltip.
     pub fn info_element_small<T: Copy + Eq + std::hash::Hash + 'static>(
         &self,
         ctx: &ggez::Context,

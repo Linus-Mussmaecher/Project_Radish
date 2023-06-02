@@ -8,7 +8,7 @@ use mooeye::sprite::Sprite;
 
 use crate::PALETTE;
 
-use super::super::{controller, game_message};
+use super::super::{achievements, controller, game_message};
 
 use super::{
     actions::{ActionContainer, GameAction},
@@ -21,22 +21,27 @@ mod spell_list;
 /// The maximum amount of Spell Slots an entity can (by default) have.
 pub const MAX_SPELL_SLOTS: usize = 8;
 
-pub fn init_spell_pool(sprite_pool: &mooeye::sprite::SpritePool) -> SpellPool {
+pub fn init_spell_pool(
+    sprite_pool: &mooeye::sprite::SpritePool,
+    achievements: &achievements::AchievementSet,
+) -> SpellPool {
     (
         None,
         vec![
-            SpellTemplate::new(spell_list::construct_fireball(sprite_pool), 50, 1),
-            SpellTemplate::new(spell_list::construct_ice_bomb(sprite_pool), 75, 1),
-            SpellTemplate::new(spell_list::construct_lightning_orb(sprite_pool), 90, 0),
-            SpellTemplate::new(spell_list::construct_conflagrate(sprite_pool), 110, 0),
-            SpellTemplate::new(spell_list::construct_shard(sprite_pool), 60, 0),
-            SpellTemplate::new(spell_list::construct_ice_lance(sprite_pool), 80, 0),
-            SpellTemplate::new(spell_list::construct_scorch(sprite_pool), 90, 0),
-            SpellTemplate::new(spell_list::construct_overload(sprite_pool), 120, 0),
-            SpellTemplate::new(spell_list::construct_arcane_missiles(sprite_pool), 150, 0),
-            SpellTemplate::new(spell_list::construct_arcane_blast(sprite_pool), 140, 0),
-            SpellTemplate::new(spell_list::construct_blackhole(sprite_pool), 200, 0),
-            SpellTemplate::new(spell_list::construct_mind_wipe(sprite_pool), 200, 0),
+            SpellTemplate::new(spell_list::construct_fireball(sprite_pool), 50).purchased(),
+            SpellTemplate::new(spell_list::construct_ice_bomb(sprite_pool), 75).purchased(),
+            SpellTemplate::new(spell_list::construct_lightning_orb(sprite_pool), 90)
+                .achievement_condition(achievements.list.get(2), sprite_pool),
+            SpellTemplate::new(spell_list::construct_conflagrate(sprite_pool), 110),
+            SpellTemplate::new(spell_list::construct_shard(sprite_pool), 60),
+            SpellTemplate::new(spell_list::construct_ice_lance(sprite_pool), 80),
+            SpellTemplate::new(spell_list::construct_scorch(sprite_pool), 90),
+            SpellTemplate::new(spell_list::construct_overload(sprite_pool), 120),
+            SpellTemplate::new(spell_list::construct_arcane_missiles(sprite_pool), 150),
+            SpellTemplate::new(spell_list::construct_arcane_blast(sprite_pool), 140),
+            SpellTemplate::new(spell_list::construct_blackhole(sprite_pool), 200)
+                .achievement_condition(achievements.list.get(3), sprite_pool),
+            SpellTemplate::new(spell_list::construct_mind_wipe(sprite_pool), 200),
         ],
     )
 }
@@ -52,7 +57,7 @@ pub fn init_base_spells(
             if index == 0 || index > spell_pool.1.len() {
                 Spell::not_available(sprite_pool, "Purchase & equip more spells between waves!")
             } else {
-                spell_pool.1[index-1].spell.clone()
+                spell_pool.1[index - 1].spell.clone()
             }
         })
         .collect()
@@ -200,8 +205,39 @@ pub struct SpellTemplate {
 
 impl SpellTemplate {
     /// Creates a new spell template from a spell and a  cost.
-    pub fn new(spell: Spell, cost: i32, level: u32) -> Self {
-        Self { level, cost, spell }
+    pub fn new(spell: Spell, cost: i32) -> Self {
+        Self {
+            level: 0,
+            cost,
+            spell,
+        }
+    }
+
+    // modifies the template to have the spell unlocked
+    pub fn purchased(mut self) -> Self {
+        self.level = 1;
+        self
+    }
+
+    pub fn achievement_condition(
+        mut self,
+        ach: Option<&achievements::Achievement>,
+        sprite_pool: &mooeye::sprite::SpritePool,
+    ) -> Self {
+        if let Some(ach) = ach {
+            if !ach.is_achieved() {
+                self.spell = Spell::not_available(
+                    sprite_pool,
+                    &format!(
+                        "Complete the {} achievement to unlock this spell for future runs.",
+                        ach.get_name()
+                    ),
+                );
+                self.level = 0;
+                self.cost = 0;
+            }
+        }
+        self
     }
 
     /// Returns a small UiElement representing this spell template, consisting of the icon and a tooltip.
