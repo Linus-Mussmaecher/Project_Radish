@@ -330,7 +330,7 @@ pub(super)fn construct_shard(sprite_pool: &SpritePool) -> Spell {
                                     cmd.push((
                                         pos + ggez::glam::Vec2::new( 34. * i as f32, 0.),
                                         components::Velocity::new((30 * i) as f32, -250.),
-                                        components::LifeDuration::new(Duration::from_secs(10)),
+                                        components::LifeDuration::new(Duration::from_secs(1)),
                                         components::Graphics::from({
                                             let mut s = sp.init_sprite_unchecked("/sprites/spells/icebomb", Duration::ZERO);
                                             if i != 0 {
@@ -357,7 +357,7 @@ pub(super)fn construct_shard(sprite_pool: &SpritePool) -> Spell {
                 })
             ));
         }),
-        tiny_vec!([f32; MAX_SPELL_SLOTS] => 2.5))
+        tiny_vec!([f32; MAX_SPELL_SLOTS] => 3.))
 }
 
 pub(super)fn construct_arcane_missiles(sprite_pool: &SpritePool) -> Spell {
