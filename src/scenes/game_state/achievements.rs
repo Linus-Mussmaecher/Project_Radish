@@ -6,9 +6,12 @@ use serde::{Deserialize, Serialize};
 
 use crate::PALETTE;
 
-use super::{game_message::MessageReceiver, GameMessage};
+use super::{
+    game_message::{GameMessageFilter, MessageReceiver},
+    GameMessage,
+};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 /// A struct that represents a feat to achvieve in the game (by triggering a message matching a condition a set amount of times)
 pub struct Achievement {
     name: String,
@@ -16,7 +19,7 @@ pub struct Achievement {
     progress: u32,
     target: u32,
     icon: Option<graphics::Image>,
-    check_fulfil: fn(&GameMessage) -> bool,
+    model_message: (GameMessage, GameMessageFilter),
 }
 
 impl Achievement {
@@ -25,7 +28,7 @@ impl Achievement {
         description: &str,
         icon: impl Into<Option<graphics::Image>>,
         target: u32,
-        check_fulfil: fn(&GameMessage) -> bool,
+        model_message: (GameMessage, GameMessageFilter),
     ) -> Self {
         Self {
             name: name.to_owned(),
@@ -33,7 +36,7 @@ impl Achievement {
             progress: 0,
             icon: icon.into(),
             target,
-            check_fulfil,
+            model_message,
         }
     }
 
@@ -44,7 +47,7 @@ impl Achievement {
     /// Checks a message and increases the internal progress counter if it triggers this achievement.
     /// Returns true if this completed the achievement.
     pub fn listen(&mut self, message: &GameMessage) -> bool {
-        if (self.check_fulfil)(message) {
+        if self.model_message.1.check(&self.model_message.0, message) {
             self.progress += 1;
             self.progress == self.target
         } else {
@@ -52,17 +55,12 @@ impl Achievement {
         }
     }
 
-    /// Returns how often the conditions for this achievement have been fulfiled
-    pub fn get_progress(&self) -> u32 {
-        self.progress
-    }
-
     /// Returns wether or not this achievement has been achieved often enough yet
     pub fn is_achieved(&self) -> bool {
         self.progress >= self.target
     }
 
-    pub fn get_name(&self) -> &str{
+    pub fn get_name(&self) -> &str {
         &self.name
     }
 
@@ -161,141 +159,148 @@ impl Achievement {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Copy)]
-struct Progress {
-    progress: u32,
-}
-
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
-struct ProgressList {
-    achievements: Vec<Progress>,
-}
-
-impl Default for ProgressList {
-    fn default() -> Self {
-        Self {
-            achievements: Default::default(),
-        }
-    }
-}
 pub struct AchievementSet {
     pub list: Vec<Achievement>,
+    source: AchievementProgressSource,
 }
 
 impl AchievementSet {
-    pub fn load(ctx: &ggez::Context) -> Self {
-        let mut res = Vec::with_capacity(8);
+    pub fn load(ctx: &ggez::Context, source: AchievementProgressSource) -> Self {
+        let mut list = Vec::with_capacity(8);
 
-        res.push(Achievement::new(
+        list.push(Achievement::new(
             "First Blood",
             "Kill an enemy.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a1_16_16.png").ok(),
             1,
-            |msg| matches!(msg, GameMessage::EnemyKilled(_)),
+            (GameMessage::EnemyKilled(0), GameMessageFilter::Type),
         ));
 
-        res.push(Achievement::new(
+        list.push(Achievement::new(
             "Survivor",
             "Reach wave 2.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a2_16_16.png").ok(),
             1,
-            |msg| matches!(msg, GameMessage::NextWave(2)),
+            (GameMessage::NextWave(2), GameMessageFilter::Equality),
         ));
 
-        res.push(Achievement::new(
+        list.push(Achievement::new(
             "To Dust",
             "Kill 50 enemies.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a3_16_16.png").ok(),
             50,
-            |msg| matches!(msg, GameMessage::EnemyKilled(_)),
+            (GameMessage::EnemyKilled(0), GameMessageFilter::Type),
         ));
-        res.push(Achievement::new(
+        list.push(Achievement::new(
             "They were legion",
             "Kill 1000 enemies.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a4_16_16.png").ok(),
             1000,
-            |msg| matches!(msg, GameMessage::EnemyKilled(_)),
+            (GameMessage::EnemyKilled(0), GameMessageFilter::Type),
         ));
 
-        res.push(Achievement::new(
+        list.push(Achievement::new(
             "Royal Blood",
             "Kill an elite enemy.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a5_16_16.png").ok(),
             1,
-            |msg| matches!(msg, &GameMessage::EnemyKilled(gold) if gold >= 20),
+            (GameMessage::EnemyKilled(20), GameMessageFilter::Min),
         ));
 
-        res.push(Achievement::new(
+        list.push(Achievement::new(
             "Party like it's 1789",
             "Kill 50 elite enemies.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a6_16_16.png").ok(),
             50,
-            |msg| matches!(msg, &GameMessage::EnemyKilled(gold) if gold >= 20),
+            (GameMessage::EnemyKilled(20), GameMessageFilter::Min),
         ));
 
-        res.push(Achievement::new(
+        list.push(Achievement::new(
             "Survivor of Hathsin",
             "Reach wave 5.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a7_16_16.png").ok(),
             1,
-            |msg| matches!(msg, GameMessage::NextWave(5)),
+            (GameMessage::NextWave(5), GameMessageFilter::Equality),
         ));
 
-        res.push(Achievement::new(
+        list.push(Achievement::new(
             "Build the wall!",
             "Take city damage 50 times.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a8_16_16.png").ok(),
             50,
-            |msg| matches!(msg, GameMessage::UpdateCityHealth(health) if *health < 10),
+            (GameMessage::UpdateCityHealth(0), GameMessageFilter::Type),
         ));
 
-        res.push(Achievement::new(
+        list.push(Achievement::new(
             "Power Overwhelming!",
             "Cast 500 spells.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a9_16_16.png").ok(),
             500,
-            |msg| matches!(msg, GameMessage::UpdateSpellSlots(_, 31)),
+            (
+                GameMessage::UpdateSpellSlots(0, 32),
+                GameMessageFilter::Equality,
+            ),
         ));
 
-        res.push(Achievement::new(
+        list.push(Achievement::new(
             "Who you gonna call?",
             "Kill 15 ghosts.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a10_16_16.png").ok(),
             15,
-            |msg| matches!(msg, &GameMessage::EnemyKilled(gold) if gold == 30),
+            (GameMessage::EnemyKilled(30), GameMessageFilter::Equality),
         ));
 
-        let progress: ProgressList = toml::from_str(
-            &fs::read_to_string("./data/achievements.toml").unwrap_or_else(|_| "".to_owned()),
-        )
-        .unwrap_or_default();
+        list.push(Achievement::new(
+            "I don't stress, I just cast a sweeper.",
+            "Kill 1000 non-elite enemies.",
+            graphics::Image::from_path(ctx, "/sprites/achievements/a4_16_16.png").ok(),
+            1000,
+            (GameMessage::EnemyKilled(19), GameMessageFilter::Max),
+        ));
 
-        for i in 0..progress.achievements.len().min(res.len()) {
-            res[i].progress = progress.achievements[i].progress;
+        // load progress
+
+        match &source {
+            AchievementProgressSource::File(path) => {
+                let progress: AchievementProgress =
+                    toml::from_str(&fs::read_to_string(path).unwrap_or_else(|_| "".to_owned()))
+                        .unwrap_or_default();
+
+                for i in 0..progress.progress_vals.len().min(list.len()) {
+                    list[i].progress = progress.progress_vals[i];
+                }
+            }
+            AchievementProgressSource::Percentage(percent) => {
+                for achievement in list.iter_mut() {
+                    achievement.progress = (percent * achievement.target as f32) as u32;
+                }
+            }
         }
 
-        Self { list: res }
+        Self { list, source }
     }
 
     pub fn save(&self) {
-        let mut progress = ProgressList {
-            achievements: Vec::new(),
-        };
-
-        for ach in self.list.iter() {
-            progress.achievements.push(Progress {
-                progress: ach.get_progress(),
-            });
+        match &self.source {
+            AchievementProgressSource::File(path) => {
+                let progress = AchievementProgress {
+                    progress_vals: self
+                        .list
+                        .iter()
+                        .map(|achievement| achievement.progress)
+                        .collect(),
+                };
+                if fs::write(
+                    path,
+                    toml::to_string(&progress).unwrap_or_default(),
+                )
+                .is_err()
+                {
+                    println!("[WARNING] Could not save achievements.");
+                };
+            }
+            AchievementProgressSource::Percentage(_) => {}
         }
-
-        if fs::write(
-            "./data/achievements.toml",
-            toml::to_string(&progress).unwrap_or_default(),
-        )
-        .is_err()
-        {
-            println!("[WARNING] Could not save achievements.");
-        };
     }
 }
 
@@ -303,6 +308,17 @@ impl Drop for AchievementSet {
     fn drop(&mut self) {
         self.save();
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum AchievementProgressSource {
+    File(String),
+    Percentage(f32),
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+struct AchievementProgress {
+    progress_vals: Vec<u32>,
 }
 
 impl MessageReceiver for AchievementSet {
@@ -329,18 +345,11 @@ impl MessageReceiver for AchievementSet {
     }
 }
 
-/// A struct that represents the score achieved in a single game. Allows Serde to .toml.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-struct Score {
-    /// The score as an integer.
-    score: i32,
-}
-
 /// A struct that represents a list of scores. Allows Serde to .toml.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 struct ScoreList {
-    /// The scores as [Score]-structs.
-    scores: Vec<Score>,
+    /// The scores
+    scores: Vec<i32>,
 }
 
 /// Loads the highscore list stored at ./data/highscores.toml and converts it to a vector of integer scores.
@@ -348,17 +357,15 @@ struct ScoreList {
 pub fn load_highscores() -> Vec<i32> {
     if let Ok(file) = std::fs::read_to_string("./data/highscores.toml") {
         toml::from_str::<ScoreList>(&file)
-            .map(|sl| sl.scores.iter().map(|s| s.score).collect())
-            .unwrap_or_else(|_| Vec::new())
+            .unwrap_or_default()
+            .scores
     } else {
         Vec::new()
     }
 }
 
 pub fn save_highscores(scores: Vec<i32>) {
-    if let Ok(toml_string) = toml::to_string(&ScoreList {
-        scores: scores.iter().map(|&score| Score { score }).collect(),
-    }) {
+    if let Ok(toml_string) = toml::to_string(&ScoreList { scores }) {
         if std::fs::write("./data/highscores.toml", &toml_string).is_err() {
             println!("[ERROR] Could not save highscores.")
         };

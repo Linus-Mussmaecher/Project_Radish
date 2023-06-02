@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct GameConfig {
     // --- Director Config ---
     /// The base amounts of credits per second
@@ -23,7 +23,8 @@ pub struct GameConfig {
     pub base_speed: f32,
 
     pub tutorial: bool,
-    pub achievements_unlocked: bool,
+
+    pub achievements_unlocked: super::achievements::AchievementProgressSource,
 }
 
 impl GameConfig{
@@ -39,7 +40,7 @@ impl GameConfig{
             starting_gold: 10000,
             starting_city_health: 10,
             tutorial: true,
-            achievements_unlocked: true,
+            achievements_unlocked: super::achievements::AchievementProgressSource::Percentage(1.),
         }
     }
 }
@@ -56,7 +57,7 @@ impl Default for GameConfig {
             starting_gold: 0,
             starting_city_health: 10,
             tutorial: true,
-            achievements_unlocked: false,
+            achievements_unlocked: super::achievements::AchievementProgressSource::File("./data/achievements.toml".to_owned()),
         }
     }
 }

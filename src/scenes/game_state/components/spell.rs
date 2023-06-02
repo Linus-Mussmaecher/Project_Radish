@@ -331,7 +331,7 @@ impl Spell {
 
     fn not_available(sprite_pool: &mooeye::sprite::SpritePool, reason: &str) -> Self {
         Self {
-            name: "Spell not avialable".to_owned(),
+            name: "Spell not available".to_owned(),
             description: reason.to_owned(),
             icon: sprite_pool.init_sprite_unchecked("/sprites/ui/lock", Duration::ZERO),
             spell_: GameAction::None.into(),

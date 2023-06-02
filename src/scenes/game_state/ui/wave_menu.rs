@@ -125,7 +125,7 @@ pub fn handle_wave_menu(
     }
 
     // reroll
-    if messages.contains(&UiMessage::Triggered(ID_REROLL)) && caster.can_add() && data.spend(50) {
+    if messages.contains(&UiMessage::Triggered(ID_REROLL)) && data.spend(50) {
         director.reroll_wave_enemies();
         gui.remove_elements(ID_WAVE_SUBMENU);
         gui.add_element(

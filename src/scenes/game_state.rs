@@ -163,7 +163,7 @@ impl GameState {
         // --- RESOURCE INITIALIZATION ---
         let boundaries = graphics::Rect::new(0., 0., 600., 900.);
         let sprite_pool = sprite::SpritePool::new().with_folder(ctx, "/sprites", true);
-        let achievement_set = achievements::AchievementSet::load(ctx);
+        let achievement_set = achievements::AchievementSet::load(ctx, config.achievements_unlocked.clone());
         let spell_pool = components::spell::init_spell_pool(&sprite_pool, &achievement_set);
         let game_data = game_data::GameData::new(config.starting_gold, config.starting_city_health);
         let director = director::Director::new(&sprite_pool, &config);

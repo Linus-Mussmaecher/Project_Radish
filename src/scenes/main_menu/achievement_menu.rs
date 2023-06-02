@@ -1,6 +1,7 @@
 use ggez::{graphics, GameError};
 use mooeye::{ui_element::UiContainer, *};
 
+use super::game_state::achievements;
 use crate::PALETTE;
 
 pub struct AchievementMenu {
@@ -20,7 +21,10 @@ impl AchievementMenu {
         .to_owned()
         .to_element(0, ctx);
 
-        let a_list = super::game_state::achievements::AchievementSet::load(ctx);
+        let a_list = achievements::AchievementSet::load(
+            ctx,
+            achievements::AchievementProgressSource::File("./data/achievements.toml".to_owned()),
+        );
 
         let mut achievements = mooeye::containers::GridBox::new(4, (a_list.list.len() - 1) / 4 + 1);
         for (index, ach) in a_list.list.iter().enumerate() {
@@ -84,9 +88,14 @@ impl scene_manager::Scene for AchievementMenu {
         let messages = self.gui.manage_messages(ctx, None);
 
         if messages.contains(&mooeye::UiMessage::Triggered(2)) {
-            let mut a_list = super::game_state::achievements::AchievementSet::load(ctx);
-            for ach in a_list.list.iter_mut() {
-                ach.reset_progress();
+            let mut a_list = achievements::AchievementSet::load(
+                ctx,
+                achievements::AchievementProgressSource::File(
+                    "./data/achievements.toml".to_owned(),
+                ),
+            );
+            for achievement in a_list.list.iter_mut() {
+                achievement.reset_progress();
             }
             a_list.save();
         }
