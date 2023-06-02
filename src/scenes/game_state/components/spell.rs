@@ -52,7 +52,7 @@ pub fn init_base_spells(
             if index == 0 || index > spell_pool.1.len() {
                 Spell::not_available(sprite_pool, "Purchase & equip more spells between waves!")
             } else {
-                spell_pool.1[index].spell.clone()
+                spell_pool.1[index-1].spell.clone()
             }
         })
         .collect()
