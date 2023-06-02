@@ -213,12 +213,15 @@ impl SpellTemplate {
         }
     }
 
-    // modifies the template to have the spell unlocked
+    // modifies the template to have the spell purchased from the start
     pub fn purchased(mut self) -> Self {
         self.level = 1;
         self
     }
 
+    /// Modifies the template based on an achievement:
+    /// If the achievement exists and is not unlocked, the spell will be replaced by a non-available spell with a fitting message.
+    /// If the achievement doesn't exist or is unlocked, the spell will display as normal.
     pub fn achievement_condition(
         mut self,
         ach: Option<&achievements::Achievement>,

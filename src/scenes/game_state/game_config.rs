@@ -23,7 +23,7 @@ pub struct GameConfig {
     pub base_speed: f32,
 
     pub tutorial: bool,
-    pub spells_unlocked: bool,
+    pub achievements_unlocked: bool,
 }
 
 impl GameConfig{
@@ -39,7 +39,7 @@ impl GameConfig{
             starting_gold: 10000,
             starting_city_health: 10,
             tutorial: true,
-            spells_unlocked: true,
+            achievements_unlocked: true,
         }
     }
 }
@@ -56,7 +56,7 @@ impl Default for GameConfig {
             starting_gold: 0,
             starting_city_health: 10,
             tutorial: true,
-            spells_unlocked: false,
+            achievements_unlocked: false,
         }
     }
 }

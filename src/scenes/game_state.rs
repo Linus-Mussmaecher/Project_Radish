@@ -261,7 +261,7 @@ impl GameState {
                 ),
                 components::Graphics::from({
                     let mut cobble = sprite_pool
-                        .init_sprite("/sprites/environment/cobble", Duration::from_secs(1))?;
+                        .init_sprite("/sprites/environment/cobble", Duration::ZERO)?;
                     cobble.set_variant(rand::random::<u32>());
                     cobble
                 }),
@@ -288,7 +288,7 @@ impl GameState {
                 pos,
                 components::Graphics::from({
                     let mut tree = sprite_pool
-                        .init_sprite("/sprites/environment/tree", Duration::from_secs(1))?;
+                        .init_sprite("/sprites/environment/tree", Duration::ZERO)?;
                     tree.set_variant(rand::random::<u32>());
                     tree
                 }),
