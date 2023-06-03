@@ -211,7 +211,7 @@ impl GameState {
         // --- SYSTEM REGISTRY / UI CONSTRUCTION / CONTROLLER INITIALIZATION ---
         Ok(Self {
             world,
-            gui: ui::game_ui::construct_game_ui(ctx)?,
+            gui: ui::game_ui::construct_game_ui(ctx, config)?,
             action_prod_schedule: Schedule::builder()
                 // director
                 .add_system(director::direct_system())

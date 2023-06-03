@@ -18,6 +18,7 @@ pub enum GameAction {
     Remove(RemoveSource),
     /// Manipulates the entitiets position component.
     Move { delta: Vec2 },
+    
     /// Reduces the value of the health component.
     TakeDamage { dmg: i32 },
     /// Increases the value of the health component (but not above max).

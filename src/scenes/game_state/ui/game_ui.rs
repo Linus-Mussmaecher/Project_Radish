@@ -22,6 +22,7 @@ pub const ID_MANA_BAR: u32 = 50;
 ///  - Vertical box to display messages (achievements etc.)
 pub fn construct_game_ui(
     ctx: &ggez::Context,
+    config: super::game_state::GameConfig,
 ) -> Result<UiElement<super::super::GameMessage>, GameError> {
     // options icon
     let cog_icon = graphics::Image::from_path(ctx, "/sprites/ui/cog.png")?
@@ -152,7 +153,7 @@ pub fn construct_game_ui(
 
     let mut slot_box = containers::HorizontalBox::new();
 
-    for i in 0..4 {
+    for i in 0..config.base_slots {
         slot_box.add(create_spellslot(ctx, i));
     }
 

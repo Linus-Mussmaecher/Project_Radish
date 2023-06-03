@@ -330,7 +330,7 @@ pub(super)fn construct_shard(sprite_pool: &SpritePool) -> Spell {
                                     cmd.push((
                                         pos + ggez::glam::Vec2::new( 34. * i as f32, 0.),
                                         components::Velocity::new((30 * i) as f32, -250.),
-                                        components::LifeDuration::new(Duration::from_secs(1)),
+                                        components::LifeDuration::new(Duration::from_secs_f32(0.4)),
                                         components::Graphics::from({
                                             let mut s = sp.init_sprite_unchecked("/sprites/spells/icebomb", Duration::ZERO);
                                             if i != 0 {
@@ -570,5 +570,112 @@ pub(super)fn construct_mind_wipe(sprite_pool: &SpritePool) -> Spell {
             ));
         }),
         tiny_vec!([f32; MAX_SPELL_SLOTS] => 3., 3., 6.),
+    )
+}
+
+pub(super) fn construct_mortar(sprite_pool: &SpritePool) -> Spell{
+    Spell::new(
+        "Fiery mortar", 
+        "Launch five mortar shells that pass over enemies and impact the middle of the battlefield, dealing area damage.", 
+        sprite_pool.init_sprite_unchecked("/sprites/spells/icons/mortar_icon", Duration::ZERO),
+        GameAction::spawn(|_, pos, sp, cmd| {
+            for _ in 0..5{
+                cmd.push((
+                    pos,
+                    components::LifeDuration::new(Duration::from_secs_f32(1.9)),
+                    components::Graphics::from(sp.init_sprite_unchecked("/sprites/spells/mortar", Duration::from_secs_f32(0.25))),
+                    components::Velocity::new(rand::random::<f32>() * 96. - 48., -270. + rand::random::<f32>() * 96.),
+                    components::Actions::new()
+                        .with_effect(ActionEffect::on_death(
+                            ActionEffectTarget::new().with_range(64.).with_enemies_only(true),
+                            RemoveSource::TimedOut,
+                            GameAction::TakeDamage { dmg: 45 },
+                        ))
+                        .with_effect(ActionEffect::on_death(
+                            ActionEffectTarget::new_only_self(),
+                            RemoveSource::TimedOut,
+                            GameAction::spawn(|_,pos,sp,cmd|{
+                                cmd.push((
+                                    pos,
+                                    components::LifeDuration::from(Duration::from_secs_f32(0.64)),
+                                    components::Graphics::from(sp.init_sprite_unchecked("/sprites/effects/explosion_small", Duration::ZERO)),
+                                ));
+                            }),
+                        )),
+                ));
+            }
+        }),
+        tiny_vec!([f32; MAX_SPELL_SLOTS] => 2., 2., 2., 2., 2.)
+    )
+}
+
+pub(super) fn construct_lightning_ball(sprite_pool: &SpritePool) -> Spell{
+
+
+    Spell::new(
+        "Lightning Ball",
+        "Launch a small lightning ball that passes through enemies then deploying for 10 seconds in the middle of the field. Both in flight and while deployed, the orb regularly zaps nearby enemies and significantly reduces their healing.",
+        sprite_pool
+            .init_sprite_unchecked("/sprites/spells/lightning_ball", Duration::ZERO),
+        GameAction::spawn(|_, pos, sp: &SpritePool, cmd| {
+            cmd.push((
+                pos,
+                components::LifeDuration::new(Duration::from_secs(8)),
+                components::Graphics::from(sp.init_sprite_unchecked(
+                    "/sprites/spells/lightning_ball",
+                    Duration::from_secs_f32(0.2),
+                )),
+                components::Velocity::new(0., -200.),
+                components::Actions::new()
+                    // after 3 seconds of travel, stop.
+                    .with_effect(ActionEffect::once(
+                        ActionEffectTarget::new_only_self(),
+                        ActionEffect::transform(
+                            ActionEffectTarget::new_only_self(),
+                            |act| {
+                                match act {
+                                    GameAction::Move { delta } => {*delta = ggez::glam::Vec2::ZERO},
+                                    _ => {},
+                                }
+                            }
+                        )
+                    ).with_duration(Duration::from_secs(3)))
+                    // regular zaps
+                    .with_effect(
+                        ActionEffect::repeat(
+                            ActionEffectTarget::new().with_range(128.).with_enemies_only(true),
+                            GameAction::TakeDamage { dmg: 15 },
+                            Duration::from_secs_f32(0.4),
+                        )
+                    )
+                    // zap fx
+                    .with_effect(
+                        ActionEffect::repeat(
+                            ActionEffectTarget::new_only_self(),
+                            GameAction::AddParticle(
+                                Particle::new(
+                                    {
+                                        let mut zap_fx = sp.init_sprite_unchecked("/sprites/spells/lightning_ball", Duration::from_secs_f32(0.1));
+                                        zap_fx.set_variant(1);
+                                        zap_fx
+                                    },
+                                ).with_duration(Duration::from_secs_f32(0.15))
+                            ),
+                            Duration::from_secs_f32(0.4),
+                        )
+                    )
+                    // healing prevention
+                    .with_effect(ActionEffect::transform(
+                        ActionEffectTarget::new().with_range(128.).with_enemies_only(true),
+                        |act| {
+                            match act {
+                                GameAction::TakeHealing { heal } => {*heal /= 10},
+                                _ => {}
+                            }
+                        }
+                    ))
+            ));
+        }),
+        tiny_vec!([f32; MAX_SPELL_SLOTS] => 1.5, 5.),
     )
 }

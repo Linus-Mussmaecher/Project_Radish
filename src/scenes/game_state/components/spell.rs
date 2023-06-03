@@ -31,17 +31,19 @@ pub fn init_spell_pool(
             SpellTemplate::new(spell_list::construct_fireball(sprite_pool), 50).purchased(),
             SpellTemplate::new(spell_list::construct_ice_bomb(sprite_pool), 75).purchased(),
             SpellTemplate::new(spell_list::construct_lightning_orb(sprite_pool), 90)
-                .achievement_condition(achievements.list.get(2), sprite_pool),
-            SpellTemplate::new(spell_list::construct_conflagrate(sprite_pool), 110),
+                .achievement_condition(achievements.list.get(2), sprite_pool),  
+            SpellTemplate::new(spell_list::construct_conflagrate(sprite_pool), 110), //4
             SpellTemplate::new(spell_list::construct_shard(sprite_pool), 60),
             SpellTemplate::new(spell_list::construct_ice_lance(sprite_pool), 80),
-            SpellTemplate::new(spell_list::construct_scorch(sprite_pool), 90),
-            SpellTemplate::new(spell_list::construct_overload(sprite_pool), 120),
+            SpellTemplate::new(spell_list::construct_scorch(sprite_pool), 90),  
+            SpellTemplate::new(spell_list::construct_overload(sprite_pool), 120), //8
             SpellTemplate::new(spell_list::construct_arcane_missiles(sprite_pool), 150),
             SpellTemplate::new(spell_list::construct_arcane_blast(sprite_pool), 140),
-            SpellTemplate::new(spell_list::construct_blackhole(sprite_pool), 200)
+            SpellTemplate::new(spell_list::construct_blackhole(sprite_pool), 200) 
                 .achievement_condition(achievements.list.get(3), sprite_pool),
-            SpellTemplate::new(spell_list::construct_mind_wipe(sprite_pool), 200),
+            SpellTemplate::new(spell_list::construct_mind_wipe(sprite_pool), 200), //12
+            SpellTemplate::new(spell_list::construct_mortar(sprite_pool), 145),
+            SpellTemplate::new(spell_list::construct_lightning_ball(sprite_pool), 145), // 14
         ],
     )
 }
