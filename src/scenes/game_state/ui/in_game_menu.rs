@@ -1,5 +1,5 @@
 use ggez::{graphics, GameError};
-use mooeye::{ui_element::UiContainer, *};
+use mooeye::*;
 
 use crate::PALETTE;
 
@@ -32,6 +32,19 @@ impl InGameMenu {
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
 
+        let achievements = graphics::Text::new(
+            graphics::TextFragment::new("Achievements")
+                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+        )
+        .set_font("Retro")
+        .set_scale(32.)
+        .to_owned()
+        .to_element_builder(2, ctx)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::A)
+        .with_visuals(super::BUTTON_VIS)
+        .with_hover_visuals(super::BUTTON_HOVER_VIS)
+        .build();
+
         let main_menu = graphics::Text::new(
             graphics::TextFragment::new("Return to Main Menu")
                 .color(graphics::Color::from_rgb_u32(PALETTE[6])),
@@ -39,7 +52,7 @@ impl InGameMenu {
         .set_font("Retro")
         .set_scale(32.)
         .to_owned()
-        .to_element_builder(2, ctx)
+        .to_element_builder(3, ctx)
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::M)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
@@ -52,7 +65,7 @@ impl InGameMenu {
         .set_font("Retro")
         .set_scale(32.)
         .to_owned()
-        .to_element_builder(3, ctx)
+        .to_element_builder(4, ctx)
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::Q)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
@@ -60,14 +73,13 @@ impl InGameMenu {
 
         // Container
 
-        let mut menu_box: containers::VerticalBox<()> = containers::VerticalBox::new();
-        menu_box.add(pause);
-        menu_box.add(resume);
-        menu_box.add(main_menu);
-        menu_box.add(quit);
-        menu_box.spacing = 25.;
-        let menu_box = menu_box
+        let menu_box = containers::VerticalBox::new_spaced(25.)
             .to_element_builder(0, ctx)
+            .with_child(pause)
+            .with_child(resume)
+            .with_child(achievements)
+            .with_child(main_menu)
+            .with_child(quit)
             .with_visuals(super::BUTTON_VIS)
             .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Center)
             .with_padding((25., 25., 25., 25.))
@@ -90,14 +102,20 @@ impl scene_manager::Scene for InGameMenu {
             res = scene_manager::SceneSwitch::pop(1);
         }
 
-        if messages.contains(&UiMessage::Triggered(2)) {
+        if messages.contains(&mooeye::UiMessage::Triggered(2)) {
+            res = mooeye::scene_manager::SceneSwitch::push(crate::scenes::main_menu::achievement_menu::AchievementMenu::new(
+                ctx,
+            )?);
+        }
+
+        if messages.contains(&UiMessage::Triggered(3)) {
             res = scene_manager::SceneSwitch::replace(
                 crate::scenes::main_menu::MainMenu::new(ctx)?,
                 2,
             );
         }
 
-        if messages.contains(&UiMessage::Triggered(3)) {
+        if messages.contains(&UiMessage::Triggered(4)) {
             res = scene_manager::SceneSwitch::pop(2);
         }
 
