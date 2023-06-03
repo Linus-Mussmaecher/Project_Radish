@@ -32,7 +32,7 @@ impl GameConfig{
     pub fn debug() -> Self{
         Self{
             base_credits: 10.,
-            wave_credits: 5.,
+            wave_credits: 9.,
             wave_enemies: [1,2,3,4],
             base_spells: [1,11,13,14],
             base_slots: 6,
@@ -49,7 +49,7 @@ impl Default for GameConfig {
     fn default() -> Self {
         Self {
             base_credits: 10.,
-            wave_credits: 5.,
+            wave_credits: 9.,
             wave_enemies: [0,0,1,1],
             base_spells: [1,2,0,0],
             base_slots: 4,

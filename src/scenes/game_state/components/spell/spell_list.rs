@@ -156,14 +156,14 @@ pub(super)fn construct_conflagrate(sprite_pool: &SpritePool) -> Spell {
         ActionEffect::once(
             ActionEffectTarget::new()
                 .with_enemies_only(true)
-                .with_limit(6),
+                .with_limit(3),
             vec![
                 ActionEffect::repeat(
                     ActionEffectTarget::new_only_self(),
-                    GameAction::TakeDamage { dmg: 40 },
+                    GameAction::TakeDamage { dmg: 8 },
                     Duration::from_secs_f32(0.5),
                 )
-                .with_duration(Duration::from_secs(8))
+                .with_duration(Duration::from_secs(10))
                 .into(),
                 GameAction::AddParticle(
                     Particle::new(sprite_pool.init_sprite_unchecked(
@@ -676,6 +676,6 @@ pub(super) fn construct_lightning_ball(sprite_pool: &SpritePool) -> Spell{
                     ))
             ));
         }),
-        tiny_vec!([f32; MAX_SPELL_SLOTS] => 1.5, 5.),
+        tiny_vec!([f32; MAX_SPELL_SLOTS] => 8., 8., 16.),
     )
 }

@@ -191,6 +191,7 @@ impl AchievementSet {
             50,
             (GameMessage::EnemyKilled(0), GameMessageFilter::Type),
         ));
+        
         list.push(Achievement::new(
             "They were legion",
             "Kill 1000 enemies.",
