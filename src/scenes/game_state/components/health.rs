@@ -114,9 +114,7 @@ pub fn enemy_death_sprite(
             *pos,
             vel.map(|v| Velocity::new((f32::EPSILON).copysign(v.get_dx()), 0.))
                 .unwrap_or(Velocity::new(0., 0.)),
-            LifeDuration::new(
-                gfx.sprite.get_cycle_time() - gfx.sprite.get_frame_time(),
-            ),
+            LifeDuration::new(gfx.sprite.get_cycle_time() - gfx.sprite.get_frame_time()),
             {
                 let mut death_sprite = gfx.sprite.clone();
                 death_sprite.set_variant(1);
@@ -167,6 +165,8 @@ pub fn enemy(
         Some(pos) => pos.y >= boundaries.h,
     } {
         actions.push(actions::GameAction::TakeCityDamage { dmg: enemy.damage });
-        actions.push(actions::GameAction::Remove(actions::RemoveSource::EnemyReachedBottom));
+        actions.push(actions::GameAction::Remove(
+            actions::RemoveSource::EnemyReachedBottom,
+        ));
     }
 }

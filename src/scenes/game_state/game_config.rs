@@ -15,7 +15,6 @@ pub struct GameConfig {
     pub base_slots: usize,
 
     // --- Game Data Config ---
-
     pub starting_gold: i32,
     pub starting_city_health: i32,
 
@@ -27,14 +26,14 @@ pub struct GameConfig {
     pub achievements_unlocked: super::achievements::AchievementProgressSource,
 }
 
-impl GameConfig{
+impl GameConfig {
     /// Constructs a default game config for debugging the game
-    pub fn debug() -> Self{
-        Self{
-            base_credits: 10.,
-            wave_credits: 9.,
-            wave_enemies: [1,2,3,4],
-            base_spells: [1,11,13,14],
+    pub fn debug() -> Self {
+        Self {
+            base_credits: 15.,
+            wave_credits: 6.,
+            wave_enemies: [1, 2, 3, 4],
+            base_spells: [1, 11, 13, 14],
             base_slots: 6,
             base_speed: 150.,
             starting_gold: 10000,
@@ -48,16 +47,18 @@ impl GameConfig{
 impl Default for GameConfig {
     fn default() -> Self {
         Self {
-            base_credits: 10.,
-            wave_credits: 9.,
-            wave_enemies: [0,0,1,1],
-            base_spells: [1,2,0,0],
+            base_credits: 15.,
+            wave_credits: 6.,
+            wave_enemies: [0, 0, 1, 1],
+            base_spells: [1, 2, 0, 0],
             base_slots: 4,
             base_speed: 150.,
             starting_gold: 0,
             starting_city_health: 10,
             tutorial: true,
-            achievements_unlocked: super::achievements::AchievementProgressSource::File("./data/achievements.toml".to_owned()),
+            achievements_unlocked: super::achievements::AchievementProgressSource::File(
+                "./data/achievements.toml".to_owned(),
+            ),
         }
     }
 }

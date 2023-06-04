@@ -1,7 +1,6 @@
 use ggez::{glam::Vec2, graphics::Rect};
 use legion::{system, Entity, EntityStore, IntoQuery};
 
-use super::super::game_message;
 use super::actions::Actions;
 
 /// A custom type to remember a set of delayed actions.
@@ -17,8 +16,7 @@ pub struct Collision {
     h: f32,
 
     /// A function that provides a number of actions and messages to execute on collision, based on the entities colliding.
-    collision_handler:
-        Box<dyn Fn(Entity, Entity) -> (ActionQueue, game_message::MessageSet) + Send + Sync>,
+    collision_handler: Box<dyn Fn(Entity, Entity) -> ActionQueue + Send + Sync>,
 
     /// A list of all entities that cannot collide with this one.
     immunity: Vec<Entity>,
@@ -29,10 +27,7 @@ impl Collision {
     pub fn new(
         w: f32,
         h: f32,
-        collision_handler: impl Fn(Entity, Entity) -> (ActionQueue, game_message::MessageSet)
-            + Send
-            + Sync
-            + 'static,
+        collision_handler: impl Fn(Entity, Entity) -> ActionQueue + Send + Sync + 'static,
     ) -> Self {
         Self {
             w,
@@ -44,9 +39,7 @@ impl Collision {
 
     /// Creates a new collision component that does itself not apply actions or send messages (but can trigger collisions with other collision components).
     pub fn new_basic(w: f32, h: f32) -> Self {
-        Self::new(w, h, |_, _| {
-            (ActionQueue::new(), game_message::MessageSet::new())
-        })
+        Self::new(w, h, |_, _| ActionQueue::new())
     }
 
     /// Returns the collision bounds (x,y,w,h) of this component.
@@ -55,7 +48,7 @@ impl Collision {
     }
 
     /// Builder function that makes an entity immune to collisions from this entity.
-    pub fn with_immunity(mut self, entity: Entity) -> Self{
+    pub fn with_immunity(mut self, entity: Entity) -> Self {
         self.immunity.push(entity);
         self
     }
@@ -151,10 +144,7 @@ pub fn boundary_collision(
 #[read_component(Collision)]
 #[write_component(Actions)]
 /// A system that manages collisions of entities with each other.
-pub fn collision(
-    world: &mut legion::world::SubWorld,
-    #[resource] messages: &mut game_message::MessageSet,
-) {
+pub fn collision(world: &mut legion::world::SubWorld) {
     // Create a list of all actions triggered by collisions.
     let mut total_actions: Vec<(Entity, GameAction)> = Vec::new();
 
@@ -166,8 +156,7 @@ pub fn collision(
                 && *ent1 != *ent2
                 && !col1.immunity.contains(ent2)
             {
-                let (n_actions, n_messages) = (col1.collision_handler)(*ent1, *ent2);
-                messages.extend(n_messages.iter());
+                let n_actions = (col1.collision_handler)(*ent1, *ent2);
                 total_actions.extend(n_actions);
             }
         }

@@ -165,22 +165,20 @@ pub fn draw_sprites(
         // draw the sprites particles
 
         for part in gfx.particles.iter_mut() {
-            if let Some(sprite) = &mut part.sprite {
-                sprite.draw_sprite(
-                    ctx,
-                    canvas,
-                    DrawParam::default()
-                        .dest(
-                            *pos + part.rel_pos
-                                - Vec2::from(sprite.get_dimensions()) * PIXEL_SIZE / 2.
-                                + Vec2::new(
-                                    (screen_w - boundaries.w) / 2.,
-                                    (screen_h - boundaries.h) / 2.,
-                                ),
-                        )
-                        .scale(Vec2::new(PIXEL_SIZE, PIXEL_SIZE)),
-                );
-            }
+            part.sprite.draw_sprite(
+                ctx,
+                canvas,
+                DrawParam::default()
+                    .dest(
+                        *pos + part.rel_pos
+                            - Vec2::from(part.sprite.get_dimensions()) * PIXEL_SIZE / 2.
+                            + Vec2::new(
+                                (screen_w - boundaries.w) / 2.,
+                                (screen_h - boundaries.h) / 2.,
+                            ),
+                    )
+                    .scale(Vec2::new(PIXEL_SIZE, PIXEL_SIZE)),
+            );
         }
     }
 
@@ -191,7 +189,7 @@ pub fn draw_sprites(
 /// A struct that represents a Particle that can be added to a graphics component to be displayed on top of the main sprite.
 pub struct Particle {
     /// The drawable to be displayed.
-    sprite: Option<Sprite>,
+    sprite: Sprite,
     /// Relative position of the sprites center to the center of the main sprite.
     rel_pos: Vec2,
     /// Velocity this particle moves at (in pixels/s).
@@ -204,7 +202,7 @@ impl Particle {
     /// Creates a new particle with the passed sprite, infinite duration and no velocity or offset.
     pub fn new(sprite: Sprite) -> Self {
         Self {
-            sprite: Some(sprite),
+            sprite: sprite,
             rel_pos: Vec2::ZERO,
             vel: Vec2::ZERO,
             duration: None,

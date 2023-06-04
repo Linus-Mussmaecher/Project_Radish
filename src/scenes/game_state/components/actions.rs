@@ -18,7 +18,7 @@ pub enum GameAction {
     Remove(RemoveSource),
     /// Manipulates the entitiets position component.
     Move { delta: Vec2 },
-    
+
     /// Reduces the value of the health component.
     TakeDamage { dmg: i32 },
     /// Increases the value of the health component (but not above max).
@@ -316,7 +316,7 @@ impl From<Vec<GameAction>> for ActionContainer {
     }
 }
 
-impl Default for ActionContainer{
+impl Default for ActionContainer {
     fn default() -> Self {
         Self::ApplySingle(GameAction::None)
     }
@@ -409,7 +409,7 @@ pub fn clear(actions: &mut Actions) {
 /// System that clears all actions queues.
 pub fn apply_silence(actions: &mut Actions) {
     for act in actions.action_queue.iter() {
-        if let GameAction::Silence(duration) = act{
+        if let GameAction::Silence(duration) = act {
             actions.silence += *duration;
         }
     }
@@ -448,7 +448,7 @@ pub fn handle_effects(world: &mut legion::world::SubWorld, #[resource] ix: &Inte
     // iterate over all sources of effects
     for (src_ent, src_pos, src_act) in <(Entity, &Position, &Actions)>::query().iter(world) {
         // skip silenced entities
-        if !src_act.silence.is_zero(){
+        if !src_act.silence.is_zero() {
             continue;
         }
         // iterate over all their effects
@@ -500,7 +500,9 @@ pub fn handle_effects(world: &mut legion::world::SubWorld, #[resource] ix: &Inte
                         }
                     }
                     ActionEffectType::OnDeath(reason, actions) => {
-                        if src_act.action_queue.iter().any(|act| matches!(act, &GameAction::Remove(source) if source == *reason)){
+                        if src_act.action_queue.iter().any(
+                            |act| matches!(act, &GameAction::Remove(source) if source == *reason),
+                        ) {
                             applies.push((*target, actions.clone()));
                         }
                     }
@@ -508,8 +510,6 @@ pub fn handle_effects(world: &mut legion::world::SubWorld, #[resource] ix: &Inte
             }
         }
     }
-
-    
 
     // apply remembered transforms to all entities
     for (target, transform) in transforms {

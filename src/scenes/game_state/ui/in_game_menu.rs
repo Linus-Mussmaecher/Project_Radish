@@ -103,9 +103,9 @@ impl scene_manager::Scene for InGameMenu {
         }
 
         if messages.contains(&mooeye::UiMessage::Triggered(2)) {
-            res = mooeye::scene_manager::SceneSwitch::push(crate::scenes::main_menu::achievement_menu::AchievementMenu::new(
-                ctx,
-            )?);
+            res = mooeye::scene_manager::SceneSwitch::push(
+                crate::scenes::main_menu::achievement_menu::AchievementMenu::new(ctx)?,
+            );
         }
 
         if messages.contains(&UiMessage::Triggered(3)) {

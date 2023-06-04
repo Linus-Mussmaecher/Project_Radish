@@ -191,7 +191,7 @@ impl AchievementSet {
             50,
             (GameMessage::EnemyKilled(0), GameMessageFilter::Type),
         ));
-        
+
         list.push(Achievement::new(
             "They were legion",
             "Kill 1000 enemies.",
@@ -291,12 +291,7 @@ impl AchievementSet {
                         .map(|achievement| achievement.progress)
                         .collect(),
                 };
-                if fs::write(
-                    path,
-                    toml::to_string(&progress).unwrap_or_default(),
-                )
-                .is_err()
-                {
+                if fs::write(path, toml::to_string(&progress).unwrap_or_default()).is_err() {
                     println!("[WARNING] Could not save achievements.");
                 };
             }

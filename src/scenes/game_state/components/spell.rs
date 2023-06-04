@@ -34,20 +34,20 @@ pub fn init_spell_pool(
             SpellTemplate::new(spell_list::construct_conflagrate(sprite_pool), 110), //4
             SpellTemplate::new(spell_list::construct_shard(sprite_pool), 60),
             SpellTemplate::new(spell_list::construct_ice_lance(sprite_pool), 80),
-            SpellTemplate::new(spell_list::construct_scorch(sprite_pool), 90),  
+            SpellTemplate::new(spell_list::construct_scorch(sprite_pool), 90),
             SpellTemplate::new(spell_list::construct_overload(sprite_pool), 120), //8
             SpellTemplate::new(spell_list::construct_arcane_missiles(sprite_pool), 150)
-            .achievement_condition(achievements.list.get(6), sprite_pool),
+                .achievement_condition(achievements.list.get(6), sprite_pool),
             SpellTemplate::new(spell_list::construct_arcane_blast(sprite_pool), 140)
-            .achievement_condition(achievements.list.get(6), sprite_pool),
-            SpellTemplate::new(spell_list::construct_blackhole(sprite_pool), 200) 
+                .achievement_condition(achievements.list.get(6), sprite_pool),
+            SpellTemplate::new(spell_list::construct_blackhole(sprite_pool), 200)
                 .achievement_condition(achievements.list.get(3), sprite_pool),
             SpellTemplate::new(spell_list::construct_mind_wipe(sprite_pool), 200) //12
-            .achievement_condition(achievements.list.get(9), sprite_pool),
+                .achievement_condition(achievements.list.get(9), sprite_pool),
             SpellTemplate::new(spell_list::construct_mortar(sprite_pool), 145)
-            .achievement_condition(achievements.list.get(5), sprite_pool),
+                .achievement_condition(achievements.list.get(5), sprite_pool),
             SpellTemplate::new(spell_list::construct_lightning_ball(sprite_pool), 145) // 14
-            .achievement_condition(achievements.list.get(10), sprite_pool),
+                .achievement_condition(achievements.list.get(10), sprite_pool),
         ],
     )
 }
@@ -339,7 +339,9 @@ impl Spell {
         Self {
             name: "Spell not available".to_owned(),
             description: reason.to_owned(),
-            icon: sprite_pool.init_sprite_unchecked("/sprites/ui/lock", Duration::ZERO),
+            icon: sprite_pool
+                .init_sprite("/sprites/ui/lock", Duration::ZERO)
+                .unwrap_or_default(),
             spell_: GameAction::None.into(),
             spell_slots: TinyVec::new(),
         }

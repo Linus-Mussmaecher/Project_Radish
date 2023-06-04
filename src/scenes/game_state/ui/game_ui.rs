@@ -143,11 +143,12 @@ pub fn construct_game_ui(
     data_box.add(city_display, 0, 1)?;
     data_box.add(city_text, 1, 1)?;
 
-    let data_box = data_box.to_element_builder(0, ctx)
-    .with_visuals(super::BUTTON_VIS)
-    .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Min)
-    .with_offset(-8., 8.)
-    .build();
+    let data_box = data_box
+        .to_element_builder(0, ctx)
+        .with_visuals(super::BUTTON_VIS)
+        .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Min)
+        .with_offset(-8., 8.)
+        .build();
 
     // Spells
 

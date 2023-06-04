@@ -17,7 +17,6 @@ mod templates;
 #[derive(Clone)]
 pub struct Director {
     // --- ONGOING VALUES ---
-
     /// The current wave number.
     wave: u32,
     /// The current state of the director.
@@ -34,7 +33,6 @@ pub struct Director {
     enemies: Vec<EnemyTemplate>,
 
     // --- CONFIGURATION ---
-
     /// The base amounts of credits per second
     base_credits: f32,
     /// The amount of additional credits granted each second per round passed.
@@ -48,7 +46,7 @@ impl Director {
             wave: 1,
             state: DirectorState::Spawning(450),
 
-            intervall: Duration::ZERO,            
+            intervall: Duration::ZERO,
             credits: 0,
 
             wave_enemies: config.wave_enemies,
@@ -112,9 +110,8 @@ pub fn direct(
             // only spawn in 1-second intervalls
             if director.intervall >= Duration::from_secs(1) {
                 // grant credits
-                director.credits += (director.base_credits
-                    + director.wave_credits * director.wave as f32)
-                    as u32;
+                director.credits +=
+                    (director.base_credits + director.wave_credits * director.wave as f32) as u32;
                 // reset intervall
                 director.intervall = Duration::ZERO;
 

@@ -148,6 +148,11 @@ impl scene_manager::Scene for GameState {
 
         // Finish
         canvas.finish(ctx)?;
+
+        // Sounds
+
+        components::audio::audio_system(ctx, Vec2::new(300., 900.), &mut self.world);
+
         Ok(())
     }
 }
@@ -163,7 +168,8 @@ impl GameState {
         // --- RESOURCE INITIALIZATION ---
         let boundaries = graphics::Rect::new(0., 0., 600., 900.);
         let sprite_pool = sprite::SpritePool::new().with_folder(ctx, "/sprites", true);
-        let achievement_set = achievements::AchievementSet::load(ctx, config.achievements_unlocked.clone());
+        let achievement_set =
+            achievements::AchievementSet::load(ctx, config.achievements_unlocked.clone());
         let spell_pool = components::spell::init_spell_pool(&sprite_pool, &achievement_set);
         let game_data = game_data::GameData::new(config.starting_gold, config.starting_city_health);
         let director = director::Director::new(&sprite_pool, &config);
@@ -260,8 +266,8 @@ impl GameState {
                     boundaries.h * (rand::random::<f32>() * 2. - 0.5),
                 ),
                 components::Graphics::from({
-                    let mut cobble = sprite_pool
-                        .init_sprite("/sprites/environment/cobble", Duration::ZERO)?;
+                    let mut cobble =
+                        sprite_pool.init_sprite("/sprites/environment/cobble", Duration::ZERO)?;
                     cobble.set_variant(rand::random::<u32>());
                     cobble
                 }),
@@ -287,8 +293,8 @@ impl GameState {
             world.push((
                 pos,
                 components::Graphics::from({
-                    let mut tree = sprite_pool
-                        .init_sprite("/sprites/environment/tree", Duration::ZERO)?;
+                    let mut tree =
+                        sprite_pool.init_sprite("/sprites/environment/tree", Duration::ZERO)?;
                     tree.set_variant(rand::random::<u32>());
                     tree
                 }),
