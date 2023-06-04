@@ -4,23 +4,20 @@ use super::{components, components::actions};
 use ggez::GameError;
 use legion::systems::CommandBuffer;
 
-use mooeye::sprite;
-
 /// # Basic skeleton
 /// ## Enemy
 /// A basic skeleton that has little health and damage and moves slowly.
 pub fn spawn_basic_skeleton(
     cmd: &mut CommandBuffer,
-    sprite_pool: &sprite::SpritePool,
     pos: components::Position,
 ) -> Result<(), GameError> {
     cmd.push((
         pos,
         components::Velocity::new(0., 10.),
-        components::Graphics::from(sprite_pool.init_sprite(
+        components::Graphics::new(
             "/sprites/enemies/skeleton_basic",
             Duration::from_secs_f32(0.25),
-        )?),
+        ),
         components::Enemy::new(1, 10),
         components::Health::new(75),
         components::Collision::new_basic(64., 64.),
@@ -34,17 +31,16 @@ pub fn spawn_basic_skeleton(
 /// Moves from side to side.
 pub fn spawn_fast_skeleton(
     cmd: &mut CommandBuffer,
-    sprite_pool: &sprite::SpritePool,
     pos: components::Position,
 ) -> Result<(), GameError> {
     cmd.push((
         pos,
         components::Velocity::new(40., 20.),
         components::BoundaryCollision::new(true, false, true),
-        components::Graphics::from(sprite_pool.init_sprite(
+        components::Graphics::new(
             "/sprites/enemies/skeleton_sword",
             Duration::from_secs_f32(0.25),
-        )?),
+        ),
         components::Enemy::new(1, 15),
         components::Health::new(50),
         components::Collision::new_basic(64., 64.),
@@ -57,17 +53,16 @@ pub fn spawn_fast_skeleton(
 /// A fast skeleton that regularly and does a short sprint
 pub fn spawn_dodge_skeleton(
     cmd: &mut CommandBuffer,
-    sprite_pool: &sprite::SpritePool,
     pos: components::Position,
 ) -> Result<(), GameError> {
     cmd.push((
         pos,
         components::Velocity::new(10., 22.),
         components::BoundaryCollision::new(true, false, true),
-        components::Graphics::from(sprite_pool.init_sprite(
+        components::Graphics::new(
             "/sprites/enemies/skeleton_sword",
             Duration::from_secs_f32(0.25),
-        )?),
+        ),
         components::Actions::new().with_effect(actions::ActionEffect::repeat(
             actions::ActionEffectTarget::new_only_self(),
             actions::GameAction::ApplyEffect(
@@ -101,17 +96,16 @@ pub fn spawn_dodge_skeleton(
 /// It has lots of health and despawns after a set time, but drops lots of gold on death.
 pub fn spawn_loot_skeleton(
     cmd: &mut CommandBuffer,
-    sprite_pool: &sprite::SpritePool,
     pos: components::Position,
 ) -> Result<(), GameError> {
     cmd.push((
         pos + ggez::glam::Vec2::new(0., 150.),
         components::Velocity::new(50., 0.),
         components::BoundaryCollision::new(true, false, true),
-        components::Graphics::from(sprite_pool.init_sprite(
+        components::Graphics::new(
             "/sprites/enemies/skeleton_loot",
             Duration::from_secs_f32(0.20),
-        )?),
+        ),
         components::Enemy::new(0, 100),
         components::Health::new(150),
         components::LifeDuration::new(Duration::from_secs(15)),
@@ -126,16 +120,15 @@ pub fn spawn_loot_skeleton(
 /// Reduces damage taken of nearby allies (and self) and heals nearby allies on death.
 pub fn spawn_tank_skeleton(
     cmd: &mut CommandBuffer,
-    sprite_pool: &sprite::SpritePool,
     pos: components::Position,
 ) -> Result<(), GameError> {
     cmd.push((
         pos,
         components::Velocity::new(0., 10.),
-        components::Graphics::from(sprite_pool.init_sprite(
+        components::Graphics::new(
             "/sprites/enemies/skeleton_tank",
             Duration::from_secs_f32(0.25),
-        )?),
+        ),
         components::actions::Actions::new()
             .with_effect(actions::ActionEffect::transform(
                 actions::ActionEffectTarget::new()
@@ -162,10 +155,8 @@ pub fn spawn_tank_skeleton(
                     actions::GameAction::TakeHealing { heal: 40 },
                     actions::GameAction::AddParticle(
                         components::graphics::Particle::new(
-                            sprite_pool.init_sprite(
-                                "/sprites/effects/heal",
-                                Duration::from_secs_f32(0.25),
-                            )?,
+                            "/sprites/effects/heal",
+                            Duration::from_secs_f32(0.25),
                         )
                         .with_duration(Duration::from_secs(1))
                         .with_velocity(0., -15.)
@@ -186,16 +177,15 @@ pub fn spawn_tank_skeleton(
 /// Speeds up nearby allies, considerably higher on death.
 pub fn spawn_charge_skeleton(
     cmd: &mut CommandBuffer,
-    sprite_pool: &sprite::SpritePool,
     pos: components::Position,
 ) -> Result<(), GameError> {
     cmd.push((
         pos,
         components::Velocity::new(0., 21.),
-        components::Graphics::from(sprite_pool.init_sprite(
+        components::Graphics::new(
             "/sprites/enemies/skeleton_flag",
             Duration::from_secs_f32(0.25),
-        )?),
+        ),
         // concurrently small speed boost to nearby allies
         components::actions::Actions::new()
             .with_effect(actions::ActionEffect::transform(
@@ -220,10 +210,8 @@ pub fn spawn_charge_skeleton(
                 vec![
                     actions::GameAction::AddParticle(
                         components::graphics::Particle::new(
-                            sprite_pool.init_sprite(
-                                "/sprites/effects/bolt",
-                                Duration::from_secs_f32(0.25),
-                            )?,
+                            "/sprites/effects/bolt",
+                            Duration::from_secs_f32(0.25),
                         )
                         .with_duration(Duration::from_secs(5))
                         .with_velocity(0., -10.)
@@ -255,16 +243,15 @@ pub fn spawn_charge_skeleton(
 /// A tanky but slow caster that heals and speeds up allies on the regular.
 pub fn spawn_wizard_skeleton(
     cmd: &mut CommandBuffer,
-    sprite_pool: &sprite::SpritePool,
     pos: components::Position,
 ) -> Result<(), GameError> {
     cmd.push((
         pos,
         components::Velocity::new(0., 7.),
-        components::Graphics::from(sprite_pool.init_sprite(
+        components::Graphics::new(
             "/sprites/enemies/skeleton_wizard",
             Duration::from_secs_f32(0.25),
-        )?),
+        ),
         // 'Spell' 1: Speed up a nearby ally for 3 seconds every 5 seconds.
         components::actions::Actions::new()
             .with_effect(actions::ActionEffect::repeat(
@@ -276,10 +263,8 @@ pub fn spawn_wizard_skeleton(
                 vec![
                     actions::GameAction::AddParticle(
                         components::graphics::Particle::new(
-                            sprite_pool.init_sprite(
-                                "/sprites/effects/bolt",
-                                Duration::from_secs_f32(0.25),
-                            )?,
+                            "/sprites/effects/bolt",
+                            Duration::from_secs_f32(0.25),
                         )
                         .with_duration(Duration::from_secs(3))
                         .with_velocity(0., -10.)
@@ -310,10 +295,8 @@ pub fn spawn_wizard_skeleton(
                 vec![
                     actions::GameAction::AddParticle(
                         components::graphics::Particle::new(
-                            sprite_pool.init_sprite(
-                                "/sprites/effects/heal",
-                                Duration::from_secs_f32(0.25),
-                            )?,
+                            "/sprites/effects/heal",
+                            Duration::from_secs_f32(0.25),
                         )
                         .with_duration(Duration::from_secs(3))
                         .with_velocity(0., -10.)
@@ -335,16 +318,15 @@ pub fn spawn_wizard_skeleton(
 /// A tanky but slow caster that heals allies and gives them a damage protection aura.
 pub fn spawn_wizard_skeleton2(
     cmd: &mut CommandBuffer,
-    sprite_pool: &sprite::SpritePool,
     pos: components::Position,
 ) -> Result<(), GameError> {
     cmd.push((
         pos,
         components::Velocity::new(0., 7.),
-        components::Graphics::from(sprite_pool.init_sprite(
+        components::Graphics::new(
             "/sprites/enemies/skeleton_wizard2",
             Duration::from_secs_f32(0.25),
-        )?),
+        ),
         // 'Spell' 1: Speed up a nearby ally for 3 seconds every 5 seconds.
         components::actions::Actions::new()
             .with_effect(actions::ActionEffect::repeat(
@@ -355,10 +337,10 @@ pub fn spawn_wizard_skeleton2(
                     .with_limit(1),
                 vec![
                     actions::GameAction::AddParticle(
-                        components::graphics::Particle::new(sprite_pool.init_sprite(
+                        components::graphics::Particle::new(
                             "/sprites/effects/shield",
                             Duration::from_secs_f32(0.25),
-                        )?)
+                        )
                         .with_duration(Duration::from_secs(3)),
                     ),
                     actions::ActionEffect::transform(
@@ -386,10 +368,8 @@ pub fn spawn_wizard_skeleton2(
                 vec![
                     actions::GameAction::AddParticle(
                         components::graphics::Particle::new(
-                            sprite_pool.init_sprite(
-                                "/sprites/effects/heal",
-                                Duration::from_secs_f32(0.25),
-                            )?,
+                            "/sprites/effects/heal",
+                            Duration::from_secs_f32(0.25),
                         )
                         .with_duration(Duration::from_secs(3))
                         .with_velocity(0., -10.)
@@ -409,25 +389,18 @@ pub fn spawn_wizard_skeleton2(
 /// # Stone Golem
 /// ## Enemy
 /// A very tanky and slow enemy that spawns multiple smaller skeletons on death.
-pub fn spawn_splitter(
-    cmd: &mut CommandBuffer,
-    sprite_pool: &sprite::SpritePool,
-    pos: components::Position,
-) -> Result<(), GameError> {
+pub fn spawn_splitter(cmd: &mut CommandBuffer, pos: components::Position) -> Result<(), GameError> {
     cmd.push((
         pos,
         components::Velocity::new(0., 8.),
-        components::Graphics::from(
-            sprite_pool.init_sprite("/sprites/enemies/golem", Duration::from_secs_f32(0.25))?,
-        ),
+        components::Graphics::new("/sprites/enemies/golem", Duration::from_secs_f32(0.25)),
         components::actions::Actions::new().with_effect(actions::ActionEffect::on_death(
             actions::ActionEffectTarget::new_only_self(),
             actions::RemoveSource::HealthLoss,
-            actions::GameAction::spawn(|_, vec, sprite_pool, cmd| {
+            actions::GameAction::spawn(|_, vec, cmd| {
                 for _ in 0..3 {
                     if spawn_basic_skeleton(
                         cmd,
-                        sprite_pool,
                         vec + ggez::glam::Vec2::new(
                             (rand::random::<f32>() - 0.5) * 64.,
                             (rand::random::<f32>() - 0.5) * 64.,
@@ -450,17 +423,11 @@ pub fn spawn_splitter(
 /// # Ghost
 /// ## Enemy
 /// A nimble enemy. Taking damage grants it damage reduction for a time and speed permanently.
-pub fn spawn_ghost(
-    cmd: &mut CommandBuffer,
-    sprite_pool: &sprite::SpritePool,
-    pos: components::Position,
-) -> Result<(), GameError> {
+pub fn spawn_ghost(cmd: &mut CommandBuffer, pos: components::Position) -> Result<(), GameError> {
     cmd.push((
         pos,
         components::Velocity::new(0., 8.),
-        components::Graphics::from(
-            sprite_pool.init_sprite("/sprites/enemies/ghost", Duration::from_secs_f32(0.25))?,
-        ),
+        components::Graphics::new("/sprites/enemies/ghost", Duration::from_secs_f32(0.25)),
         components::Actions::new().with_effect(actions::ActionEffect::react(
             actions::ActionEffectTarget::new_only_self(),
             |action| match action {

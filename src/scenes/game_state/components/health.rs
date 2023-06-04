@@ -110,13 +110,15 @@ pub fn enemy_death_sprite(
             actions::GameAction::Remove(actions::RemoveSource::HealthLoss)
         )
     }) {
+        let sprite = gfx.get_sprite();
+
         cmd.push((
             *pos,
             vel.map(|v| Velocity::new((f32::EPSILON).copysign(v.get_dx()), 0.))
                 .unwrap_or(Velocity::new(0., 0.)),
-            LifeDuration::new(gfx.sprite.get_cycle_time() - gfx.sprite.get_frame_time()),
+            LifeDuration::new(sprite.get_cycle_time() - sprite.get_frame_time()),
             {
-                let mut death_sprite = gfx.sprite.clone();
+                let mut death_sprite = sprite.clone();
                 death_sprite.set_variant(1);
                 Graphics::from(death_sprite)
             },

@@ -15,14 +15,14 @@ pub(super) fn construct_fireball(sprite_pool: &SpritePool) -> Spell {
         "Fireball",
         "Hurl a ball of fire, dealing a small amount of damage.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/fireball", Duration::ZERO),
-        GameAction::spawn(|_, pos, sp, cmd| {
+        GameAction::spawn(|_, pos, cmd| {
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(10)),
-                components::Graphics::from(sp.init_sprite_unchecked(
+                components::Graphics::new(
                     "/sprites/spells/fireball",
                     Duration::from_secs_f32(0.2),
-                )),
+                ),
                 components::Velocity::new(0., -250.),
                 components::Collision::new(32., 32., |e1, e2| {
                     vec![
@@ -42,14 +42,14 @@ pub(super) fn construct_ice_bomb(sprite_pool: &SpritePool) -> Spell {
         "Launch a fast icy projectile that deals high damage on impact and drops an ice crystal that slows nearby enemies and deals area damage when exploding.",
         sprite_pool
             .init_sprite_unchecked("/sprites/spells/icebomb", Duration::ZERO),
-        GameAction::spawn(|_, pos, sp: &SpritePool, cmd| {
+        GameAction::spawn(|_, pos, cmd| {
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(10)),
-                components::Graphics::from(sp.init_sprite_unchecked(
+                components::Graphics::new(
                     "/sprites/spells/icebomb",
                     Duration::from_secs_f32(0.2),
-                )),
+                ),
                 components::Velocity::new(0., -520.),
                 components::Collision::new(32., 32., |e1, e2|
                         vec![
@@ -67,18 +67,12 @@ pub(super) fn construct_ice_bomb(sprite_pool: &SpritePool) -> Spell {
 fn spawn_icebomb(
     _: Entity,
     pos: components::Position,
-    sprite_pool: &SpritePool,
     cmd: &mut CommandBuffer,
 ) {
     cmd.push((
         pos,
         components::LifeDuration::new(Duration::from_secs(5)),
-        {
-            let mut sprite = sprite_pool
-                .init_sprite_unchecked("/sprites/spells/icepulse", Duration::from_secs_f32(0.25));
-            sprite.set_variant(1);
-            components::Graphics::from(sprite)
-        },
+        components::Graphics::new("/sprites/spells/icepulse", Duration::from_secs_f32(0.25)).with_sprite_variant(1),
         components::actions::Actions::new()
             .with_effect(
                 ActionEffect::once(
@@ -107,14 +101,14 @@ pub(super) fn construct_lightning_orb(sprite_pool: &SpritePool) -> Spell {
         "Launch a ball of lightning that pierces through enemies and deals area damage on every contact.",
         sprite_pool
             .init_sprite_unchecked("/sprites/spells/electroorb", Duration::ZERO),
-        GameAction::spawn(|_, pos, sp, cmd| {
+        GameAction::spawn(|_, pos, cmd| {
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(10)),
-                components::Graphics::from(sp.init_sprite_unchecked(
+                components::Graphics::new(
                     "/sprites/spells/electroorb",
                     Duration::from_secs_f32(0.2),
-                )),
+                ),
                 components::Velocity::new(0., -180.),
                 components::Collision::new(32., 32., |e1, e2| vec![
                             (e1, GameAction::AddImmunity { other: e2 }),
@@ -154,11 +148,8 @@ pub(super) fn construct_conflagrate(sprite_pool: &SpritePool) -> Spell {
                 .with_duration(Duration::from_secs(10))
                 .into(),
                 GameAction::AddParticle(
-                    Particle::new(sprite_pool.init_sprite_unchecked(
-                        "/sprites/spells/burning",
-                        Duration::from_secs_f32(0.25),
-                    ))
-                    .with_duration(Duration::from_secs(8)),
+                    Particle::new("/sprites/spells/burning", Duration::from_secs_f32(0.25))
+                        .with_duration(Duration::from_secs(8)),
                 ),
             ],
         ),
@@ -172,14 +163,14 @@ pub(super) fn construct_ice_lance(sprite_pool: &SpritePool) -> Spell {
         "Launch a volley of 3 quick-striking ice lances, each dealing damage to a single target and increasing their damage taken.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/icons/icespike_icon", Duration::ZERO),
             ActionEffect::repeat(ActionEffectTarget::new_only_self(),
-                GameAction::spawn(|_, pos, sp, cmd|{
+                GameAction::spawn(|_, pos, cmd|{
                     cmd.push(
                         (pos,
                 components::LifeDuration::new(Duration::from_secs(8)),
-                components::Graphics::from(sp.init_sprite_unchecked(
+                components::Graphics::new(
                     "/sprites/spells/icespike",
                     Duration::from_secs_f32(0.2),
-                )),
+                ),
                 components::Velocity::new(0., -450.),
                 components::Collision::new(32., 32., move |e1, e2| vec![
                             (e1, GameAction::AddImmunity { other: e2 }),
@@ -210,16 +201,15 @@ pub(super) fn construct_overload(sprite_pool: &SpritePool) -> Spell {
         "Overload",
         "Shoot out an electric spark that overloads the first enemy hit. When they die within a short timeframe, nearby enemies take high damage.",
         sprite_pool.init_sprite_unchecked("/sprites/effects/overloaded", Duration::ZERO),
-        GameAction::spawn(|_, pos, sp, cmd| {
-            let sprite = sp.init_sprite_unchecked("/sprites/effects/overloaded", Duration::from_secs_f32(0.4));
+        GameAction::spawn(|_, pos, cmd| {
 
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(10)),
-                components::Graphics::from(sp.init_sprite_unchecked(
+                components::Graphics::new(
                     "/sprites/spells/overload",
                     Duration::from_secs_f32(0.2),
-                )),
+                ),
                 components::Velocity::new(0., -300.),
                 components::Collision::new(12., 32., move |e1, e2| vec![
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
@@ -231,7 +221,7 @@ pub(super) fn construct_overload(sprite_pool: &SpritePool) -> Spell {
                                 RemoveSource::HealthLoss,
                                 GameAction::TakeDamage { dmg: 60 } ,
                             ).with_duration(Duration::from_secs(8)).into()),
-                            (e2, GameAction::AddParticle(Particle::new(sprite.clone()).with_duration(Duration::from_secs(8)))),
+                            (e2, GameAction::AddParticle(Particle::new("/sprites/effects/overloaded", Duration::from_secs_f32(0.4)).with_duration(Duration::from_secs(8)))),
                         ],),
             ));
         }),
@@ -243,23 +233,25 @@ pub(super) fn construct_scorch(sprite_pool: &SpritePool) -> Spell {
         "Scorch",
         "Hurl a short ranged fireball, dealing low impact damage but igniting the area hit for 10 seconds, dealing damage over time to all enemies inside.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/scorch", Duration::ZERO),
-        GameAction::spawn(|_, pos, sp, cmd| {
+        GameAction::spawn(|_, pos, cmd| {
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(2)),
-                components::Graphics::from(sp.init_sprite_unchecked(
+                components::Graphics::new(
                     "/sprites/spells/scorch",
                     Duration::from_secs_f32(0.2),
-                )),
+                ),
                 components::Velocity::new(0., -200.),
                 components::Collision::new(32., 32., |e1, e2| vec![
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
-                            (e1, GameAction::spawn(|_, pos, sp, cmd|{
+                            (e1, GameAction::spawn(|_, pos, cmd|{
                                 cmd.push((
                                     pos,
                                     components::LifeDuration::from(Duration::from_secs(10)),
-                                    components::Graphics::from(sp.init_sprite_unchecked(
-                                        "/sprites/spells/burning_ground", Duration::from_secs_f32(0.2))),
+                                    components::Graphics::new(
+                                        "/sprites/spells/burning_ground",
+                                        Duration::from_secs_f32(0.2),
+                                    ),
                                     components::Actions::new()
                                     .with_effect(
                                         ActionEffect::repeat(ActionEffectTarget::new().with_enemies_only(true).with_range(128.),
@@ -283,12 +275,12 @@ pub(super) fn construct_shard(sprite_pool: &SpritePool) -> Spell {
                 s.set_variant(1);
                 s
             },
-        GameAction::spawn(|_, pos, sp, cmd|{
+        GameAction::spawn(|_, pos, cmd|{
             cmd.push((
                 pos,
                 components::Velocity::new(0., -250.),
                 components::LifeDuration::new(Duration::from_secs(10)),
-                components::Graphics::from(sp.init_sprite_unchecked("/sprites/spells/icebomb", Duration::from_secs_f32(0.25))),
+                components::Graphics::new("/sprites/spells/icebomb", Duration::from_secs_f32(0.25)),
                 components::Collision::new(32., 32., |e1, e2| vec![
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                             (e2, GameAction::TakeDamage { dmg: 20 }),
@@ -296,19 +288,16 @@ pub(super) fn construct_shard(sprite_pool: &SpritePool) -> Spell {
                                 GameAction::Move { delta } => *delta *= 0.9,
                                 _ => {}
                             }).with_duration(Duration::from_secs(3)).into()),
-                            (e2, GameAction::spawn(|enemy, pos, sp, cmd| {
+                            (e2, GameAction::spawn(|enemy, pos, cmd| {
                                 for i in -1..2{
                                     cmd.push((
                                         pos + ggez::glam::Vec2::new( 34. * i as f32, 0.),
                                         components::Velocity::new((30 * i) as f32, -250.),
                                         components::LifeDuration::new(Duration::from_secs_f32(0.4)),
-                                        components::Graphics::from({
-                                            let mut s = sp.init_sprite_unchecked("/sprites/spells/icebomb", Duration::ZERO);
-                                            if i != 0 {
-                                                s.set_variant(2);
-                                            }
-                                            s
-                                        }),
+                                        components::Graphics::new(
+                                            "/sprites/spells/icebomb",
+                                            Duration::ZERO,
+                                        ).with_sprite_variant(2),
                                         components::Collision::new(32., 32., |e1, e2| vec![
                                                 (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                                                 (e2, GameAction::TakeDamage { dmg: 8 }),
@@ -333,7 +322,7 @@ pub(super) fn construct_arcane_missiles(sprite_pool: &SpritePool) -> Spell {
         sprite_pool.init_sprite_unchecked("/sprites/spells/icons/arcane_bolt_icon", Duration::ZERO),
         ActionEffect::repeat(
             ActionEffectTarget::new_only_self(),
-            GameAction::spawn(|_, pos_src, _, cmd|{
+            GameAction::spawn(|_, pos_src, cmd|{
                 // execute the following every seconds:
                 cmd.exec_mut(move |world, res|{
                     // get an iterator overall enemies:
@@ -383,28 +372,28 @@ pub(super) fn construct_arcane_blast(sprite_pool: &SpritePool) -> Spell {
         "Arcane Blast",
         "Launch an orb of arcane energy dealing medium damage. On hitting an enemy, 8 smaller orbs are created centered on the target hit and striking inwards for the same amount of damage.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/arcane_bolt_mini", Duration::ZERO),
-        GameAction::spawn(|_, pos, sp, cmd|{
+        GameAction::spawn(|_, pos, cmd|{
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(10)),
-                components::Graphics::from(sp.init_sprite_unchecked(
+                components::Graphics::new(
                     "/sprites/spells/arcane_bolt",
                     Duration::from_secs_f32(0.2),
-                )),
+                ),
                 components::Velocity::new(0., -360.),
                 components::Collision::new(32., 32., |e1, e2| vec![
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                             (e2, GameAction::TakeDamage { dmg: 30 }),
-                            (e2, GameAction::spawn(|_, pos, sp, cmd|{
+                            (e2, GameAction::spawn(|_, pos,cmd|{
                                 for i in 0..8{
                                     let rel = ggez::glam::Vec2::new(64. * (PI/4. * i as f32).cos(), 64. * (PI/4. * i as f32).sin());
                                     cmd.push((
                                         pos + rel,
                                         components::LifeDuration::new(Duration::from_secs(10)),
-                                        components::Graphics::from(sp.init_sprite_unchecked(
+                                        components::Graphics::new(
                                             "/sprites/spells/arcane_bolt_mini",
                                             Duration::from_secs_f32(0.2),
-                                        )),
+                                        ),
                                         components::Velocity::from(rel.clamp_length(240., 240.) * -1.),
                                         components::Collision::new(8., 8., |e1, e2| vec![
                                                     (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
@@ -424,14 +413,14 @@ pub(super) fn construct_blackhole(sprite_pool: &SpritePool) -> Spell {
         "Blackhole",
         "Launch a slow-moving ball of antimatter. After travelling for 2 seconds without colliding, it will spawn a blackhole that attracts enemies for 6 seconds, then damages and shortly silences close enemies.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/blackhole", Duration::ZERO),
-        GameAction::spawn(|_, pos, sp, cmd| {
+        GameAction::spawn(|_, pos, cmd| {
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(2)),
-                components::Graphics::from(sp.init_sprite_unchecked(
+                components::Graphics::new(
                     "/sprites/spells/blackhole_mini",
                     Duration::from_secs_f32(0.2),
-                )),
+                ),
                 components::Velocity::new(0., -180.),
                 components::Collision::new(16., 16., |e1, e2| vec![
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
@@ -441,19 +430,19 @@ pub(super) fn construct_blackhole(sprite_pool: &SpritePool) -> Spell {
                     .with_effect(ActionEffect::on_death(
                         ActionEffectTarget::new_only_self(),
                         RemoveSource::TimedOut,
-                        GameAction::spawn(|_, pos, sp, cmd|{
+                        GameAction::spawn(|_, pos, cmd|{
                             cmd.push((
                                 pos,
                                 components::LifeDuration::new(Duration::from_secs(6)),
-                                components::Graphics::from(sp.init_sprite_unchecked(
+                                components::Graphics::new(
                                     "/sprites/spells/blackhole",
                                     Duration::from_secs_f32(0.1),
-                                )),
+                                ),
                                 components::Actions::new()
                                     .with_effect(
                                         ActionEffect::repeat(
                                             ActionEffectTarget::new_only_self(),
-                                            GameAction::spawn(|_, pos_src, _, cmd|{
+                                            GameAction::spawn(|_, pos_src, cmd|{
                                                 // execute the following every seconds:
                                                 cmd.exec_mut(move |world, _|{
                                                     // iterator over all (close) enemies
@@ -490,14 +479,14 @@ pub(super) fn construct_mind_wipe(sprite_pool: &SpritePool) -> Spell {
         "Mind wipe",
         "Launch a bolt of dark energy that deals a medium amount of damage to the first enemy hit. After a short delay, deal the same damage again and silence the target for 15 seconds.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/icons/mindwipe_icon", Duration::ZERO),
-        GameAction::spawn(|_, pos, sp, cmd| {
+        GameAction::spawn(|_, pos, cmd| {
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(10)),
-                components::Graphics::from(sp.init_sprite_unchecked(
+                components::Graphics::new(
                     "/sprites/spells/mindwipe",
                     Duration::from_secs_f32(0.2),
-                )),
+                ),
                 components::Velocity::new(0., -250.),
                 components::Collision::new(32., 32., |e1, e2| vec![
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
@@ -518,12 +507,12 @@ pub(super) fn construct_mortar(sprite_pool: &SpritePool) -> Spell {
         "Fiery mortar", 
         "Launch five mortar shells that pass over enemies and impact the middle of the battlefield, dealing area damage.", 
         sprite_pool.init_sprite_unchecked("/sprites/spells/icons/mortar_icon", Duration::ZERO),
-        GameAction::spawn(|_, pos, sp, cmd| {
+        GameAction::spawn(|_, pos, cmd| {
             for _ in 0..5{
                 cmd.push((
                     pos,
                     components::LifeDuration::new(Duration::from_secs_f32(1.9)),
-                    components::Graphics::from(sp.init_sprite_unchecked("/sprites/spells/mortar", Duration::from_secs_f32(0.25))),
+                    components::Graphics::new("/sprites/spells/mortar", Duration::from_secs_f32(0.25)),
                     components::Velocity::new(rand::random::<f32>() * 96. - 48., -270. + rand::random::<f32>() * 96.),
                     components::Actions::new()
                         .with_effect(ActionEffect::on_death(
@@ -534,11 +523,11 @@ pub(super) fn construct_mortar(sprite_pool: &SpritePool) -> Spell {
                         .with_effect(ActionEffect::on_death(
                             ActionEffectTarget::new_only_self(),
                             RemoveSource::TimedOut,
-                            GameAction::spawn(|_,pos,sp,cmd|{
+                            GameAction::spawn(|_,pos,cmd|{
                                 cmd.push((
                                     pos,
                                     components::LifeDuration::from(Duration::from_secs_f32(0.64)),
-                                    components::Graphics::from(sp.init_sprite_unchecked("/sprites/effects/explosion_small", Duration::ZERO)),
+                                    components::Graphics::new("/sprites/effects/explosion_small", Duration::ZERO),
                                 ));
                             }),
                         )),
@@ -555,14 +544,14 @@ pub(super) fn construct_lightning_ball(sprite_pool: &SpritePool) -> Spell {
         "Launch a small lightning ball that passes through enemies then deploying for 10 seconds in the middle of the field. Both in flight and while deployed, the orb regularly zaps nearby enemies and significantly reduces their healing.",
         sprite_pool
             .init_sprite_unchecked("/sprites/spells/lightning_ball", Duration::ZERO),
-        GameAction::spawn(|_, pos, sp: &SpritePool, cmd| {
+        GameAction::spawn(|_, pos, cmd| {
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(8)),
-                components::Graphics::from(sp.init_sprite_unchecked(
+                components::Graphics::new(
                     "/sprites/spells/lightning_ball",
                     Duration::from_secs_f32(0.2),
-                )),
+                ),
                 components::Velocity::new(0., -200.),
                 components::Actions::new()
                     // after 3 seconds of travel, stop.
@@ -591,13 +580,9 @@ pub(super) fn construct_lightning_ball(sprite_pool: &SpritePool) -> Spell {
                         ActionEffect::repeat(
                             ActionEffectTarget::new_only_self(),
                             GameAction::AddParticle(
-                                Particle::new(
-                                    {
-                                        let mut zap_fx = sp.init_sprite_unchecked("/sprites/spells/lightning_ball", Duration::from_secs_f32(0.1));
-                                        zap_fx.set_variant(1);
-                                        zap_fx
-                                    },
-                                ).with_duration(Duration::from_secs_f32(0.15))
+                                Particle::new("/sprites/spells/lightning_ball", Duration::from_secs_f32(0.1))
+                                    .with_sprite_variant(1)
+                                    .with_duration(Duration::from_secs_f32(0.15))
                             ),
                             Duration::from_secs_f32(0.4),
                         )

@@ -2,7 +2,6 @@ use std::{fmt::Debug, sync::Arc, time::Duration};
 
 use ggez::glam::Vec2;
 use legion::{system, systems::CommandBuffer, Entity, EntityStore, IntoQuery};
-use mooeye::sprite;
 use tinyvec::TinyVec;
 
 use super::super::controller::Interactions;
@@ -45,7 +44,7 @@ pub enum GameAction {
 /// This allows implementing debug here and then deriving it at [GameAction].
 #[derive(Clone)]
 pub struct SpawnerBox {
-    spawner: Box<fn(Entity, Position, &sprite::SpritePool, &mut CommandBuffer)>,
+    spawner: Box<fn(Entity, Position, &mut CommandBuffer)>,
 }
 
 impl Debug for SpawnerBox {
@@ -56,7 +55,7 @@ impl Debug for SpawnerBox {
 
 impl GameAction {
     /// Helper function to create a [GameAction::Spawn] without having to use Box.
-    pub fn spawn(spawner: fn(Entity, Position, &sprite::SpritePool, &mut CommandBuffer)) -> Self {
+    pub fn spawn(spawner: fn(Entity, Position, &mut CommandBuffer)) -> Self {
         Self::Spawn(SpawnerBox {
             spawner: Box::new(spawner),
         })
@@ -421,13 +420,12 @@ pub fn resolve_executive_actions(
     ent: &Entity,
     actions: &Actions,
     pos: Option<&Position>,
-    #[resource] sprite_pool: &sprite::SpritePool,
     cmd: &mut CommandBuffer,
 ) {
     for action in actions.get_actions() {
         match action {
             GameAction::Spawn(spawner) => {
-                (spawner.spawner)(*ent, pos.map(|p| *p).unwrap_or_default(), sprite_pool, cmd)
+                (spawner.spawner)(*ent, pos.map(|p| *p).unwrap_or_default(), cmd)
             }
             _ => {}
         }

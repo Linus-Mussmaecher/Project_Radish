@@ -95,7 +95,6 @@ pub fn direct(
     subworld: &mut legion::world::SubWorld,
     enemy_query: &mut legion::Query<&components::Enemy>,
     cmd: &mut CommandBuffer,
-    #[resource] sprite_pool: &sprite::SpritePool,
     #[resource] boundaries: &graphics::Rect,
     #[resource] director: &mut Director,
     #[resource] ix: &controller::Interactions,
@@ -143,7 +142,6 @@ pub fn direct(
                         // spawn
                         if (enemy_template.spawner._spawner)(
                             cmd,
-                            sprite_pool,
                             ggez::glam::Vec2::new(rand::random::<f32>() * boundaries.w, -20.),
                         )
                         .is_ok()
@@ -239,4 +237,4 @@ impl Debug for EnemySpawner {
 }
 
 type EnemySpawnFunction =
-    fn(&mut CommandBuffer, &sprite::SpritePool, components::Position) -> Result<(), GameError>;
+    fn(&mut CommandBuffer, components::Position) -> Result<(), GameError>;

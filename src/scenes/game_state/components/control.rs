@@ -60,9 +60,6 @@ pub fn control(
     }
 
     if let Some(gfx) = gfx {
-        //TODO: This should already be a check in set_variant in mooeye.
-        if gfx.sprite.get_variant() != pref_state {
-            gfx.sprite.set_variant(pref_state);
-        }
+        gfx.get_sprite_mut().set_variant(pref_state);
     }
 }

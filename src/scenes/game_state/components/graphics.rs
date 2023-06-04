@@ -5,7 +5,7 @@ use ggez::{
     graphics::{self, Canvas, DrawParam, MeshBuilder, Rect},
     Context,
 };
-use mooeye::sprite::Sprite;
+use mooeye::sprite;
 
 use legion::{system, IntoQuery};
 use tinyvec::TinyVec;
@@ -16,30 +16,107 @@ use super::{actions::GameAction, Health, Position, Velocity};
 
 pub const PIXEL_SIZE: f32 = 4.;
 
+#[derive(Debug, Clone)]
 /// The graphics component of an entity, containing a sprite to be drawn to the screen and a container for multiple additional particles.
 pub struct Graphics {
     /// The main sprite to represent this object.
-    pub sprite: Sprite,
+    sprite: SpriteWrapper,
     /// Container for particles added to this and managed by this object.
     particles: TinyVec<[Particle; 4]>,
 }
 
 impl Graphics {
+    pub fn new(path: impl AsRef<std::path::Path>, frame_time: Duration) -> Self {
+        Self {
+            sprite: SpriteWrapper::PreInit(
+                path.as_ref().to_string_lossy().to_string(),
+                {
+                    let mut sprite = sprite::Sprite::default();
+                    sprite.set_frame_time(frame_time);
+                    sprite
+                },
+            ),
+            particles: TinyVec::new(),
+        }
+    }
+
+    /// Sets the variant of the underlying sprite and returns the graphics component builder-pattern style.
+    pub fn with_sprite_variant(mut self, variant: u32) -> Self {
+        match &mut self.sprite {
+            SpriteWrapper::PreInit(_, pre_init) => {
+                pre_init.set_variant(variant);
+            }
+            SpriteWrapper::Initialized(sprite) => {
+                sprite.set_variant(variant);
+            }
+        }
+        self
+    }
+
     /// Returns the objects size in the world, already multiplied by PIXEL_SIZE.
     pub fn get_size(&self) -> (f32, f32) {
         (
-            self.sprite.get_dimensions().0 * PIXEL_SIZE,
-            self.sprite.get_dimensions().1 * PIXEL_SIZE,
+            self.get_sprite().get_dimensions().0 * PIXEL_SIZE,
+            self.get_sprite().get_dimensions().1 * PIXEL_SIZE,
         )
+    }
+
+    /// Returns a reference to this graphic's sprite, or a default sprite if it is not yet initialized.
+    pub fn get_sprite(&self) -> &sprite::Sprite {
+        match &self.sprite {
+            SpriteWrapper::PreInit(_, pre_init) => pre_init,
+            SpriteWrapper::Initialized(sprite) => sprite,
+        }
+    }
+
+    /// Returns a mutable reference to this graphic's sprite, or a default sprite if it is not yet initialized.
+    pub fn get_sprite_mut(&mut self) -> &mut sprite::Sprite {
+        match &mut self.sprite {
+            SpriteWrapper::PreInit(_, pre_init) => pre_init,
+            SpriteWrapper::Initialized(sprite) => sprite,
+        }
     }
 }
 
-impl From<Sprite> for Graphics {
-    fn from(value: Sprite) -> Self {
+impl From<sprite::Sprite> for Graphics {
+    fn from(value: sprite::Sprite) -> Self {
         Self {
-            sprite: value,
+            sprite: SpriteWrapper::Initialized(value),
             particles: TinyVec::new(),
         }
+    }
+}
+
+#[derive(Debug, Clone)]
+/// A wrapper that represents a sprite as held in a graphics component.
+/// The sprite can either be initialized (as a basic sprite) or just be a path and a default sprite that need to later be initialized via a sprite pool.
+enum SpriteWrapper {
+    PreInit(String, sprite::Sprite),
+    Initialized(sprite::Sprite),
+}
+
+impl SpriteWrapper {
+    /// Checks if the sprite wrapper needs to be initialized and does so.
+    fn init(
+        &mut self,
+        ctx: &ggez::Context,
+        sprite_pool: &mut sprite::SpritePool,
+    ) -> Result<&mut sprite::Sprite, ggez::GameError> {
+        if let Self::PreInit(path, pre_init) = self {
+            let mut sprite = sprite_pool.init_sprite_lazy(ctx, path, pre_init.get_frame_time())?;
+            sprite.set_variant(pre_init.get_variant());
+            *self = Self::Initialized(sprite);
+        }
+        Ok(match self {
+            SpriteWrapper::PreInit(_, _) => panic!("Should have been initialized already."),
+            SpriteWrapper::Initialized(sprite) => sprite,
+        })
+    }
+}
+
+impl Default for SpriteWrapper {
+    fn default() -> Self {
+        Self::Initialized(sprite::Sprite::default())
     }
 }
 
@@ -51,14 +128,22 @@ pub fn draw_sprites(
     canvas: &mut Canvas,
     animate: bool,
 ) -> Result<(), ggez::GameError> {
+    // get boundaries for relative moving
+    let boundaries = *resources
+        .get::<Rect>()
+        .ok_or_else(|| ggez::GameError::CustomError("Could not unpack boundaries.".to_owned()))?;
+    let (screen_w, screen_h) = ctx.gfx.drawable_size();
+
+    // get sprite pool for inits
+    let mut sprite_pool = resources
+        .get_mut::<sprite::SpritePool>()
+        .ok_or_else(|| ggez::GameError::CustomError("Could not unpack boundaries.".to_owned()))?;
+
     for (pos, gfx, vel, health) in
         <(&Position, &mut Graphics, Option<&Velocity>, Option<&Health>)>::query().iter_mut(world)
     {
-        // get boundaries for relative moving
-        let boundaries = *resources.get::<Rect>().ok_or_else(|| {
-            ggez::GameError::CustomError("Could not unpack boundaries.".to_owned())
-        })?;
-        let (screen_w, screen_h) = ctx.gfx.drawable_size();
+        // get sprite
+        let sprite = gfx.sprite.init(ctx, &mut *sprite_pool)?;
 
         // get factors/position for image mirrogin
         let factor = if match vel {
@@ -79,13 +164,13 @@ pub fn draw_sprites(
             )
             // move to draw to correct position based on flip
             + Vec2::new(
-                -gfx.sprite.get_dimensions().0 * PIXEL_SIZE / 2. * factor,
-                -gfx.sprite.get_dimensions().1 * PIXEL_SIZE / 2.,
+                -sprite.get_dimensions().0 * PIXEL_SIZE / 2. * factor,
+                -sprite.get_dimensions().1 * PIXEL_SIZE / 2.,
             );
 
         // draw the sprite
         if animate {
-            gfx.sprite.draw_sprite(
+            sprite.draw_sprite(
                 ctx,
                 canvas,
                 DrawParam::default()
@@ -94,7 +179,7 @@ pub fn draw_sprites(
             );
         } else {
             graphics::Drawable::draw(
-                &gfx.sprite,
+                sprite,
                 canvas,
                 DrawParam::default()
                     .dest(n_pos)
@@ -107,12 +192,12 @@ pub fn draw_sprites(
             let mut bar = Rect::new(
                 n_pos.x
                     - if factor < 1. {
-                        gfx.sprite.get_dimensions().0 * PIXEL_SIZE
+                        sprite.get_dimensions().0 * PIXEL_SIZE
                     } else {
                         0.
                     },
                 n_pos.y - 5. * PIXEL_SIZE,
-                gfx.sprite.get_dimensions().0 * PIXEL_SIZE,
+                sprite.get_dimensions().0 * PIXEL_SIZE,
                 4. * PIXEL_SIZE,
             );
 
@@ -165,13 +250,14 @@ pub fn draw_sprites(
         // draw the sprites particles
 
         for part in gfx.particles.iter_mut() {
-            part.sprite.draw_sprite(
+            let part_sprite = part.sprite.init(ctx, &mut *sprite_pool)?;
+            part_sprite.draw_sprite(
                 ctx,
                 canvas,
                 DrawParam::default()
                     .dest(
                         *pos + part.rel_pos
-                            - Vec2::from(part.sprite.get_dimensions()) * PIXEL_SIZE / 2.
+                            - Vec2::from(part_sprite.get_dimensions()) * PIXEL_SIZE / 2.
                             + Vec2::new(
                                 (screen_w - boundaries.w) / 2.,
                                 (screen_h - boundaries.h) / 2.,
@@ -189,7 +275,7 @@ pub fn draw_sprites(
 /// A struct that represents a Particle that can be added to a graphics component to be displayed on top of the main sprite.
 pub struct Particle {
     /// The drawable to be displayed.
-    sprite: Sprite,
+    sprite: SpriteWrapper,
     /// Relative position of the sprites center to the center of the main sprite.
     rel_pos: Vec2,
     /// Velocity this particle moves at (in pixels/s).
@@ -200,13 +286,33 @@ pub struct Particle {
 
 impl Particle {
     /// Creates a new particle with the passed sprite, infinite duration and no velocity or offset.
-    pub fn new(sprite: Sprite) -> Self {
+    pub fn new(path: impl AsRef<std::path::Path>, frame_time: Duration) -> Self {
         Self {
-            sprite: sprite,
+            sprite: SpriteWrapper::PreInit(
+                path.as_ref().to_string_lossy().to_string(),
+                {
+                    let mut sprite = sprite::Sprite::default();
+                    sprite.set_frame_time(frame_time);
+                    sprite
+                },
+            ),
             rel_pos: Vec2::ZERO,
             vel: Vec2::ZERO,
             duration: None,
         }
+    }
+
+    /// Sets the variant of the underlying sprite and returns the particle builder-pattern style.
+    pub fn with_sprite_variant(mut self, variant: u32) -> Self {
+        match &mut self.sprite {
+            SpriteWrapper::PreInit(_, pre_init) => {
+                pre_init.set_variant(variant);
+            }
+            SpriteWrapper::Initialized(sprite) => {
+                sprite.set_variant(variant);
+            }
+        }
+        self
     }
 
     /// Sets the duration of this particle and returns it builder-pattern style.
