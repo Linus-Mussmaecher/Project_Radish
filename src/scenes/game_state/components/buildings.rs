@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use legion::{system, systems::CommandBuffer};
 
 pub struct Building {
@@ -28,9 +30,14 @@ pub fn create_buildings(
                 cmd.push((
                     super::Position::new(
                         boundaries.w / 6. + boundaries.w * i as f32,
-                        boundaries.h + 32.,
+                        boundaries.h + 32. + 8.,
                     ),
                     Building { building_type: i },
+                    super::Collision::new(4. * 32., 2. * 32., |e1, e2| vec![
+                        (e1, super::actions::GameAction::Remove(super::actions::RemoveSource::BuildingCollision)),
+                        (e2, super::actions::GameAction::Remove(super::actions::RemoveSource::BuildingCollision)),
+                    ]),
+                    super::Graphics::new("/sprites/environment/building", Duration::ZERO).with_sprite_variant(2),
                 ));
             }
             // inform everyone
@@ -59,7 +66,7 @@ pub fn destroy_buildings(
     if actions.get_actions().iter().any(|act| {
         matches!(
             act,
-            super::actions::GameAction::Remove(super::actions::RemoveSource::HealthLoss)
+            super::actions::GameAction::Remove(super::actions::RemoveSource::BuildingCollision)
         )
     }) {
         buildings.target[building.building_type] = 0;

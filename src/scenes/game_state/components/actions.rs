@@ -81,6 +81,8 @@ pub enum RemoveSource {
     ProjectileCollision,
     /// An enemy reaching the bottom of the screen.
     EnemyReachedBottom,
+    /// An entity collides with a building, destroying itself and the building.
+    BuildingCollision
 }
 
 #[derive(Debug, Clone)]
