@@ -1,68 +1,87 @@
-use ggez::{
-    audio::{self, SoundSource},
-    glam::Vec2,
-    mint::Point3,
-};
-use legion::{IntoQuery, World};
+use std::collections::HashMap;
 
-/// The audio component manages the sounds played by an entity whenever a certain actions is triggered.
-pub struct Audio {
-    /// Alist of actions and sound.
-    /// Whenever the entity triggers an actions, the sounds of any pairs whose first component is of the same action type are played.
-    sounds: Vec<(super::actions::GameAction, audio::SpatialSource)>,
-}
+use ggez::audio::{self, SoundSource};
+use legion::system;
 
-impl Audio {
-    /// Creates a new audio component from a list of action/sound pairs
-    pub fn new(sounds: Vec<(super::actions::GameAction, audio::SpatialSource)>) -> Self {
-        Self { sounds }
-    }
-
-    /// Creates a new audio component with a single action/sound pair.
-    pub fn new_single(action: super::actions::GameAction, sound: audio::SpatialSource) -> Self {
-        Self {
-            sounds: vec![(action, sound)],
+#[system(for_each)]
+pub fn audio_enqueue(actions: &super::Actions, #[resource] audio_pool: &mut AudioPool) {
+    for action in actions.get_actions() {
+        if let super::actions::GameAction::PlaySound(sound) = action {
+            audio_pool.sound_queue.push(sound.clone());
         }
     }
 }
 
 /// The system that handles the playing of audio effects from entitites.
-pub fn audio_system(ctx: &ggez::Context, player_pos: Vec2, world: &mut World) {
-    // go over all entities that have actions, a position and a sound component
-    for (audio, pos, actions) in
-        <(&mut Audio, &super::Position, &super::Actions)>::query().iter_mut(world)
-    {
-        // check all actions they are doing this frame
-        for action2 in actions.get_actions() {
-            // check all their sound/action pairs
-            for (action1, sound) in audio.sounds.iter_mut() {
-                // if the enum-type matches
-                if std::mem::discriminant(action1) == std::mem::discriminant(action2) {
-                    // set the positions
-                    sound.set_position(Point3 {
-                        x: pos.x,
-                        y: pos.y,
-                        z: 0.,
-                    });
-                    sound.set_ears(
-                        Point3 {
-                            x: player_pos.x,
-                            y: player_pos.y,
-                            z: 0.,
-                        },
-                        Point3 {
-                            x: player_pos.x,
-                            y: player_pos.y,
-                            z: 0.,
-                        },
-                    );
-                    // play the sound
-                    match sound.play_detached(ctx) {
-                        Ok(_) => {}
-                        Err(err) => println!("[ERROR] Error playing sound: {}.", err),
-                    };
+pub fn audio_play_system(
+    ctx: &ggez::Context,
+    res: &mut legion::Resources,
+) -> Result<(), ggez::GameError> {
+    // get boundaries for relative moving
+    let audio_pool = &mut *res
+        .get_mut::<AudioPool>()
+        .ok_or_else(|| ggez::GameError::CustomError("Could not unpack audio pool.".to_owned()))?;
+
+    for sound in audio_pool.sound_queue.iter() {
+        // play the sound
+        match audio_pool.sources.get_mut(sound) {
+            Some(sound) => {
+                sound.play_detached(ctx)?;
+                println!("Playing");
+            }
+            None => {
+                println!("Not playing.")
+            }
+        };
+    }
+    audio_pool.sound_queue.clear();
+
+    Ok(())
+}
+
+/// A pool that contains a number of initialized [ggez::audio::Source]s at once and can be passed around and allows playing audio sources while only saving keys.
+pub struct AudioPool {
+    /// The pooled sources.
+    sources: HashMap<String, audio::Source>,
+    /// the queued sounds
+    sound_queue: Vec<String>,
+}
+
+impl AudioPool {
+    /// Creates a new (empty) [AudioPool] instance.
+    pub fn new() -> Self {
+        Self {
+            sources: HashMap::new(),
+            sound_queue: Vec::new(),
+        }
+    }
+
+    /// Loads all sources within the given folder (relative to the ggez resource directory, see [ggez::context::ContextBuilder]) into the audio pool.
+    /// Can also search all subfolders.
+    pub fn with_folder(
+        mut self,
+        ctx: &ggez::Context,
+        path: impl AsRef<std::path::Path>,
+        search_subfolders: bool,
+    ) -> Self {
+        let paths = ctx
+            .fs
+            .read_dir(path.as_ref())
+            .expect("Could not find specified path.");
+
+        for sub_path in paths {
+            let path_string = sub_path.to_string_lossy().to_string();
+            let len = path_string.len();
+            if path_string[len - 4..] == *".wav" {
+                if let Ok(source) = audio::Source::new(ctx, sub_path) {
+                    self.sources
+                        .insert(path_string.replace(r"\", "/")[..len - 4].to_owned(), source);
                 }
+            } else if search_subfolders {
+                self = self.with_folder(ctx, sub_path, search_subfolders);
             }
         }
+        //println!("Now containing {} files.", self.sources.len());
+        self
     }
 }

@@ -28,6 +28,7 @@ pub(super) fn construct_fireball(sprite_pool: &SpritePool) -> Spell {
                     vec![
                         (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                         (e2, GameAction::TakeDamage { dmg: 20 }),
+                        (e1, GameAction::PlaySound("/audio/sounds/explosion".to_owned()))
                     ]
                 }),
             ));

@@ -30,6 +30,8 @@ pub enum GameAction {
     AddImmunity { other: legion::Entity },
     /// Adds a particle to the entities graphics struct
     AddParticle(super::graphics::Particle),
+    /// Plays a sound
+    PlaySound(String),
     /// Instructs the spell casting component to cast a certain spell
     CastSpell(usize),
     /// Executes a closure that is supposed to spawn an entity into the world. TODO: Closure evil, somehow serialize this?

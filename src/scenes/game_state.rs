@@ -151,7 +151,7 @@ impl scene_manager::Scene for GameState {
 
         // Sounds
 
-        components::audio::audio_system(ctx, Vec2::new(300., 900.), &mut self.world);
+        components::audio::audio_play_system(ctx, &mut self.resources)?;
 
         Ok(())
     }
@@ -173,6 +173,8 @@ impl GameState {
         let spell_pool = components::spell::init_spell_pool(&sprite_pool, &achievement_set);
         let game_data = game_data::GameData::new(config.starting_gold, config.starting_city_health);
         let director = director::Director::new(&sprite_pool, &config);
+        let audio_pool = components::audio::AudioPool::new()
+            .with_folder(ctx, "/audio", true);
 
         let mut listeners: Vec<Box<dyn game_message::MessageReceiver>> = Vec::new();
         listeners.push(Box::new(achievement_set));
@@ -213,6 +215,7 @@ impl GameState {
         resources.insert(director);
         resources.insert(spell_pool);
         resources.insert(sprite_pool);
+        resources.insert(audio_pool);
 
         // --- SYSTEM REGISTRY / UI CONSTRUCTION / CONTROLLER INITIALIZATION ---
         Ok(Self {
@@ -236,6 +239,7 @@ impl GameState {
                 // systems that consume actions
                 .add_system(components::actions::resolve_executive_actions_system())
                 .add_system(components::graphics::handle_particles_system())
+                .add_system(components::audio::audio_enqueue_system())
                 .add_system(components::position::resolve_move_system())
                 .add_system(components::collision::boundary_collision_system())
                 .add_system(components::collision::resolve_immunities_system())
