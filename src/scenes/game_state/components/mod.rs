@@ -27,3 +27,5 @@ pub mod actions;
 pub use actions::Actions;
 
 pub mod audio;
+
+pub mod buildings;

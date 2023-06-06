@@ -8,6 +8,8 @@ pub enum GameMessage {
     UpdateSpellSlots(usize, u8),
     NextWave(i32),
     EnemyKilled(i32),
+    BuildingUp(usize, u8),
+    BuildingDown(usize, u8),
 }
 
 impl PartialOrd for GameMessage {
@@ -18,6 +20,8 @@ impl PartialOrd for GameMessage {
             (Self::UpdateSpellSlots(_, a), Self::UpdateSpellSlots(_, b)) => Some(a.cmp(b)),
             (Self::NextWave(a), Self::NextWave(b)) => Some(a.cmp(b)),
             (Self::EnemyKilled(a), Self::EnemyKilled(b)) => Some(a.cmp(b)),
+            (Self::BuildingUp(a, _), Self::BuildingUp(b, _)) => Some(a.cmp(b)),
+            (Self::BuildingDown(a, _), Self::BuildingDown(b, _)) => Some(a.cmp(b)),
             (_, _) => None,
         }
     }

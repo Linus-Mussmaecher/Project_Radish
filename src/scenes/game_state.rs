@@ -236,6 +236,9 @@ impl GameState {
                 .add_system(components::spell::spell_casting_system())
                 .add_system(components::actions::handle_effects_system())
                 .flush()
+                // buildings
+                .add_system(components::buildings::destroy_buildings_system())
+                .add_system(components::buildings::create_buildings_system())
                 // systems that consume actions
                 .add_system(components::actions::resolve_executive_actions_system())
                 .add_system(components::graphics::handle_particles_system())
