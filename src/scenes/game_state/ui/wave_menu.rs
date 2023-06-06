@@ -45,7 +45,7 @@ pub fn handle_wave_menu(
         gui.remove_elements(ID_WAVE_SUBMENU);
         gui.add_element(
             ID_WAVE_SUBMENU_CONT,
-            construct_enemies_menu(ctx, &director.get_enemies()),
+            construct_enemies_menu(ctx, &director),
         );
     }
 
@@ -82,7 +82,8 @@ pub fn handle_wave_menu(
             &UiMessage::Triggered(id)
                 if id >= ID_SPELL_AVAIL_START
                     && id < ID_SPELL_AVAIL_START + spell_pool.1.len() as u32 =>
-            {
+            {   
+                let mut purchased = false;
                 // calculate index
                 let index = (id - ID_SPELL_AVAIL_START) as usize;
                 // check if a spell is at that index
@@ -90,11 +91,18 @@ pub fn handle_wave_menu(
                     // if spell was not yet purchased, attempt to purchase it
                     if template.level == 0 && data.spend(template.cost) {
                         template.level = 1;
+                        purchased = true;
                     }
                     // if spell is (now) unlocked, store a copy
                     if template.level > 0 {
                         spell_pool.0 = Some(template.spell.clone());
                         triggered = true;
+                    }
+                }
+                // if anything was purchased, increase cost of remaining spells
+                if purchased{
+                    for spell in spell_pool.1.iter_mut() {
+                        spell.cost += 30;
                     }
                 }
             }
@@ -125,12 +133,12 @@ pub fn handle_wave_menu(
     }
 
     // reroll
-    if messages.contains(&UiMessage::Triggered(ID_REROLL)) && data.spend(50) {
+    if messages.contains(&UiMessage::Triggered(ID_REROLL)) && data.spend(director.get_reroll_cost()) {
         director.reroll_wave_enemies();
         gui.remove_elements(ID_WAVE_SUBMENU);
         gui.add_element(
             ID_WAVE_SUBMENU_CONT,
-            construct_enemies_menu(ctx, &director.get_enemies()),
+            construct_enemies_menu(ctx, &director),
         );
     }
 
@@ -385,7 +393,7 @@ fn construct_wave_menu(
 
 fn construct_enemies_menu(
     ctx: &ggez::Context,
-    enemies: &[&game_state::EnemyTemplate],
+    director: &super::game_state::director::Director,
 ) -> UiElement<game_state::GameMessage> {
     // ---- Enemy display and reroll ----
 
@@ -401,7 +409,7 @@ fn construct_enemies_menu(
 
     let mut enemy_box = containers::HorizontalBox::new();
 
-    for template in enemies {
+    for template in director.get_enemies() {
         enemy_box.add(
             template
                 .icon
@@ -448,7 +456,7 @@ fn construct_enemies_menu(
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .with_tooltip(
             graphics::Text::new(
-                graphics::TextFragment::new("Reroll the enemy selection.\n[M]\nCost: 50g")
+                graphics::TextFragment::new(format!("Reroll the enemy selection.\n[M]\nCost: {}g", director.get_reroll_cost()))
                     .color(graphics::Color::from_rgb_u32(PALETTE[6])),
             )
             .set_scale(24.)

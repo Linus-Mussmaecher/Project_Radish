@@ -31,6 +31,8 @@ pub struct Director {
     wave_enemies: [usize; WAVE_SIZE],
     /// The enemy posse the director can select spawns from, containing their costs and a spawning function pointer.
     enemies: Vec<EnemyTemplate>,
+    /// The cost to reroll the current enemy selection
+    reroll_cost: i32,
 
     // --- CONFIGURATION ---
     /// The base amounts of credits per second
@@ -51,6 +53,7 @@ impl Director {
 
             wave_enemies: config.wave_enemies,
             enemies: templates::generate_templates(sprite_pool).unwrap_or_default(),
+            reroll_cost: 30,
 
             base_credits: config.base_credits,
             wave_credits: config.wave_credits,
@@ -78,13 +81,20 @@ impl Director {
         }
     }
 
+    /// Rerolls the currently selected enemies (and increases reroll cost).
     pub fn reroll_wave_enemies(&mut self) {
         // get 4 random indices of enemies
         for i in 0..WAVE_SIZE {
             self.wave_enemies[i] = rand::random::<usize>() % self.enemies.len();
         }
+        self.reroll_cost += 20;
         // sort the wave_enemies array
         self.wave_enemies.sort();
+    }
+
+    /// Returns the current cost of a reroll.
+    pub fn get_reroll_cost(&self) -> i32{
+        self.reroll_cost
     }
 }
 
@@ -168,6 +178,7 @@ pub fn direct(
                     director.wave as i32 + 1,
                 )));
                 director.reroll_wave_enemies();
+                director.reroll_cost = 30;
                 director.state = DirectorState::WaitingForMenu
             }
         }
