@@ -21,6 +21,8 @@ const ID_MANA_ADD: u32 = 222;
 const ID_SPELL_EQUIP_START: u32 = 223;
 const ID_SPELL_AVAIL_START: u32 = 230;
 
+const ID_BUILDINGS_START: u32 = 240;
+
 pub fn handle_wave_menu(
     messages: &game_state::MessageSet,
     gui: &mut mooeye::UiElement<game_state::GameMessage>,
@@ -29,6 +31,7 @@ pub fn handle_wave_menu(
     data: &mut game_state::game_data::GameData,
     caster: &mut game_state::components::SpellCaster,
     spell_pool: &mut game_state::components::spell::SpellPool,
+    buildings: &mut game_state::components::buildings::Buildings,
 ) {
     // if neccessary: Spawn wave menu
     if messages.iter().any(|message| {
@@ -43,10 +46,7 @@ pub fn handle_wave_menu(
     // enemies submenu
     if messages.contains(&UiMessage::Triggered(ID_ENEMIES)) {
         gui.remove_elements(ID_WAVE_SUBMENU);
-        gui.add_element(
-            ID_WAVE_SUBMENU_CONT,
-            construct_enemies_menu(ctx, &director),
-        );
+        gui.add_element(ID_WAVE_SUBMENU_CONT, construct_enemies_menu(ctx, &director));
     }
 
     // spells submenu
@@ -61,6 +61,10 @@ pub fn handle_wave_menu(
     // build submenu
     if messages.contains(&UiMessage::Triggered(ID_HOUSE)) {
         gui.remove_elements(ID_WAVE_SUBMENU);
+        gui.add_element(
+            ID_WAVE_SUBMENU_CONT,
+            construct_buildings_menu(ctx, buildings),
+        );
     }
 
     // Add spell slot
@@ -82,7 +86,7 @@ pub fn handle_wave_menu(
             &UiMessage::Triggered(id)
                 if id >= ID_SPELL_AVAIL_START
                     && id < ID_SPELL_AVAIL_START + spell_pool.1.len() as u32 =>
-            {   
+            {
                 let mut purchased = false;
                 // calculate index
                 let index = (id - ID_SPELL_AVAIL_START) as usize;
@@ -100,7 +104,7 @@ pub fn handle_wave_menu(
                     }
                 }
                 // if anything was purchased, increase cost of remaining spells
-                if purchased{
+                if purchased {
                     for spell in spell_pool.1.iter_mut() {
                         spell.cost += 30;
                     }
@@ -133,13 +137,22 @@ pub fn handle_wave_menu(
     }
 
     // reroll
-    if messages.contains(&UiMessage::Triggered(ID_REROLL)) && data.spend(director.get_reroll_cost()) {
+    if messages.contains(&UiMessage::Triggered(ID_REROLL)) 
+        && data.spend(director.get_reroll_cost())
+        && buildings.target[0] > 0
+    {
         director.reroll_wave_enemies();
         gui.remove_elements(ID_WAVE_SUBMENU);
-        gui.add_element(
-            ID_WAVE_SUBMENU_CONT,
-            construct_enemies_menu(ctx, &director),
-        );
+        gui.add_element(ID_WAVE_SUBMENU_CONT, construct_enemies_menu(ctx, &director));
+    }
+
+    // buildings
+    for i in 0..buildings.target.len() {
+        if messages.contains(&UiMessage::Triggered(ID_BUILDINGS_START + i as u32))
+            && data.spend(100)
+        {
+            buildings.target[i] += 1;
+        }
     }
 
     // close wave menu and activate next wave
@@ -456,8 +469,11 @@ fn construct_enemies_menu(
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .with_tooltip(
             graphics::Text::new(
-                graphics::TextFragment::new(format!("Reroll the enemy selection.\n[M]\nCost: {}g", director.get_reroll_cost()))
-                    .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                graphics::TextFragment::new(format!(
+                    "Reroll the enemy selection.\n[M]\nCost: {}g",
+                    director.get_reroll_cost()
+                ))
+                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
             )
             .set_scale(24.)
             .set_font("Retro")
@@ -588,6 +604,67 @@ fn construct_spell_menu(
         .with_child(loadout_title)
         .with_child(loadout)
         .with_child(mana)
+        .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Center)
+        .as_fill()
+        .build()
+}
+
+fn construct_buildings_menu(
+    ctx: &ggez::Context,
+    buildings: &mut game_state::components::buildings::Buildings,
+) -> UiElement<game_state::GameMessage> {
+    // ---- Enemy display and reroll ----
+
+    let title = graphics::Text::new(
+        graphics::TextFragment::new("Construct Buildings")
+            .color(graphics::Color::from_rgb_u32(PALETTE[8])),
+    )
+    .set_font("Retro")
+    .set_scale(40.)
+    .to_owned()
+    .to_element_builder(0, ctx)
+    .build();
+
+    let mut construct_box = containers::HorizontalBox::new_spaced(25.).to_element_builder(0, ctx);
+
+    let names = ["Watchtower", "Mage's Guild", "Forge"];
+
+    for i in 0..buildings.target.len() {
+        construct_box = construct_box.with_child(
+            sprite::Sprite::from_path_fmt("/sprites/environment/building_32_32.png", ctx, Duration::ZERO)
+                .expect("[ERROR] Missing building sprite.")
+                .to_element_builder(ID_BUILDINGS_START + i as u32, ctx)
+                .as_shrink()
+                .scaled(4., 4.)
+                .with_padding((10., 10., 10., 10.))
+                .with_visuals(super::BUTTON_VIS)
+                .with_hover_visuals(super::BUTTON_HOVER_VIS)
+                .with_tooltip(
+                    graphics::Text::new(
+                        graphics::TextFragment::new(format!(
+                            "{} the {}.\nCost: {}g",
+                            if buildings.target[i] == 0 {"Construct"} else {"Upgrade"},
+                            names.get(i).map(|n| *n).unwrap_or("weird building"),
+                            100,
+                        ))
+                        .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                    )
+                    .set_scale(24.)
+                    .set_font("Retro")
+                    .to_owned()
+                    .to_element_builder(0, ctx)
+                    .with_visuals(super::BUTTON_VIS)
+                    .build(),
+                )
+                .build(),
+        );
+    }
+
+    // Container
+    containers::VerticalBox::new_spaced(16.)
+        .to_element_builder(ID_WAVE_SUBMENU, ctx)
+        .with_child(title)
+        .with_child(construct_box.build())
         .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Center)
         .as_fill()
         .build()

@@ -12,6 +12,15 @@ pub struct Buildings {
     current: [u8; 3],
 }
 
+impl Buildings{
+    pub fn new() -> Self{
+        Self{
+            target: [0; 3],
+            current: [0; 3],
+        }
+    }
+}
+
 
 /// A system that check wether the target for a building level fits the current level and spawns buildings and sends messages as needed.
 #[system]
@@ -23,13 +32,13 @@ pub fn create_buildings(
 ) {
     // if 'target' is not 'current', spawn the appropriate building and send a message
 
-    for i in 0..3 {
+    for i in 0..buildings.target.len() {
         if buildings.target[i] > buildings.current[i] {
             // if building not yet built => spawn it
             if buildings.current[i] == 0 {
                 cmd.push((
                     super::Position::new(
-                        boundaries.w / 6. + boundaries.w * i as f32,
+                        boundaries.w / buildings.target.len() as f32 / 2. + boundaries.w * i as f32 / buildings.target.len() as f32,
                         boundaries.h + 32. + 8.,
                     ),
                     Building { building_type: i },

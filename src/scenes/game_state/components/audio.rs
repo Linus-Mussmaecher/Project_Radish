@@ -27,11 +27,8 @@ pub fn audio_play_system(
         match audio_pool.sources.get_mut(sound) {
             Some(sound) => {
                 sound.play_detached(ctx)?;
-                println!("Playing");
             }
-            None => {
-                println!("Not playing.")
-            }
+            None => {}
         };
     }
     audio_pool.sound_queue.clear();

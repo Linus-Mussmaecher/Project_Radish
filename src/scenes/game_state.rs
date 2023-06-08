@@ -83,12 +83,23 @@ impl scene_manager::Scene for GameState {
             if let Some(mut spell_pool) = self.resources.get_mut::<components::spell::SpellPool>();
             then{
 
+                let mut buildings = self.resources.get_mut::<components::buildings::Buildings>().unwrap();
+
                 // communicate with UI: Insert Game Messages and retrieve UI messages
                 let internal = self.gui.update(ctx, message_set.clone());
                 message_set.extend(&internal);
 
                 // handle wave menu
-                ui::wave_menu::handle_wave_menu(&message_set, &mut self.gui, ctx, &mut *director, &mut *data, caster, &mut *spell_pool);
+                ui::wave_menu::handle_wave_menu(
+                    &message_set,
+                    &mut self.gui,
+                    ctx,
+                    &mut *director,
+                    &mut *data,
+                    caster,
+                    &mut *spell_pool,
+                    &mut *buildings,
+                );
 
                 // handle listeners
                 for message in message_set.iter() {
@@ -216,6 +227,7 @@ impl GameState {
         resources.insert(spell_pool);
         resources.insert(sprite_pool);
         resources.insert(audio_pool);
+        resources.insert(components::buildings::Buildings::new());
 
         // --- SYSTEM REGISTRY / UI CONSTRUCTION / CONTROLLER INITIALIZATION ---
         Ok(Self {
