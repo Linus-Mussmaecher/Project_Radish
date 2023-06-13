@@ -26,6 +26,7 @@ pub struct BuildingInfo{
     pub level_costs: [u32; 6],
     pub name: &'static str,
     pub description: &'static str,
+    sprite: &'static str,
 }
 
 const BUILDING_INFO_LIST: [BuildingInfo; 3] = [
@@ -33,16 +34,19 @@ const BUILDING_INFO_LIST: [BuildingInfo; 3] = [
         level_costs: [100, 150, 200, 200, 200, 200],
         name: "Watchtower",
         description: "Allows you to reroll approaching enemies.",
+        sprite: "/sprites/environment/watchtower",
     },
     BuildingInfo{
         level_costs: [100, 150, 200, 200, 200, 200],
         name: "Mage's Guild",
         description: "Allows you to purchase higher level spells.",
+        sprite: "/sprites/environment/mageguild",
     },
     BuildingInfo{
         level_costs: [250, 250, 300, 300, 400, 400],
         name: "Mana Well",
         description: "Adds an additional spell slot per level.",
+        sprite: "/sprites/environment/manawell",
     },
 ];
 
@@ -50,6 +54,7 @@ const NO_BUILDING: BuildingInfo = BuildingInfo{
     level_costs: [0; 6],
     name: "No Building",
     description: "Does nothing. Should not exist",
+    sprite: "",
 };
 
 pub fn get_building_info(building: usize) -> &'static BuildingInfo{
@@ -93,7 +98,7 @@ pub fn create_buildings(
                             ),
                         ]
                     }),
-                    super::Graphics::new("/sprites/environment/building", Duration::ZERO)
+                    super::Graphics::new(BUILDING_INFO_LIST[i].sprite, Duration::from_secs_f32(0.3))
                         .with_sprite_variant(2),
                 ));
             }
