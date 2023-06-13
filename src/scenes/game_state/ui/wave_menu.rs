@@ -17,8 +17,7 @@ pub const ID_NEXT_WAVE: u32 = 204;
 
 const ID_REROLL: u32 = 221;
 
-const ID_MANA_ADD: u32 = 222;
-const ID_SPELL_EQUIP_START: u32 = 223;
+const ID_SPELL_EQUIP_START: u32 = 222;
 const ID_SPELL_AVAIL_START: u32 = 230;
 
 const ID_BUILDINGS_START: u32 = 240;
@@ -33,6 +32,9 @@ pub fn handle_wave_menu(
     spell_pool: &mut game_state::components::spell::SpellPool,
     buildings: &mut game_state::components::buildings::Buildings,
 ) {
+    // sync spellslots in case a building got destroyed
+    sync_spellslots(ctx, gui, caster, buildings);
+
     // if neccessary: Spawn wave menu
     if messages.iter().any(|message| {
         matches!(
@@ -64,16 +66,6 @@ pub fn handle_wave_menu(
         gui.add_element(
             ID_WAVE_SUBMENU_CONT,
             construct_buildings_menu(ctx, buildings),
-        );
-    }
-
-    // Add spell slot
-    if messages.contains(&UiMessage::Triggered(ID_MANA_ADD)) && caster.can_add() && data.spend(250)
-    {
-        caster.add_slot();
-        gui.add_element(
-            super::game_ui::ID_MANA_BAR,
-            super::game_ui::create_spellslot(ctx, caster.get_slots() - 1),
         );
     }
 
@@ -137,7 +129,7 @@ pub fn handle_wave_menu(
     }
 
     // reroll
-    if messages.contains(&UiMessage::Triggered(ID_REROLL)) 
+    if messages.contains(&UiMessage::Triggered(ID_REROLL))
         && data.spend(director.get_reroll_cost())
         && buildings.target[0] > 0
     {
@@ -149,9 +141,23 @@ pub fn handle_wave_menu(
     // buildings
     for i in 0..buildings.target.len() {
         if messages.contains(&UiMessage::Triggered(ID_BUILDINGS_START + i as u32))
-            && data.spend(100)
+            && data.spend(super::game_state::components::buildings::get_building_cost(
+                i,
+                buildings.target[i] as usize,
+            ) as i32)
+            && buildings.target[i] < 6
         {
             buildings.target[i] += 1;
+            // if it is the mana well, sync spell slots
+            if i == 2 && caster.can_add() {
+                sync_spellslots(ctx, gui, caster, buildings);
+            }
+            // rebuild menu
+            gui.remove_elements(ID_WAVE_SUBMENU);
+            gui.add_element(
+                ID_WAVE_SUBMENU_CONT,
+                construct_buildings_menu(ctx, buildings),
+            );
         }
     }
 
@@ -574,28 +580,6 @@ fn construct_spell_menu(
         .as_shrink()
         .build();
 
-    let mana = graphics::Image::from_path(ctx, "/sprites/ui/mana_add.png")
-        .expect("[ERROR] Missing mana sprite.")
-        .to_element_builder(ID_MANA_ADD, ctx)
-        .as_shrink()
-        .scaled(4., 4.)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::M)
-        .with_visuals(super::BUTTON_VIS)
-        .with_hover_visuals(super::BUTTON_HOVER_VIS)
-        .with_tooltip(
-            graphics::Text::new(
-                graphics::TextFragment::new("Purchase an additional spell slot.\nCost: 250g")
-                    .color(graphics::Color::from_rgb_u32(PALETTE[6])),
-            )
-            .set_scale(24.)
-            .set_font("Retro")
-            .to_owned()
-            .to_element_builder(0, ctx)
-            .with_visuals(super::BUTTON_VIS)
-            .build(),
-        )
-        .build();
-
     containers::VerticalBox::new_spaced(16.)
         .to_element_builder(ID_WAVE_SUBMENU, ctx)
         .with_child(title)
@@ -603,7 +587,6 @@ fn construct_spell_menu(
         .with_child(available)
         .with_child(loadout_title)
         .with_child(loadout)
-        .with_child(mana)
         .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Center)
         .as_fill()
         .build()
@@ -627,36 +610,54 @@ fn construct_buildings_menu(
 
     let mut construct_box = containers::HorizontalBox::new_spaced(25.).to_element_builder(0, ctx);
 
-    let names = ["Watchtower", "Mage's Guild", "Forge"];
+    let names = ["Watchtower", "Mage's Guild", "Mana Well"];
 
     for i in 0..buildings.target.len() {
         construct_box = construct_box.with_child(
-            sprite::Sprite::from_path_fmt("/sprites/environment/building_32_32.png", ctx, Duration::ZERO)
-                .expect("[ERROR] Missing building sprite.")
-                .to_element_builder(ID_BUILDINGS_START + i as u32, ctx)
-                .as_shrink()
-                .scaled(4., 4.)
-                .with_padding((10., 10., 10., 10.))
-                .with_visuals(super::BUTTON_VIS)
-                .with_hover_visuals(super::BUTTON_HOVER_VIS)
-                .with_tooltip(
-                    graphics::Text::new(
-                        graphics::TextFragment::new(format!(
+            sprite::Sprite::from_path_fmt(
+                "/sprites/environment/building_32_32.png",
+                ctx,
+                Duration::ZERO,
+            )
+            .expect("[ERROR] Missing building sprite.")
+            .to_element_builder(ID_BUILDINGS_START + i as u32, ctx)
+            .as_shrink()
+            .scaled(4., 4.)
+            .with_padding((10., 10., 10., 10.))
+            .with_visuals(super::BUTTON_VIS)
+            .with_hover_visuals(super::BUTTON_HOVER_VIS)
+            .with_tooltip(
+                graphics::Text::new(
+                    graphics::TextFragment::new(if buildings.target[i] < 6 {
+                        format!(
                             "{} the {}.\nCost: {}g",
-                            if buildings.target[i] == 0 {"Construct"} else {"Upgrade"},
-                            names.get(i).map(|n| *n).unwrap_or("weird building"),
-                            100,
-                        ))
-                        .color(graphics::Color::from_rgb_u32(PALETTE[6])),
-                    )
-                    .set_scale(24.)
-                    .set_font("Retro")
-                    .to_owned()
-                    .to_element_builder(0, ctx)
-                    .with_visuals(super::BUTTON_VIS)
-                    .build(),
+                            if buildings.target[i] == 0 {
+                                "Construct"
+                            } else {
+                                "Upgrade"
+                            },
+                            names.get(i).unwrap_or(&"Weird building"),
+                            super::game_state::components::buildings::get_building_cost(
+                                i,
+                                buildings.target[i] as usize
+                            ),
+                        )
+                    } else {
+                        format!(
+                            "{} is fully upgraded.",
+                            names.get(i).unwrap_or(&"Weird building")
+                        )
+                    })
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6])),
                 )
+                .set_scale(24.)
+                .set_font("Retro")
+                .to_owned()
+                .to_element_builder(0, ctx)
+                .with_visuals(super::BUTTON_VIS)
                 .build(),
+            )
+            .build(),
         );
     }
 
@@ -701,4 +702,22 @@ fn construct_wave_announcer(ctx: &ggez::Context, wave: u32) -> UiElement<game_st
     );
 
     dur
+}
+
+fn sync_spellslots(
+    ctx: &ggez::Context,
+    gui: &mut mooeye::UiElement<game_state::GameMessage>,
+    caster: &mut game_state::components::SpellCaster,
+    buildings: &mut game_state::components::buildings::Buildings,
+) {
+    // game sync
+    caster.set_slots(buildings.target[2] as usize + 3);
+    // ui sync
+    gui.remove_elements(super::game_ui::ID_MANA_SLOT);
+    for i in 0..caster.get_slots() {
+        gui.add_element(
+            super::game_ui::ID_MANA_BAR,
+            super::game_ui::create_spellslot(ctx, i),
+        );
+    }
 }

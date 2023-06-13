@@ -109,8 +109,11 @@ impl SpellCaster {
     }
 
     /// Adds a new spell slot to this entity.
-    pub fn add_slot(&mut self) {
-        if self.spell_slots.len() < MAX_SPELL_SLOTS {
+    pub fn set_slots(&mut self, slots: usize) {
+        // cutoff if smaller
+        self.spell_slots.truncate(slots);
+        // add if bigger
+        for _ in 0.. slots-self.spell_slots.len(){
             self.spell_slots.push(Default::default());
         }
     }

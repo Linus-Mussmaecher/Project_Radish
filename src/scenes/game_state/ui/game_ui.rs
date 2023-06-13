@@ -12,6 +12,7 @@ use crate::PALETTE;
 pub const ID_SPELL_BAR: u32 = 60;
 pub const ID_SPELL_BAR_CHILDREN: u32 = 61;
 pub const ID_MANA_BAR: u32 = 50;
+pub const ID_MANA_SLOT: u32 = 51;
 
 /// Constructs the UiElement that forms the main UI of the game.
 /// Consists of
@@ -239,7 +240,7 @@ pub fn create_spellslot(ctx: &ggez::Context, i: usize) -> UiElement<game_state::
     stack.add(mana);
 
     stack
-        .to_element_builder(0, ctx)
+        .to_element_builder(ID_MANA_SLOT, ctx)
         .with_wrapper_layout(mana_layout)
         .build()
 }

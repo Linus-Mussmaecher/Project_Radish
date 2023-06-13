@@ -12,15 +12,27 @@ pub struct Buildings {
     current: [u8; 3],
 }
 
-impl Buildings{
-    pub fn new() -> Self{
-        Self{
+impl Buildings {
+    pub fn new() -> Self {
+        Self {
             target: [0; 3],
             current: [0; 3],
         }
     }
 }
 
+const BUILDING_COST_LIST: [[u32; 6]; 3] = [
+    [100, 150, 200, 200, 200, 200],
+    [100, 150, 200, 200, 200, 200],
+    [250, 250, 300, 300, 400, 400],
+];
+
+pub fn get_building_cost(building: usize, curr_level: usize) -> u32{
+    *BUILDING_COST_LIST
+        .get(building)
+        .map(|lvl_cost| lvl_cost.get(curr_level).unwrap_or(&0))
+        .unwrap_or(&0)
+}
 
 /// A system that check wether the target for a building level fits the current level and spawns buildings and sends messages as needed.
 #[system]
@@ -38,15 +50,29 @@ pub fn create_buildings(
             if buildings.current[i] == 0 {
                 cmd.push((
                     super::Position::new(
-                        boundaries.w / buildings.target.len() as f32 / 2. + boundaries.w * i as f32 / buildings.target.len() as f32,
+                        boundaries.w / buildings.target.len() as f32 / 2.
+                            + boundaries.w * i as f32 / buildings.target.len() as f32,
                         boundaries.h + 32. + 8.,
                     ),
                     Building { building_type: i },
-                    super::Collision::new(4. * 32., 2. * 32., |e1, e2| vec![
-                        (e1, super::actions::GameAction::Remove(super::actions::RemoveSource::BuildingCollision)),
-                        (e2, super::actions::GameAction::Remove(super::actions::RemoveSource::BuildingCollision)),
-                    ]),
-                    super::Graphics::new("/sprites/environment/building", Duration::ZERO).with_sprite_variant(2),
+                    super::Collision::new(4. * 32., 2. * 32., |e1, e2| {
+                        vec![
+                            (
+                                e1,
+                                super::actions::GameAction::Remove(
+                                    super::actions::RemoveSource::BuildingCollision,
+                                ),
+                            ),
+                            (
+                                e2,
+                                super::actions::GameAction::Remove(
+                                    super::actions::RemoveSource::BuildingCollision,
+                                ),
+                            ),
+                        ]
+                    }),
+                    super::Graphics::new("/sprites/environment/building", Duration::ZERO)
+                        .with_sprite_variant(2),
                 ));
             }
             // inform everyone
@@ -55,7 +81,7 @@ pub fn create_buildings(
             ));
             // update current
             buildings.current[i] = buildings.target[i];
-        } else if buildings.target[i] < buildings.current[i]{
+        } else if buildings.target[i] < buildings.current[i] {
             // inform everyone of downlevel
             message_set.insert(mooeye::UiMessage::Extern(
                 super::super::game_message::GameMessage::BuildingDown(i, buildings.target[i]),
