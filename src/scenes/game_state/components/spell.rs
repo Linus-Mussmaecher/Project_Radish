@@ -302,7 +302,7 @@ impl SpellTemplate {
         .build();
 
         let guild = graphics::Text::new(
-            graphics::TextFragment::new(format!("{}", self.guild_condition))
+            graphics::TextFragment::new(format!(" {} ", self.guild_condition))
                 .color(graphics::Color::from_rgb_u32(PALETTE[14])),
         )
         .set_scale(16.)

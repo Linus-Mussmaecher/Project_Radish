@@ -47,7 +47,10 @@ pub fn handle_wave_menu(
     // enemies submenu
     if messages.contains(&UiMessage::Triggered(ID_ENEMIES)) {
         gui.remove_elements(ID_WAVE_SUBMENU);
-        gui.add_element(ID_WAVE_SUBMENU_CONT, construct_enemies_menu(ctx, &director, buildings));
+        gui.add_element(
+            ID_WAVE_SUBMENU_CONT,
+            construct_enemies_menu(ctx, &director, buildings),
+        );
     }
 
     // spells submenu
@@ -84,7 +87,10 @@ pub fn handle_wave_menu(
                 // check if a spell is at that index
                 if let Some(template) = spell_pool.1.get_mut(index) {
                     // if spell was not yet purchased, attempt to purchase it
-                    if template.level == 0 && buildings.target[1] >= template.guild_condition && data.spend(template.cost) {
+                    if template.level == 0
+                        && buildings.target[1] >= template.guild_condition
+                        && data.spend(template.cost)
+                    {
                         template.level = 1;
                         purchased = true;
                     }
@@ -134,7 +140,10 @@ pub fn handle_wave_menu(
     {
         director.reroll_wave_enemies();
         gui.remove_elements(ID_WAVE_SUBMENU);
-        gui.add_element(ID_WAVE_SUBMENU_CONT, construct_enemies_menu(ctx, &director, buildings));
+        gui.add_element(
+            ID_WAVE_SUBMENU_CONT,
+            construct_enemies_menu(ctx, &director, buildings),
+        );
     }
 
     // buildings
@@ -616,15 +625,15 @@ fn construct_buildings_menu(
 
     let mut construct_box = containers::HorizontalBox::new_spaced(25.).to_element_builder(0, ctx);
 
+    let icons = [
+        "/sprites/ui/looking_glass.png",
+        "/sprites/ui/potion.png",
+        "/sprites/ui/mana_add.png",
+    ];
+
     for i in 0..buildings.target.len() {
         let info = super::game_state::components::buildings::get_building_info(i);
-
-        construct_box = construct_box.with_child(
-            sprite::Sprite::from_path_fmt(
-                "/sprites/environment/building_32_32.png",
-                ctx,
-                Duration::ZERO,
-            )
+        let build = graphics::Image::from_path(ctx, icons[i])
             .expect("[ERROR] Missing building sprite.")
             .to_element_builder(ID_BUILDINGS_START + i as u32, ctx)
             .as_shrink()
@@ -659,7 +668,33 @@ fn construct_buildings_menu(
                 .with_visuals(super::BUTTON_VIS)
                 .build(),
             )
-            .build(),
+            .build();
+
+        let level = graphics::Text::new(
+            graphics::TextFragment::new(format!(" {} ", buildings.target[i]))
+                .color(graphics::Color::from_rgb_u32(PALETTE[14])),
+        )
+        .set_scale(24.)
+        .set_font("Retro")
+        .to_owned()
+        .to_element_builder(0, ctx)
+        .with_padding((2., 2., 2., 2.))
+        .with_visuals(ui_element::Visuals {
+            background: graphics::Color::from_rgb_u32(PALETTE[4]),
+            border: graphics::Color::from_rgb_u32(PALETTE[4]),
+            border_widths: [0.; 4],
+            corner_radii: [14.; 4],
+        })
+        .as_shrink()
+        .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Max)
+        .build();
+
+        construct_box = construct_box.with_child(
+            containers::StackBox::new()
+                .to_element_builder(0, ctx)
+                .with_child(level)
+                .with_child(build)
+                .build(),
         );
     }
 

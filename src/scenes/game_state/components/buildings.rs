@@ -93,7 +93,7 @@ pub fn create_buildings(
                             (
                                 e2,
                                 super::actions::GameAction::Remove(
-                                    super::actions::RemoveSource::BuildingCollision,
+                                    super::actions::RemoveSource::EnemyReachedBottom,
                                 ),
                             ),
                         ]
