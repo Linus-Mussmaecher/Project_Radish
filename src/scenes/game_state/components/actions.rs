@@ -62,6 +62,11 @@ impl GameAction {
             spawner: Box::new(spawner),
         })
     }
+
+    /// Helper function to create a [GameAction::PlaySound] with a string slice
+    pub fn play_sound(path: &str) -> Self{
+        Self::PlaySound(path.to_owned())
+    }
 }
 
 impl Default for GameAction {

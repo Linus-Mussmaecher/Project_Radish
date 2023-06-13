@@ -15,24 +15,27 @@ pub(super) fn construct_fireball(sprite_pool: &SpritePool) -> Spell {
         "Fireball",
         "Hurl a ball of fire, dealing a small amount of damage.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/fireball", Duration::ZERO),
-        GameAction::spawn(|_, pos, cmd| {
-            cmd.push((
-                pos,
-                components::LifeDuration::new(Duration::from_secs(10)),
-                components::Graphics::new(
-                    "/sprites/spells/fireball",
-                    Duration::from_secs_f32(0.2),
-                ),
-                components::Velocity::new(0., -250.),
-                components::Collision::new(32., 32., |e1, e2| {
-                    vec![
-                        (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
-                        (e2, GameAction::TakeDamage { dmg: 20 }),
-                        (e1, GameAction::PlaySound("/audio/sounds/explosion".to_owned()))
-                    ]
-                }),
-            ));
-        }),
+        vec![
+            GameAction::spawn(|_, pos, cmd| {
+                cmd.push((
+                    pos,
+                    components::LifeDuration::new(Duration::from_secs(10)),
+                    components::Graphics::new(
+                        "/sprites/spells/fireball",
+                        Duration::from_secs_f32(0.2),
+                    ),
+                    components::Velocity::new(0., -250.),
+                    components::Collision::new(32., 32., |e1, e2| {
+                        vec![
+                            (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
+                            (e2, GameAction::TakeDamage { dmg: 20 }),
+                            (e1, GameAction::play_sound("/audio/sounds/explosion")),
+                        ]
+                    }),
+                ));
+            }),
+            GameAction::play_sound("/audio/sounds/fireball_cast"),
+        ],
         tiny_vec!([f32; MAX_SPELL_SLOTS] => 2.5),
     )
 }
@@ -43,7 +46,7 @@ pub(super) fn construct_ice_bomb(sprite_pool: &SpritePool) -> Spell {
         "Launch a fast icy projectile that deals high damage on impact and drops an ice crystal that slows nearby enemies and deals area damage when exploding.",
         sprite_pool
             .init_sprite_unchecked("/sprites/spells/icebomb", Duration::ZERO),
-        GameAction::spawn(|_, pos, cmd| {
+        vec![GameAction::spawn(|_, pos, cmd| {
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(10)),
@@ -55,25 +58,25 @@ pub(super) fn construct_ice_bomb(sprite_pool: &SpritePool) -> Spell {
                 components::Collision::new(32., 32., |e1, e2|
                         vec![
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
+                            (e1, GameAction::play_sound("/audio/sounds/ice_hit")),
                             (e2, GameAction::TakeDamage { dmg: 25 }),
                             (e1, GameAction::spawn(spawn_icebomb)),
                         ],
                 ),
             ));
         }),
+        GameAction::play_sound("/audio/sounds/ice_cast")
+        ],
         tiny_vec!([f32; MAX_SPELL_SLOTS] => 1.5, 5.),
     )
 }
 
-fn spawn_icebomb(
-    _: Entity,
-    pos: components::Position,
-    cmd: &mut CommandBuffer,
-) {
+fn spawn_icebomb(_: Entity, pos: components::Position, cmd: &mut CommandBuffer) {
     cmd.push((
         pos,
         components::LifeDuration::new(Duration::from_secs(5)),
-        components::Graphics::new("/sprites/spells/icepulse", Duration::from_secs_f32(0.25)).with_sprite_variant(1),
+        components::Graphics::new("/sprites/spells/icepulse", Duration::from_secs_f32(0.25))
+            .with_sprite_variant(1),
         components::actions::Actions::new()
             .with_effect(
                 ActionEffect::once(
@@ -124,6 +127,7 @@ pub(super) fn construct_lightning_orb(sprite_pool: &SpritePool) -> Spell {
                                 )
                                 .into(),
                             ),
+                            (e1, GameAction::play_sound("/audio/sounds/shock"))
                         ],),
             ));
         }),
