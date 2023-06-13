@@ -17,10 +17,10 @@ pub const ID_NEXT_WAVE: u32 = 204;
 
 const ID_REROLL: u32 = 221;
 
-const ID_SPELL_EQUIP_START: u32 = 222;
-const ID_SPELL_AVAIL_START: u32 = 230;
+const ID_BUILDINGS_START: u32 = 222;
 
-const ID_BUILDINGS_START: u32 = 240;
+const ID_SPELL_EQUIP_START: u32 = 230;
+const ID_SPELL_AVAIL_START: u32 = 240;
 
 pub fn handle_wave_menu(
     messages: &game_state::MessageSet,
@@ -32,9 +32,6 @@ pub fn handle_wave_menu(
     spell_pool: &mut game_state::components::spell::SpellPool,
     buildings: &mut game_state::components::buildings::Buildings,
 ) {
-    // sync spellslots in case a building got destroyed
-    sync_spellslots(ctx, gui, caster, buildings);
-
     // if neccessary: Spawn wave menu
     if messages.iter().any(|message| {
         matches!(
@@ -43,12 +40,14 @@ pub fn handle_wave_menu(
         )
     }) {
         gui.add_element(0, construct_wave_menu(ctx, director.get_wave()));
+        // sync spellslots in case a building got destroyed
+        sync_spellslots(ctx, gui, caster, buildings);
     }
 
     // enemies submenu
     if messages.contains(&UiMessage::Triggered(ID_ENEMIES)) {
         gui.remove_elements(ID_WAVE_SUBMENU);
-        gui.add_element(ID_WAVE_SUBMENU_CONT, construct_enemies_menu(ctx, &director));
+        gui.add_element(ID_WAVE_SUBMENU_CONT, construct_enemies_menu(ctx, &director, buildings));
     }
 
     // spells submenu
@@ -56,7 +55,7 @@ pub fn handle_wave_menu(
         gui.remove_elements(ID_WAVE_SUBMENU);
         gui.add_element(
             ID_WAVE_SUBMENU_CONT,
-            construct_spell_menu(ctx, caster, spell_pool),
+            construct_spell_menu(ctx, caster, spell_pool, buildings),
         );
     }
 
@@ -85,7 +84,7 @@ pub fn handle_wave_menu(
                 // check if a spell is at that index
                 if let Some(template) = spell_pool.1.get_mut(index) {
                     // if spell was not yet purchased, attempt to purchase it
-                    if template.level == 0 && data.spend(template.cost) {
+                    if template.level == 0 && buildings.target[1] >= template.guild_condition && data.spend(template.cost) {
                         template.level = 1;
                         purchased = true;
                     }
@@ -123,7 +122,7 @@ pub fn handle_wave_menu(
             gui.remove_elements(ID_WAVE_SUBMENU);
             gui.add_element(
                 ID_WAVE_SUBMENU_CONT,
-                construct_spell_menu(ctx, caster, spell_pool),
+                construct_spell_menu(ctx, caster, spell_pool, buildings),
             );
         }
     }
@@ -135,17 +134,18 @@ pub fn handle_wave_menu(
     {
         director.reroll_wave_enemies();
         gui.remove_elements(ID_WAVE_SUBMENU);
-        gui.add_element(ID_WAVE_SUBMENU_CONT, construct_enemies_menu(ctx, &director));
+        gui.add_element(ID_WAVE_SUBMENU_CONT, construct_enemies_menu(ctx, &director, buildings));
     }
 
     // buildings
     for i in 0..buildings.target.len() {
+        let index = buildings.target[i] as usize;
         if messages.contains(&UiMessage::Triggered(ID_BUILDINGS_START + i as u32))
-            && data.spend(super::game_state::components::buildings::get_building_cost(
-                i,
-                buildings.target[i] as usize,
-            ) as i32)
-            && buildings.target[i] < 6
+            && index < 6
+            && data.spend(
+                super::game_state::components::buildings::get_building_info(i).level_costs[index]
+                    as i32,
+            )
         {
             buildings.target[i] += 1;
             // if it is the mana well, sync spell slots
@@ -413,6 +413,7 @@ fn construct_wave_menu(
 fn construct_enemies_menu(
     ctx: &ggez::Context,
     director: &super::game_state::director::Director,
+    buildings: &mut game_state::components::buildings::Buildings,
 ) -> UiElement<game_state::GameMessage> {
     // ---- Enemy display and reroll ----
 
@@ -475,10 +476,14 @@ fn construct_enemies_menu(
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .with_tooltip(
             graphics::Text::new(
-                graphics::TextFragment::new(format!(
-                    "Reroll the enemy selection.\n[M]\nCost: {}g",
-                    director.get_reroll_cost()
-                ))
+                graphics::TextFragment::new(if buildings.target[0] == 0 {
+                    "Purchase the watchtower to reroll enemy waves.".to_owned()
+                } else {
+                    format!(
+                        "Reroll the enemy selection.\n[M]\nCost: {}g",
+                        director.get_reroll_cost()
+                    )
+                })
                 .color(graphics::Color::from_rgb_u32(PALETTE[6])),
             )
             .set_scale(24.)
@@ -511,6 +516,7 @@ fn construct_spell_menu(
     ctx: &ggez::Context,
     caster: &mut game_state::components::SpellCaster,
     spell_pool: &game_state::components::spell::SpellPool,
+    buildings: &game_state::components::buildings::Buildings,
 ) -> UiElement<game_state::GameMessage> {
     // ---- Title ----
 
@@ -543,7 +549,7 @@ fn construct_spell_menu(
             containers::GridBox::new_spaced(6, 4, 8., 8.),
             |mut gbox, (ind, template)| {
                 gbox.add(
-                    template.info_element_small(ID_SPELL_AVAIL_START + ind as u32, ctx),
+                    template.info_element_small(ID_SPELL_AVAIL_START + ind as u32, ctx, buildings),
                     ind % 6,
                     ind / 6,
                 )
@@ -610,9 +616,9 @@ fn construct_buildings_menu(
 
     let mut construct_box = containers::HorizontalBox::new_spaced(25.).to_element_builder(0, ctx);
 
-    let names = ["Watchtower", "Mage's Guild", "Mana Well"];
-
     for i in 0..buildings.target.len() {
+        let info = super::game_state::components::buildings::get_building_info(i);
+
         construct_box = construct_box.with_child(
             sprite::Sprite::from_path_fmt(
                 "/sprites/environment/building_32_32.png",
@@ -630,23 +636,19 @@ fn construct_buildings_menu(
                 graphics::Text::new(
                     graphics::TextFragment::new(if buildings.target[i] < 6 {
                         format!(
-                            "{} the {}.\nCost: {}g",
+                            "{} the {}.\nCurrent level: {}\n{}\nCost: {}g",
                             if buildings.target[i] == 0 {
                                 "Construct"
                             } else {
                                 "Upgrade"
                             },
-                            names.get(i).unwrap_or(&"Weird building"),
-                            super::game_state::components::buildings::get_building_cost(
-                                i,
-                                buildings.target[i] as usize
-                            ),
+                            info.name,
+                            buildings.target[i],
+                            info.description,
+                            info.level_costs[buildings.target[i] as usize],
                         )
                     } else {
-                        format!(
-                            "{} is fully upgraded.",
-                            names.get(i).unwrap_or(&"Weird building")
-                        )
+                        format!("{} is fully upgraded at level 6.", info.name,)
                     })
                     .color(graphics::Color::from_rgb_u32(PALETTE[6])),
                 )
@@ -711,7 +713,7 @@ fn sync_spellslots(
     buildings: &mut game_state::components::buildings::Buildings,
 ) {
     // game sync
-    caster.set_slots(buildings.target[2] as usize + 3);
+    caster.set_extra_slots(buildings.target[2] as usize);
     // ui sync
     gui.remove_elements(super::game_ui::ID_MANA_SLOT);
     for i in 0..caster.get_slots() {

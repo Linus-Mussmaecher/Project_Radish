@@ -30,24 +30,33 @@ pub fn init_spell_pool(
         vec![
             SpellTemplate::new(spell_list::construct_fireball(sprite_pool), 50).purchased(),
             SpellTemplate::new(spell_list::construct_ice_bomb(sprite_pool), 75).purchased(),
-            SpellTemplate::new(spell_list::construct_lightning_orb(sprite_pool), 90),
-            SpellTemplate::new(spell_list::construct_conflagrate(sprite_pool), 110), //4
+            SpellTemplate::new(spell_list::construct_lightning_orb(sprite_pool), 90)
+                .guild_condition(1),
+            SpellTemplate::new(spell_list::construct_conflagrate(sprite_pool), 110)//4
+                .guild_condition(1), 
             SpellTemplate::new(spell_list::construct_shard(sprite_pool), 60),
-            SpellTemplate::new(spell_list::construct_ice_lance(sprite_pool), 80),
-            SpellTemplate::new(spell_list::construct_scorch(sprite_pool), 90),
-            SpellTemplate::new(spell_list::construct_overload(sprite_pool), 120), //8
+            SpellTemplate::new(spell_list::construct_ice_lance(sprite_pool), 80).guild_condition(1),
+            SpellTemplate::new(spell_list::construct_scorch(sprite_pool), 90).guild_condition(2),
+            SpellTemplate::new(spell_list::construct_overload(sprite_pool), 120) //8
+                .guild_condition(3),
             SpellTemplate::new(spell_list::construct_arcane_missiles(sprite_pool), 150)
-                .achievement_condition(achievements.list.get(6), sprite_pool),
+                .achievement_condition(achievements.list.get(6), sprite_pool)
+                .guild_condition(3),
             SpellTemplate::new(spell_list::construct_arcane_blast(sprite_pool), 140)
-                .achievement_condition(achievements.list.get(6), sprite_pool),
+                .achievement_condition(achievements.list.get(6), sprite_pool)
+                .guild_condition(4),
             SpellTemplate::new(spell_list::construct_blackhole(sprite_pool), 200)
-                .achievement_condition(achievements.list.get(3), sprite_pool),
+                .achievement_condition(achievements.list.get(3), sprite_pool)
+                .guild_condition(4),
             SpellTemplate::new(spell_list::construct_mind_wipe(sprite_pool), 200) //12
-                .achievement_condition(achievements.list.get(9), sprite_pool),
+                .achievement_condition(achievements.list.get(9), sprite_pool)
+                .guild_condition(5),
             SpellTemplate::new(spell_list::construct_mortar(sprite_pool), 145)
-                .achievement_condition(achievements.list.get(5), sprite_pool),
+                .achievement_condition(achievements.list.get(5), sprite_pool)
+                .guild_condition(6),
             SpellTemplate::new(spell_list::construct_lightning_ball(sprite_pool), 145) // 14
-                .achievement_condition(achievements.list.get(10), sprite_pool),
+                .achievement_condition(achievements.list.get(10), sprite_pool)
+                .guild_condition(6),
         ],
     )
 }
@@ -77,6 +86,8 @@ pub struct SpellCaster {
     spell_slots: TinyVec<[(Duration, Duration); MAX_SPELL_SLOTS]>,
     /// The list of spells this caster can cast.
     spells: Vec<Spell>,
+    /// the amount of slots this element started with
+    base_slots: usize,
 }
 
 impl SpellCaster {
@@ -91,6 +102,7 @@ impl SpellCaster {
                 }
                 vec
             },
+            base_slots: init_slots,
         }
     }
 
@@ -109,11 +121,11 @@ impl SpellCaster {
     }
 
     /// Adds a new spell slot to this entity.
-    pub fn set_slots(&mut self, slots: usize) {
+    pub fn set_extra_slots(&mut self, slots: usize) {
         // cutoff if smaller
-        self.spell_slots.truncate(slots);
+        self.spell_slots.truncate(slots + self.base_slots);
         // add if bigger
-        for _ in 0.. slots-self.spell_slots.len(){
+        for _ in 0..(slots + self.base_slots) - self.spell_slots.len() {
             self.spell_slots.push(Default::default());
         }
     }
@@ -210,6 +222,8 @@ pub struct SpellTemplate {
     pub cost: i32,
     /// The spell itself.
     pub spell: Spell,
+    /// Describes the required level on the mage's guild.
+    pub guild_condition: u8,
 }
 
 impl SpellTemplate {
@@ -219,6 +233,7 @@ impl SpellTemplate {
             level: 0,
             cost,
             spell,
+            guild_condition: 0,
         }
     }
 
@@ -252,11 +267,18 @@ impl SpellTemplate {
         self
     }
 
+    /// Modifies the template based on a required level of the mages guild:
+    pub fn guild_condition(mut self, level: u8) -> Self {
+        self.guild_condition = level;
+        self
+    }
+
     /// Returns a small UiElement representing this spell template, consisting of the icon and a tooltip.
     pub fn info_element_small<T: Copy + Eq + std::hash::Hash + 'static>(
         &self,
         id: u32,
         ctx: &ggez::Context,
+        buildings: &super::buildings::Buildings,
     ) -> mooeye::UiElement<T> {
         let icon = self.spell.info_element_small(0, ctx);
 
@@ -279,6 +301,25 @@ impl SpellTemplate {
         .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Max)
         .build();
 
+        let guild = graphics::Text::new(
+            graphics::TextFragment::new(format!("{}", self.guild_condition))
+                .color(graphics::Color::from_rgb_u32(PALETTE[14])),
+        )
+        .set_scale(16.)
+        .set_font("Retro")
+        .to_owned()
+        .to_element_builder(0, ctx)
+        .with_padding((2., 2., 2., 2.))
+        .with_visuals(ui_element::Visuals {
+            background: graphics::Color::from_rgb_u32(PALETTE[4]),
+            border: graphics::Color::from_rgb_u32(PALETTE[4]),
+            border_widths: [0.; 4],
+            corner_radii: [10.; 4],
+        })
+        .as_shrink()
+        .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Min)
+        .build();
+
         containers::StackBox::new()
             .to_element_builder(id, ctx)
             .with_wrapper_layout(icon.get_layout())
@@ -286,6 +327,11 @@ impl SpellTemplate {
                 cost
             } else {
                 ().to_element(0, ctx)
+            })
+            .with_child(if buildings.target[1] >= self.guild_condition {
+                ().to_element(0, ctx)
+            } else {
+                guild
             })
             .with_child(
                 crate::scenes::game_state::ui::game_ui::Covering::new(

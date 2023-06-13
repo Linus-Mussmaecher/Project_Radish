@@ -21,17 +21,39 @@ impl Buildings {
     }
 }
 
-const BUILDING_COST_LIST: [[u32; 6]; 3] = [
-    [100, 150, 200, 200, 200, 200],
-    [100, 150, 200, 200, 200, 200],
-    [250, 250, 300, 300, 400, 400],
+#[derive(Debug, Clone)]
+pub struct BuildingInfo{
+    pub level_costs: [u32; 6],
+    pub name: &'static str,
+    pub description: &'static str,
+}
+
+const BUILDING_INFO_LIST: [BuildingInfo; 3] = [
+    BuildingInfo{
+        level_costs: [100, 150, 200, 200, 200, 200],
+        name: "Watchtower",
+        description: "Allows you to reroll approaching enemies.",
+    },
+    BuildingInfo{
+        level_costs: [100, 150, 200, 200, 200, 200],
+        name: "Mage's Guild",
+        description: "Allows you to purchase higher level spells.",
+    },
+    BuildingInfo{
+        level_costs: [250, 250, 300, 300, 400, 400],
+        name: "Mana Well",
+        description: "Adds an additional spell slot per level.",
+    },
 ];
 
-pub fn get_building_cost(building: usize, curr_level: usize) -> u32{
-    *BUILDING_COST_LIST
-        .get(building)
-        .map(|lvl_cost| lvl_cost.get(curr_level).unwrap_or(&0))
-        .unwrap_or(&0)
+const NO_BUILDING: BuildingInfo = BuildingInfo{
+    level_costs: [0; 6],
+    name: "No Building",
+    description: "Does nothing. Should not exist",
+};
+
+pub fn get_building_info(building: usize) -> &'static BuildingInfo{
+    BUILDING_INFO_LIST.get(building).unwrap_or(&NO_BUILDING)
 }
 
 /// A system that check wether the target for a building level fits the current level and spawns buildings and sends messages as needed.
