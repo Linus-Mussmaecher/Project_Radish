@@ -1,4 +1,4 @@
-use std::{time::Duration, intrinsics::variant_count};
+use std::{time::Duration};
 
 use legion::{system, systems::CommandBuffer};
 
