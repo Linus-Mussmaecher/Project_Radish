@@ -37,9 +37,10 @@ impl OptionsMenu {
         .set_scale(24.)
         .to_owned()
         .to_element_builder(1, ctx)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::R)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::R)
+        
         .build();
 
         let back = graphics::Text::new(
@@ -173,9 +174,16 @@ fn create_sould_adjuster(ctx: &ggez::Context, id_start: u32, value: f32) -> mooe
             .set_font("Retro")
             .set_scale(24.)
             .to_owned()
-            .to_element_builder(id_start + 1, ctx)
-            .with_visuals(super::BUTTON_VIS)
-            .with_hover_visuals(super::BUTTON_HOVER_VIS)
+            .to_element_builder(id_start + 1, ctx).with_visuals(ui_element::Visuals{
+                corner_radii: [0., 0., 3., 3.],
+                border_widths: [3., 1.5, 3., 3.], 
+                ..super::BUTTON_VIS
+            })
+            .with_hover_visuals(ui_element::Visuals{
+                corner_radii: [0., 0., 3., 3.],
+                border_widths: [3., 1.5, 3., 3.], 
+                ..super::BUTTON_HOVER_VIS
+            })
             .build(),
         )
         .with_child(
@@ -186,8 +194,11 @@ fn create_sould_adjuster(ctx: &ggez::Context, id_start: u32, value: f32) -> mooe
             .set_font("Retro")
             .set_scale(24.)
             .to_owned()
-            .to_element_builder(0, ctx)
-            .with_visuals(super::BUTTON_VIS)
+            .to_element_builder(0, ctx).with_visuals(ui_element::Visuals{
+                corner_radii: [0.; 4],
+                border_widths: [3., 1.5, 3., 1.5], 
+                ..super::BUTTON_VIS
+            })
             .build(),
         )
         .with_child(
@@ -198,8 +209,16 @@ fn create_sould_adjuster(ctx: &ggez::Context, id_start: u32, value: f32) -> mooe
             .set_scale(24.)
             .to_owned()
             .to_element_builder(id_start + 2, ctx)
-            .with_visuals(super::BUTTON_VIS)
-            .with_hover_visuals(super::BUTTON_HOVER_VIS)
+            .with_visuals(ui_element::Visuals{
+                corner_radii: [3., 3., 0., 0.],
+                border_widths: [3., 3., 3., 1.5], 
+                ..super::BUTTON_VIS
+            })
+            .with_hover_visuals(ui_element::Visuals{
+                corner_radii: [3., 3., 0., 0.],
+                border_widths: [3., 3., 3., 1.5], 
+                ..super::BUTTON_HOVER_VIS
+            })
             .build(),
         )
         .build()
