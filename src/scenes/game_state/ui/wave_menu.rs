@@ -4,7 +4,7 @@ use ggez::graphics;
 use mooeye::{ui_element::UiContainer, *};
 
 use super::game_state;
-use crate::PALETTE;
+use crate::{PALETTE, scenes::game_state::components::buildings};
 
 const ID_WAVE_MENU: u32 = 200;
 const ID_WAVE_SUBMENU_CONT: u32 = 210;
@@ -88,7 +88,7 @@ pub fn handle_wave_menu(
                 if let Some(template) = spell_pool.1.get_mut(index) {
                     // if spell was not yet purchased, attempt to purchase it
                     if template.level == 0
-                        && buildings.target[1] >= template.guild_condition
+                        && buildings.target[buildings::BuildingType::MAGEGUILD as usize] >= template.guild_condition
                         && data.spend(template.cost)
                     {
                         template.level = 1;
@@ -136,7 +136,7 @@ pub fn handle_wave_menu(
     // reroll
     if messages.contains(&UiMessage::Triggered(ID_REROLL))
         && data.spend(director.get_reroll_cost())
-        && buildings.target[0] > 0
+        && buildings.target[buildings::BuildingType::WATCHTOWER as usize] > 0
     {
         director.reroll_wave_enemies();
         gui.remove_elements(ID_WAVE_SUBMENU);
@@ -150,7 +150,7 @@ pub fn handle_wave_menu(
     for i in 0..buildings.target.len() {
         let index = buildings.target[i] as usize;
         if messages.contains(&UiMessage::Triggered(ID_BUILDINGS_START + i as u32))
-            && index < 6
+            && index < buildings::BUILDING_MAX_LEVEL
             && data.spend(
                 super::game_state::components::buildings::get_building_info(i).level_costs[index]
                     as i32,
@@ -632,7 +632,7 @@ fn construct_buildings_menu(
     ];
 
     for i in 0..buildings.target.len() {
-        let info = super::game_state::components::buildings::get_building_info(i);
+        let info = buildings::get_building_info(i);
         let build = graphics::Image::from_path(ctx, icons[i])
             .expect("[ERROR] Missing building sprite.")
             .to_element_builder(ID_BUILDINGS_START + i as u32, ctx)
@@ -643,7 +643,7 @@ fn construct_buildings_menu(
             .with_hover_visuals(super::BUTTON_HOVER_VIS)
             .with_tooltip(
                 graphics::Text::new(
-                    graphics::TextFragment::new(if buildings.target[i] < 6 {
+                    graphics::TextFragment::new(if buildings.target[i] < buildings::BUILDING_MAX_LEVEL as u8 {
                         format!(
                             "{} the {}.\nCurrent level: {}\n{}\nCost: {}g",
                             if buildings.target[i] == 0 {
@@ -657,7 +657,7 @@ fn construct_buildings_menu(
                             info.level_costs[buildings.target[i] as usize],
                         )
                     } else {
-                        format!("{} is fully upgraded at level 6.", info.name,)
+                        format!("{} is fully upgraded.", info.name,)
                     })
                     .color(graphics::Color::from_rgb_u32(PALETTE[6])),
                 )
@@ -748,7 +748,7 @@ fn sync_spellslots(
     buildings: &mut game_state::components::buildings::Buildings,
 ) {
     // game sync
-    caster.set_extra_slots(buildings.target[2] as usize);
+    caster.set_extra_slots(buildings.target[buildings::BuildingType::MANAWELL as usize] as usize);
     // ui sync
     gui.remove_elements(super::game_ui::ID_MANA_SLOT);
     for i in 0..caster.get_slots() {

@@ -1,6 +1,14 @@
-use std::time::Duration;
+use std::{time::Duration, intrinsics::variant_count};
 
 use legion::{system, systems::CommandBuffer};
+
+pub enum BuildingType{
+    WATCHTOWER = 0,
+    MAGEGUILD = 1,
+    MANAWELL = 2,
+}
+
+pub const BUILDING_MAX_LEVEL: usize = 4;
 
 pub struct Building {
     building_type: usize,
@@ -23,7 +31,7 @@ impl Buildings {
 
 #[derive(Debug, Clone)]
 pub struct BuildingInfo{
-    pub level_costs: [u32; 6],
+    pub level_costs: [u32; BUILDING_MAX_LEVEL],
     pub name: &'static str,
     pub description: &'static str,
     sprite: &'static str,
@@ -31,19 +39,19 @@ pub struct BuildingInfo{
 
 const BUILDING_INFO_LIST: [BuildingInfo; 3] = [
     BuildingInfo{
-        level_costs: [100, 150, 200, 200, 200, 200],
+        level_costs: [100, 150, 200, 200],
         name: "Watchtower",
         description: "Allows you to reroll approaching enemies.",
         sprite: "/sprites/environment/watchtower",
     },
     BuildingInfo{
-        level_costs: [100, 150, 200, 200, 200, 200],
+        level_costs: [100, 150, 200, 200],
         name: "Mage's Guild",
         description: "Allows you to purchase higher level spells.",
         sprite: "/sprites/environment/mageguild",
     },
     BuildingInfo{
-        level_costs: [250, 250, 300, 300, 400, 400],
+        level_costs: [250, 300, 350, 400],
         name: "Mana Well",
         description: "Adds an additional spell slot per level.",
         sprite: "/sprites/environment/manawell",
@@ -51,7 +59,7 @@ const BUILDING_INFO_LIST: [BuildingInfo; 3] = [
 ];
 
 const NO_BUILDING: BuildingInfo = BuildingInfo{
-    level_costs: [0; 6],
+    level_costs: [0; BUILDING_MAX_LEVEL],
     name: "No Building",
     description: "Does nothing. Should not exist",
     sprite: "",
