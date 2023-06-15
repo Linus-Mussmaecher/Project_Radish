@@ -40,7 +40,26 @@ impl OptionsMenu {
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::R)
-        
+        .build();
+
+        let sound = graphics::Text::new(
+            graphics::TextFragment::new("Sound Volume")
+                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+        )
+        .set_font("Retro")
+        .set_scale(24.)
+        .to_owned()
+        .to_element_builder(0, ctx)
+        .build();
+
+        let music = graphics::Text::new(
+            graphics::TextFragment::new("Music Volume")
+                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+        )
+        .set_font("Retro")
+        .set_scale(24.)
+        .to_owned()
+        .to_element_builder(0, ctx)
         .build();
 
         let back = graphics::Text::new(
@@ -62,6 +81,7 @@ impl OptionsMenu {
         let options_box = mooeye::containers::VerticalBox::new_spaced(25.)
             .to_element_builder(0, ctx)
             .with_child(title)
+            .with_child(sound)
             .with_child(
                 containers::StackBox::new()
                 .to_element_builder(VOLUME_CONTAINER_ID, ctx)
@@ -69,6 +89,7 @@ impl OptionsMenu {
                 .with_wrapper_layout(mooeye::ui_element::Layout::default())
                 .build()
             )
+            .with_child(music)
             .with_child(
                 containers::StackBox::new()
                 .to_element_builder(VOLUME_MUSIC_CONTAINER_ID, ctx)
@@ -102,31 +123,62 @@ impl scene_manager::Scene for OptionsMenu {
 
         // Adjust sound volume.
 
+        let mut rebuild_meter = false;
+
         if messages.contains(&mooeye::UiMessage::Triggered(VOLUME_IDS + 1)) {
             // adjust sound
-            self.options.volume += 0.01;
-            // remove old element
-            self.gui.remove_elements(VOLUME_IDS);
-            // add element with new value
-            self.gui.add_element(VOLUME_CONTAINER_ID, create_sould_adjuster(ctx, VOLUME_IDS, self.options.volume));
+            self.options.volume -= 0.1;
+            // set marker 
+            rebuild_meter = true;
         }
 
         if messages.contains(&mooeye::UiMessage::Triggered(VOLUME_IDS + 2)) {
             self.options.volume -= 0.01;
+            rebuild_meter = true;
+        }
+
+        if messages.contains(&mooeye::UiMessage::Triggered(VOLUME_IDS + 3)) {
+            self.options.volume += 0.01;
+            rebuild_meter = true;
+        }
+
+        if messages.contains(&mooeye::UiMessage::Triggered(VOLUME_IDS + 4)) {
+            self.options.volume += 0.1;
+            rebuild_meter = true;
+        }
+
+        if rebuild_meter {
+            // remove old element
             self.gui.remove_elements(VOLUME_IDS);
+            // add element with new value
             self.gui.add_element(VOLUME_CONTAINER_ID, create_sould_adjuster(ctx, VOLUME_IDS, self.options.volume));
+            // reset marker
+            rebuild_meter = false;
         }
 
         // Adjust music volume
 
         if messages.contains(&mooeye::UiMessage::Triggered(VOLUME_MUSIC_IDS + 1)) {
-            self.options.volume += 0.01;
-            self.gui.remove_elements(VOLUME_MUSIC_IDS);
-            self.gui.add_element(VOLUME_MUSIC_CONTAINER_ID, create_sould_adjuster(ctx, VOLUME_MUSIC_IDS, self.options.music_volume));
+            self.options.music_volume -= 0.1;
+            rebuild_meter = true;
         }
 
         if messages.contains(&mooeye::UiMessage::Triggered(VOLUME_MUSIC_IDS + 2)) {
-            self.options.volume -= 0.01;
+            self.options.music_volume -= 0.01;
+            rebuild_meter = true;
+        }
+
+        if messages.contains(&mooeye::UiMessage::Triggered(VOLUME_MUSIC_IDS + 3)) {
+            self.options.music_volume += 0.01;
+            rebuild_meter = true;
+        }
+
+        if messages.contains(&mooeye::UiMessage::Triggered(VOLUME_MUSIC_IDS + 4)) {
+            self.options.music_volume += 0.1;
+            rebuild_meter = true;
+        }
+
+        if rebuild_meter{
             self.gui.remove_elements(VOLUME_MUSIC_IDS);
             self.gui.add_element(VOLUME_MUSIC_CONTAINER_ID, create_sould_adjuster(ctx, VOLUME_MUSIC_IDS, self.options.music_volume));
         }
@@ -169,10 +221,10 @@ fn create_sould_adjuster(ctx: &ggez::Context, id_start: u32, value: f32) -> mooe
         .to_element_builder(id_start, ctx)
         .with_child(
             graphics::Text::new(
-                graphics::TextFragment::new("-").color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                graphics::TextFragment::new("<<").color(graphics::Color::from_rgb_u32(PALETTE[6])),
             )
             .set_font("Retro")
-            .set_scale(24.)
+            .set_scale(28.)
             .to_owned()
             .to_element_builder(id_start + 1, ctx).with_visuals(ui_element::Visuals{
                 corner_radii: [0., 0., 3., 3.],
@@ -184,11 +236,32 @@ fn create_sould_adjuster(ctx: &ggez::Context, id_start: u32, value: f32) -> mooe
                 border_widths: [3., 1.5, 3., 3.], 
                 ..super::BUTTON_HOVER_VIS
             })
+            .as_shrink()
             .build(),
         )
         .with_child(
             graphics::Text::new(
-                graphics::TextFragment::new(format!("Sound: {}", (value * 100.) as u8))
+                graphics::TextFragment::new("< ").color(graphics::Color::from_rgb_u32(PALETTE[6])),
+            )
+            .set_font("Retro")
+            .set_scale(28.)
+            .to_owned()
+            .to_element_builder(id_start + 2, ctx).with_visuals(ui_element::Visuals{
+                corner_radii: [0.; 4],
+                border_widths: [3., 1.5, 3., 1.5], 
+                ..super::BUTTON_VIS
+            })
+            .with_hover_visuals(ui_element::Visuals{
+                corner_radii: [0.; 4],
+                border_widths: [3., 1.5, 3., 1.5], 
+                ..super::BUTTON_HOVER_VIS
+            })
+            .as_shrink()
+            .build(),
+        )
+        .with_child(
+            graphics::Text::new(
+                graphics::TextFragment::new(format!("{}", (value * 100.) as u8))
                     .color(graphics::Color::from_rgb_u32(PALETTE[6])),
             )
             .set_font("Retro")
@@ -199,16 +272,38 @@ fn create_sould_adjuster(ctx: &ggez::Context, id_start: u32, value: f32) -> mooe
                 border_widths: [3., 1.5, 3., 1.5], 
                 ..super::BUTTON_VIS
             })
+            .as_fill()
             .build(),
         )
         .with_child(
             graphics::Text::new(
-                graphics::TextFragment::new("+").color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                graphics::TextFragment::new(" >").color(graphics::Color::from_rgb_u32(PALETTE[6])),
             )
             .set_font("Retro")
-            .set_scale(24.)
+            .set_scale(28.)
             .to_owned()
-            .to_element_builder(id_start + 2, ctx)
+            .to_element_builder(id_start + 3, ctx)
+            .with_visuals(ui_element::Visuals{
+                corner_radii: [0.; 4],
+                border_widths: [3., 1.5, 3., 1.5], 
+                ..super::BUTTON_VIS
+            })
+            .with_hover_visuals(ui_element::Visuals{
+                corner_radii: [0.; 4],
+                border_widths: [3., 1.5, 3., 1.5], 
+                ..super::BUTTON_HOVER_VIS
+            })
+            .as_shrink()
+            .build(),
+        )
+        .with_child(
+            graphics::Text::new(
+                graphics::TextFragment::new(">>").color(graphics::Color::from_rgb_u32(PALETTE[6])),
+            )
+            .set_font("Retro")
+            .set_scale(28.)
+            .to_owned()
+            .to_element_builder(id_start + 4, ctx)
             .with_visuals(ui_element::Visuals{
                 corner_radii: [3., 3., 0., 0.],
                 border_widths: [3., 3., 3., 1.5], 
@@ -219,7 +314,9 @@ fn create_sould_adjuster(ctx: &ggez::Context, id_start: u32, value: f32) -> mooe
                 border_widths: [3., 3., 3., 1.5], 
                 ..super::BUTTON_HOVER_VIS
             })
+            .as_shrink()
             .build(),
         )
+        .as_fill()
         .build()
 }
