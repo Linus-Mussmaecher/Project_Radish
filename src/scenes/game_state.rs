@@ -10,6 +10,7 @@ use std::time::Duration;
 mod game_message;
 pub use game_message::GameMessage;
 pub use game_message::MessageSet;
+pub use game_message::MessageReceiver;
 
 mod game_data;
 
@@ -43,8 +44,10 @@ pub struct GameState {
     action_prod_schedule: Schedule,
     /// The in-game GUI.
     gui: UiElement<GameMessage>,
-    /// Listeners (such as achievements or tutorials), receiving all game messages and potentially mutating the UI.
-    listeners: Vec<Box<dyn game_message::MessageReceiver>>,
+    // /// Listeners (such as achievements or tutorials), receiving all game messages and potentially mutating the UI.
+    // listeners: Vec<Box<dyn game_message::MessageReceiver>>,
+    /// The achievement set listening to achievement fulfils
+    achievements: achievements::AchievementSet,
 }
 
 impl scene_manager::Scene for GameState {
@@ -103,13 +106,15 @@ impl scene_manager::Scene for GameState {
 
                 // handle listeners
                 for message in message_set.iter() {
-                    for listener in self.listeners.iter_mut() {
-                        listener.receive(message, &mut self.gui, ctx);
-                    }
+                    // for listener in self.listeners.iter_mut() {
+                    //     listener.receive(message, &mut self.gui, ctx);
+                    // }
+                    self.achievements.receive(message, &mut self.gui, ctx);
                 }
 
                 // Escape menu
                 if message_set.contains(&UiMessage::Triggered(1)) {
+                    self.achievements.save();
                     switch =
                         scene_manager::SceneSwitch::push(ui::in_game_menu::InGameMenu::new(ctx)?);
                 }
@@ -188,9 +193,6 @@ impl GameState {
         let audio_pool = components::audio::AudioPool::new(options)
             .with_folder(ctx, "/audio", true);
 
-        let mut listeners: Vec<Box<dyn game_message::MessageReceiver>> = Vec::new();
-        listeners.push(Box::new(achievement_set));
-
         Self::initalize_environment(&boundaries, &sprite_pool, &mut world)?;
 
         // Add player
@@ -266,7 +268,7 @@ impl GameState {
                 .add_system(components::health::remove_entities_system())
                 .add_system(components::actions::clear_system())
                 .build(),
-            listeners,
+            achievements: achievement_set,
             resources,
             controller: Controller::from_path("./data/keymap.toml").unwrap_or_default(),
         })

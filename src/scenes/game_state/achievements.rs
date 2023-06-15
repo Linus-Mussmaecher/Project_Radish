@@ -234,12 +234,12 @@ impl AchievementSet {
 
         list.push(Achievement::new(
             "Power Overwhelming!",
-            "Cast 500 spells.",
+            "Upgrade you mana well.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a9_16_16.png").ok(),
-            500,
+            5,
             (
-                GameMessage::UpdateSpellSlots(0, 32),
-                GameMessageFilter::Equality,
+                GameMessage::BuildingUp(0, 1),
+                GameMessageFilter::Min,
             ),
         ));
 

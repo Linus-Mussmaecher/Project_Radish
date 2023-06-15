@@ -38,25 +38,24 @@ pub fn init_spell_pool(
             SpellTemplate::new(spell_list::construct_ice_lance(sprite_pool), 80).guild_condition(1),
             SpellTemplate::new(spell_list::construct_scorch(sprite_pool), 90).guild_condition(2),
             SpellTemplate::new(spell_list::construct_overload(sprite_pool), 120) //8
-                .guild_condition(3),
+                .guild_condition(2),
             SpellTemplate::new(spell_list::construct_arcane_missiles(sprite_pool), 150)
                 .achievement_condition(achievements.list.get(6), sprite_pool)
-                .guild_condition(3),
+                .guild_condition(2),
             SpellTemplate::new(spell_list::construct_arcane_blast(sprite_pool), 140)
                 .achievement_condition(achievements.list.get(6), sprite_pool)
-                .guild_condition(4),
+                .guild_condition(3),
             SpellTemplate::new(spell_list::construct_blackhole(sprite_pool), 200)
-                .achievement_condition(achievements.list.get(3), sprite_pool)
-                .guild_condition(4),
+                .guild_condition(3),
             SpellTemplate::new(spell_list::construct_mind_wipe(sprite_pool), 200) //12
                 .achievement_condition(achievements.list.get(9), sprite_pool)
-                .guild_condition(5),
+                .guild_condition(4),
             SpellTemplate::new(spell_list::construct_mortar(sprite_pool), 145)
                 .achievement_condition(achievements.list.get(5), sprite_pool)
-                .guild_condition(6),
+                .guild_condition(4),
             SpellTemplate::new(spell_list::construct_lightning_ball(sprite_pool), 145) // 14
                 .achievement_condition(achievements.list.get(10), sprite_pool)
-                .guild_condition(6),
+                .guild_condition(4),
         ],
     )
 }
