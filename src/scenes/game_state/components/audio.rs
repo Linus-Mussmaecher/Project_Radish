@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-
+use crate::scenes::options;
 use ggez::audio::{self, SoundSource};
 use legion::system;
 
@@ -42,14 +42,17 @@ pub struct AudioPool {
     sources: HashMap<String, audio::Source>,
     /// the queued sounds
     sound_queue: Vec<String>,
+    /// an options struct to customize volumes
+    options: options::OptionsConfig,
 }
 
 impl AudioPool {
     /// Creates a new (empty) [AudioPool] instance.
-    pub fn new() -> Self {
+    pub fn new(options: options::OptionsConfig) -> Self {
         Self {
             sources: HashMap::new(),
             sound_queue: Vec::new(),
+            options,
         }
     }
 
@@ -70,7 +73,8 @@ impl AudioPool {
             let path_string = sub_path.to_string_lossy().to_string();
             let len = path_string.len();
             if path_string[len - 4..] == *".wav" {
-                if let Ok(source) = audio::Source::new(ctx, sub_path) {
+                if let Ok(mut source) = audio::Source::new(ctx, sub_path) {
+                    source.set_volume(self.options.volume);
                     self.sources
                         .insert(path_string.replace(r"\", "/")[..len - 4].to_owned(), source);
                 }

@@ -1,6 +1,7 @@
 pub mod game_over_menu;
 pub mod game_state;
 pub mod main_menu;
+pub mod options;
 
 const BUTTON_VIS: mooeye::ui_element::Visuals = mooeye::ui_element::Visuals {
     background: {

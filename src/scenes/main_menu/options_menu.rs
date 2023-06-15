@@ -1,12 +1,21 @@
+use crate::scenes::options;
 use ggez::{graphics, GameError};
-use mooeye::{ui_element::UiContainer, *};
+use mooeye::{*};
 
 use crate::PALETTE;
+
+const VOLUME_IDS: u32 = 11;
+const VOLUME_MUSIC_IDS: u32 = 21;
+const VOLUME_CONTAINER_ID: u32 = 10;
+const VOLUME_MUSIC_CONTAINER_ID: u32 = 20;
 
 pub struct OptionsMenu {
     gui: UiElement<()>,
     controller: super::game_state::Controller,
+    options: options::OptionsConfig,
 }
+
+
 
 impl OptionsMenu {
     pub fn new(ctx: &ggez::Context) -> Result<Self, GameError> {
@@ -45,15 +54,29 @@ impl OptionsMenu {
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
 
+    let options = options::OptionsConfig::from_path(".data/options.toml").unwrap_or_default();
+
         // Container
 
-        let mut options_box = mooeye::containers::VerticalBox::new();
-        options_box.add(title);
-        options_box.add(reset_bindings);
-        options_box.add(back);
-        options_box.spacing = 25.;
-        let credits_box = options_box
+        let options_box = mooeye::containers::VerticalBox::new_spaced(25.)
             .to_element_builder(0, ctx)
+            .with_child(title)
+            .with_child(
+                containers::StackBox::new()
+                .to_element_builder(VOLUME_CONTAINER_ID, ctx)
+                .with_child(create_sould_adjuster(ctx, VOLUME_IDS, options.volume))
+                .with_wrapper_layout(mooeye::ui_element::Layout::default())
+                .build()
+            )
+            .with_child(
+                containers::StackBox::new()
+                .to_element_builder(VOLUME_MUSIC_CONTAINER_ID, ctx)
+                .with_child(create_sould_adjuster(ctx, VOLUME_MUSIC_IDS, options.music_volume))
+                .with_wrapper_layout(mooeye::ui_element::Layout::default())
+                .build()
+            )
+            .with_child(reset_bindings)
+            .with_child(back)
             .with_visuals(super::BUTTON_VIS)
             .with_alignment(ui_element::Alignment::Min, ui_element::Alignment::Min)
             .with_offset(25., 25.)
@@ -61,9 +84,10 @@ impl OptionsMenu {
             .build();
 
         Ok(Self {
-            gui: credits_box,
+            gui: options_box,
             controller: super::game_state::Controller::from_path("./data/keymap.toml")
                 .unwrap_or_default(),
+            options,
         })
     }
 }
@@ -75,13 +99,52 @@ impl scene_manager::Scene for OptionsMenu {
     ) -> Result<mooeye::scene_manager::SceneSwitch, GameError> {
         let messages = self.gui.manage_messages(ctx, None);
 
+        // Adjust sound volume.
+
+        if messages.contains(&mooeye::UiMessage::Triggered(VOLUME_IDS + 1)) {
+            // adjust sound
+            self.options.volume += 0.01;
+            // remove old element
+            self.gui.remove_elements(VOLUME_IDS);
+            // add element with new value
+            self.gui.add_element(VOLUME_CONTAINER_ID, create_sould_adjuster(ctx, VOLUME_IDS, self.options.volume));
+        }
+
+        if messages.contains(&mooeye::UiMessage::Triggered(VOLUME_IDS + 2)) {
+            self.options.volume -= 0.01;
+            self.gui.remove_elements(VOLUME_IDS);
+            self.gui.add_element(VOLUME_CONTAINER_ID, create_sould_adjuster(ctx, VOLUME_IDS, self.options.volume));
+        }
+
+        // Adjust music volume
+
+        if messages.contains(&mooeye::UiMessage::Triggered(VOLUME_MUSIC_IDS + 1)) {
+            self.options.volume += 0.01;
+            self.gui.remove_elements(VOLUME_MUSIC_IDS);
+            self.gui.add_element(VOLUME_MUSIC_CONTAINER_ID, create_sould_adjuster(ctx, VOLUME_MUSIC_IDS, self.options.music_volume));
+        }
+
+        if messages.contains(&mooeye::UiMessage::Triggered(VOLUME_MUSIC_IDS + 2)) {
+            self.options.volume -= 0.01;
+            self.gui.remove_elements(VOLUME_MUSIC_IDS);
+            self.gui.add_element(VOLUME_MUSIC_CONTAINER_ID, create_sould_adjuster(ctx, VOLUME_MUSIC_IDS, self.options.music_volume));
+        }
+
+        // Reset keybinginds
+
+
         if messages.contains(&mooeye::UiMessage::Triggered(1)) {
             self.controller = super::game_state::Controller::default();
         }
 
+        // Exit options
+
         if messages.contains(&mooeye::UiMessage::Triggered(2)) {
             if self.controller.save_to_file("./data/keymap.toml").is_err() {
                 println!("[WARNING] Could not save keybindings.")
+            }
+            if self.options.save_to_file("./data/options.toml").is_err() {
+                println!("[WARNING] Could not save options.")
             }
             Ok(mooeye::scene_manager::SceneSwitch::Pop(1))
         } else {
@@ -98,4 +161,46 @@ impl scene_manager::Scene for OptionsMenu {
         canvas.finish(ctx)?;
         Ok(())
     }
+}
+
+fn create_sould_adjuster(ctx: &ggez::Context, id_start: u32, value: f32) -> mooeye::UiElement<()> {
+    containers::HorizontalBox::new_spaced(0.)
+        .to_element_builder(id_start, ctx)
+        .with_child(
+            graphics::Text::new(
+                graphics::TextFragment::new("-").color(graphics::Color::from_rgb_u32(PALETTE[6])),
+            )
+            .set_font("Retro")
+            .set_scale(24.)
+            .to_owned()
+            .to_element_builder(id_start + 1, ctx)
+            .with_visuals(super::BUTTON_VIS)
+            .with_hover_visuals(super::BUTTON_HOVER_VIS)
+            .build(),
+        )
+        .with_child(
+            graphics::Text::new(
+                graphics::TextFragment::new(format!("Sound: {}", (value * 100.) as u8))
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+            )
+            .set_font("Retro")
+            .set_scale(24.)
+            .to_owned()
+            .to_element_builder(0, ctx)
+            .with_visuals(super::BUTTON_VIS)
+            .build(),
+        )
+        .with_child(
+            graphics::Text::new(
+                graphics::TextFragment::new("+").color(graphics::Color::from_rgb_u32(PALETTE[6])),
+            )
+            .set_font("Retro")
+            .set_scale(24.)
+            .to_owned()
+            .to_element_builder(id_start + 2, ctx)
+            .with_visuals(super::BUTTON_VIS)
+            .with_hover_visuals(super::BUTTON_HOVER_VIS)
+            .build(),
+        )
+        .build()
 }
