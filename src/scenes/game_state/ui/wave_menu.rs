@@ -147,7 +147,7 @@ pub fn handle_wave_menu(
     }
 
     // buildings
-    for i in 0..buildings.target.len() {
+    for i in 0..buildings::BUILDING_TYPES {
         let index = buildings.target[i] as usize;
         if messages.contains(&UiMessage::Triggered(ID_BUILDINGS_START + i as u32))
             && index < buildings::BUILDING_MAX_LEVEL
@@ -631,7 +631,7 @@ fn construct_buildings_menu(
         "/sprites/ui/mana_add.png",
     ];
 
-    for i in 0..buildings.target.len() {
+    for i in 0..buildings::BUILDING_TYPES {
         let info = buildings::get_building_info(i);
         let build = graphics::Image::from_path(ctx, icons[i])
             .expect("[ERROR] Missing building sprite.")

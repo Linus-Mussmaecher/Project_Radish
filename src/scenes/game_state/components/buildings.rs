@@ -9,6 +9,7 @@ pub enum BuildingType{
 }
 
 pub const BUILDING_MAX_LEVEL: usize = 4;
+pub const BUILDING_TYPES: usize = 3;
 
 pub struct Building {
     building_type: usize,
@@ -16,8 +17,8 @@ pub struct Building {
 
 /// A struct representing the current state of the three buildable buildings
 pub struct Buildings {
-    pub target: [u8; 3],
-    current: [u8; 3],
+    pub target: [u8; BUILDING_TYPES],
+    current: [u8; BUILDING_TYPES],
 }
 
 impl Buildings {
@@ -37,7 +38,7 @@ pub struct BuildingInfo{
     sprite: &'static str,
 }
 
-const BUILDING_INFO_LIST: [BuildingInfo; 3] = [
+const BUILDING_INFO_LIST: [BuildingInfo; BUILDING_TYPES] = [
     BuildingInfo{
         level_costs: [100, 150, 200, 200],
         name: "Watchtower",
@@ -79,7 +80,7 @@ pub fn create_buildings(
 ) {
     // if 'target' is not 'current', spawn the appropriate building and send a message
 
-    for i in 0..buildings.target.len() {
+    for i in 0..BUILDING_TYPES {
         if buildings.target[i] > buildings.current[i] {
             // if building not yet built => spawn it
             if buildings.current[i] == 0 {
