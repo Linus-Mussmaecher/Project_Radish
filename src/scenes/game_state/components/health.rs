@@ -47,12 +47,14 @@ pub struct Enemy {
     damage: i32,
     /// The bounty this enemy grants on kill.
     bounty: i32,
+    /// An identifier to check for certain enemy kills.
+    id: u8
 }
 
 impl Enemy {
     /// Creates a new enemy component.
-    pub fn new(damage: i32, bounty: i32) -> Self {
-        Self { damage, bounty }
+    pub fn new(damage: i32, bounty: i32, id: u8) -> Self {
+        Self { damage, bounty , id}
     }
 }
 
@@ -84,7 +86,7 @@ pub fn destroy_by_health(
                 amount: enemy.bounty,
             });
             messages.insert(mooeye::UiMessage::Extern(
-                game_message::GameMessage::EnemyKilled(enemy.bounty),
+                game_message::GameMessage::EnemyKilled(enemy.id),
             ));
         }
 

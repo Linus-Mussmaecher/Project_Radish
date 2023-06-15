@@ -18,7 +18,7 @@ pub fn spawn_basic_skeleton(
             "/sprites/enemies/skeleton_basic",
             Duration::from_secs_f32(0.25),
         ),
-        components::Enemy::new(1, 10),
+        components::Enemy::new(1, 10, 0),
         components::Health::new(75),
         components::Collision::new_basic(64., 64.),
     ));
@@ -41,7 +41,7 @@ pub fn spawn_fast_skeleton(
             "/sprites/enemies/skeleton_sword",
             Duration::from_secs_f32(0.25),
         ),
-        components::Enemy::new(1, 15),
+        components::Enemy::new(1, 15, 1),
         components::Health::new(50),
         components::Collision::new_basic(64., 64.),
     ));
@@ -83,7 +83,7 @@ pub fn spawn_dodge_skeleton(
             ),
             Duration::from_secs(8),
         )),
-        components::Enemy::new(1, 15),
+        components::Enemy::new(1, 15, 2),
         components::Health::new(50),
         components::Collision::new_basic(64., 64.),
     ));
@@ -106,7 +106,7 @@ pub fn spawn_loot_skeleton(
             "/sprites/enemies/skeleton_loot",
             Duration::from_secs_f32(0.20),
         ),
-        components::Enemy::new(0, 100),
+        components::Enemy::new(0, 100, 3),
         components::Health::new(150),
         components::LifeDuration::new(Duration::from_secs(15)),
         components::Collision::new_basic(64., 64.),
@@ -164,7 +164,7 @@ pub fn spawn_tank_skeleton(
                     ),
                 ],
             )),
-        components::Enemy::new(2, 20),
+        components::Enemy::new(2, 20, 4),
         components::Health::new(75),
         components::Collision::new_basic(64., 64.),
     ));
@@ -231,7 +231,7 @@ pub fn spawn_charge_skeleton(
                     .into(),
                 ],
             )),
-        components::Enemy::new(2, 20),
+        components::Enemy::new(2, 20, 5),
         components::Health::new(75),
         components::Collision::new_basic(64., 64.),
     ));
@@ -306,7 +306,7 @@ pub fn spawn_wizard_skeleton(
                 ],
                 Duration::from_secs(8),
             )),
-        components::Enemy::new(3, 25),
+        components::Enemy::new(3, 25, 6),
         components::Health::new(150),
         components::Collision::new_basic(64., 64.),
     ));
@@ -379,7 +379,7 @@ pub fn spawn_wizard_skeleton2(
                 ],
                 Duration::from_secs(5),
             )),
-        components::Enemy::new(3, 25),
+        components::Enemy::new(3, 25, 7),
         components::Health::new(150),
         components::Collision::new_basic(64., 64.),
     ));
@@ -413,7 +413,7 @@ pub fn spawn_splitter(cmd: &mut CommandBuffer, pos: components::Position) -> Res
                 }
             }),
         )),
-        components::Enemy::new(3, 20),
+        components::Enemy::new(3, 20, 8),
         components::Health::new(200),
         components::Collision::new_basic(64., 64.),
     ));
@@ -463,7 +463,7 @@ pub fn spawn_ghost(cmd: &mut CommandBuffer, pos: components::Position) -> Result
                 _ => actions::GameAction::None.into(),
             },
         )),
-        components::Enemy::new(2, 30),
+        components::Enemy::new(2, 30, 9),
         components::Health::new(100),
         components::Collision::new_basic(64., 64.),
     ));

@@ -607,3 +607,44 @@ pub(super) fn construct_lightning_ball(sprite_pool: &SpritePool) -> Spell {
         tiny_vec!([f32; MAX_SPELL_SLOTS] => 8., 8., 16.),
     )
 }
+
+pub(super) fn construct_gale_force(sprite_pool: &SpritePool) -> Spell {
+    Spell::new(
+        "Gale Force",
+        "Create a gust of wind, pushing back enemies and dealing slight damage.",
+        sprite_pool.init_sprite_unchecked("/sprites/spells/fireball", Duration::ZERO),
+        vec![
+            GameAction::spawn(|_, pos, cmd| {
+                cmd.push((
+                    pos,
+                    components::LifeDuration::new(Duration::from_secs(3)),
+                    components::Graphics::new(
+                        "/sprites/spells/fireball",
+                        Duration::from_secs_f32(0.2),
+                    ),
+                    components::Velocity::new(0., -250.),
+                    components::Collision::new(128., 16., |_, e2| {
+                        vec![
+                            (e2, GameAction::TakeDamage { dmg: 10 }),
+                            (
+                                e2,
+                                GameAction::ApplyEffect(Box::new(
+                                    ActionEffect::repeat(
+                                        ActionEffectTarget::new_only_self(),
+                                        GameAction::Move {
+                                            delta: ggez::glam::Vec2::new(0., -2.),
+                                        },
+                                        Duration::from_secs_f32(0.05),
+                                    )
+                                    .with_duration(Duration::from_secs(1)),
+                                )),
+                            ),
+                        ]
+                    }),
+                ));
+            }),
+            GameAction::play_sound("/audio/sounds/fireball_cast"),
+        ],
+        tiny_vec!([f32; MAX_SPELL_SLOTS] => 2.5, 2.5, 5., 5.),
+    )
+}

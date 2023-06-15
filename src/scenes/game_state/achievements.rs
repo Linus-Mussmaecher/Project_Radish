@@ -233,8 +233,32 @@ impl AchievementSet {
         ));
 
         list.push(Achievement::new(
-            "Power Overwhelming!",
-            "Upgrade you mana well.",
+            "I don't stress, I just cast a sweeper.",
+            "Kill 1000 non-elite enemies.",
+            graphics::Image::from_path(ctx, "/sprites/achievements/a4_16_16.png").ok(),
+            1000,
+            (GameMessage::EnemyKilled(19), GameMessageFilter::Max),
+        ));
+
+        list.push(Achievement::new(
+            "Who you gonna call?",
+            "Kill 15 ghosts.",
+            graphics::Image::from_path(ctx, "/sprites/achievements/a10_16_16.png").ok(),
+            15,
+            (GameMessage::EnemyKilled(9), GameMessageFilter::Equality),
+        ));
+
+        list.push(Achievement::new(
+            "Tank buster",
+            "Kill 30 guardians.",
+            graphics::Image::from_path(ctx, "/sprites/achievements/a10_16_16.png").ok(),
+            30,
+            (GameMessage::EnemyKilled(4), GameMessageFilter::Equality),
+        ));
+
+        list.push(Achievement::new(
+            "Road not taken",
+            "Upgrade your watchtower five times.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a9_16_16.png").ok(),
             5,
             (
@@ -244,19 +268,43 @@ impl AchievementSet {
         ));
 
         list.push(Achievement::new(
-            "Who you gonna call?",
-            "Kill 15 ghosts.",
-            graphics::Image::from_path(ctx, "/sprites/achievements/a10_16_16.png").ok(),
-            15,
-            (GameMessage::EnemyKilled(30), GameMessageFilter::Equality),
+            "Union fees",
+            "Upgrade your mage's guild five times.",
+            graphics::Image::from_path(ctx, "/sprites/achievements/a9_16_16.png").ok(),
+            5,
+            (
+                GameMessage::BuildingUp(1, 1),
+                GameMessageFilter::Min,
+            ),
         ));
 
         list.push(Achievement::new(
-            "I don't stress, I just cast a sweeper.",
-            "Kill 1000 non-elite enemies.",
-            graphics::Image::from_path(ctx, "/sprites/achievements/a4_16_16.png").ok(),
-            1000,
-            (GameMessage::EnemyKilled(19), GameMessageFilter::Max),
+            "Power Overwhelming!",
+            "Upgrade you mana well five times.",
+            graphics::Image::from_path(ctx, "/sprites/achievements/a9_16_16.png").ok(),
+            5,
+            (
+                GameMessage::BuildingUp(2, 1),
+                GameMessageFilter::Min,
+            ),
+        ));
+
+        list.push(Achievement::new(
+            "Consistent",
+            "Reach level 10, 10 times.",
+            graphics::Image::from_path(ctx, "/sprites/achievements/a9_16_16.png").ok(),
+            10,
+            
+            (GameMessage::NextWave(10), GameMessageFilter::Equality),
+        ));
+
+        list.push(Achievement::new(
+            "Supreme",
+            "Reach level 50.",
+            graphics::Image::from_path(ctx, "/sprites/achievements/a9_16_16.png").ok(),
+            1,
+            
+            (GameMessage::NextWave(50), GameMessageFilter::Equality),
         ));
 
         // load progress

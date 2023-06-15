@@ -7,7 +7,7 @@ pub enum GameMessage {
     // needs to use u8 instead of f32 to
     UpdateSpellSlots(usize, u8),
     NextWave(i32),
-    EnemyKilled(i32),
+    EnemyKilled(u8),
     BuildingUp(usize, u8),
     BuildingDown(usize, u8),
 }

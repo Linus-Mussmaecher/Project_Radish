@@ -298,7 +298,7 @@ fn construct_wave_menu(
         .with_tooltip(
             graphics::Text::new(
                 graphics::TextFragment::new(
-                    "Purchase an additional town building.\n[O]\nCost: 200g",
+                    "Purchase an additional town building.\n[O]",
                 )
                 .color(graphics::Color::from_rgb_u32(PALETTE[6])),
             )
