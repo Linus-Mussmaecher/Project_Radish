@@ -4,7 +4,7 @@ use ggez::graphics;
 use mooeye::{ui_element::UiContainer, *};
 
 use super::game_state;
-use crate::{PALETTE, scenes::game_state::components::buildings};
+use crate::{scenes::game_state::components::buildings, PALETTE};
 
 const ID_WAVE_MENU: u32 = 200;
 const ID_WAVE_SUBMENU_CONT: u32 = 210;
@@ -88,7 +88,8 @@ pub fn handle_wave_menu(
                 if let Some(template) = spell_pool.1.get_mut(index) {
                     // if spell was not yet purchased, attempt to purchase it
                     if template.level == 0
-                        && buildings.target[buildings::BuildingType::MAGEGUILD as usize] >= template.guild_condition
+                        && buildings.target[buildings::BuildingType::MAGEGUILD as usize]
+                            >= template.guild_condition
                         && data.spend(template.cost)
                     {
                         template.level = 1;
@@ -297,10 +298,8 @@ fn construct_wave_menu(
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .with_tooltip(
             graphics::Text::new(
-                graphics::TextFragment::new(
-                    "Purchase an additional town building.\n[O]",
-                )
-                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                graphics::TextFragment::new("Purchase an additional town building.\n[O]")
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6])),
             )
             .set_scale(24.)
             .set_font("Retro")
@@ -474,35 +473,39 @@ fn construct_enemies_menu(
         .with_visuals(super::BUTTON_VIS)
         .build();
 
-    let reroll = graphics::Image::from_path(ctx, "/sprites/ui/reroll.png")
-        .expect("[ERROR] Missing reroll sprite.")
-        .to_element_builder(ID_REROLL, ctx)
-        .as_shrink()
-        .scaled(4., 4.)
-        .with_padding((10., 10., 10., 10.))
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::M)
-        .with_visuals(super::BUTTON_VIS)
-        .with_hover_visuals(super::BUTTON_HOVER_VIS)
-        .with_tooltip(
-            graphics::Text::new(
-                graphics::TextFragment::new(if buildings.target[0] == 0 {
-                    "Purchase the watchtower to reroll enemy waves.".to_owned()
-                } else {
-                    format!(
-                        "Reroll the enemy selection.\n[M]\nCost: {}g",
-                        director.get_reroll_cost()
-                    )
-                })
-                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
-            )
-            .set_scale(24.)
-            .set_font("Retro")
-            .to_owned()
-            .to_element_builder(0, ctx)
+    let reroll = if buildings.target[buildings::BuildingType::WATCHTOWER as usize] == 0 {
+        ().to_element(0, ctx)
+    } else {
+        graphics::Image::from_path(ctx, "/sprites/ui/reroll.png")
+            .expect("[ERROR] Missing reroll sprite.")
+            .to_element_builder(ID_REROLL, ctx)
+            .as_shrink()
+            .scaled(4., 4.)
+            .with_padding((10., 10., 10., 10.))
+            .with_trigger_key(ggez::winit::event::VirtualKeyCode::M)
             .with_visuals(super::BUTTON_VIS)
-            .build(),
-        )
-        .build();
+            .with_hover_visuals(super::BUTTON_HOVER_VIS)
+            .with_tooltip(
+                graphics::Text::new(
+                    graphics::TextFragment::new(if buildings.target[0] == 0 {
+                        "Purchase the watchtower to reroll enemy waves.".to_owned()
+                    } else {
+                        format!(
+                            "Reroll the enemy selection.\n[M]\nCost: {}g",
+                            director.get_reroll_cost()
+                        )
+                    })
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                )
+                .set_scale(24.)
+                .set_font("Retro")
+                .to_owned()
+                .to_element_builder(0, ctx)
+                .with_visuals(super::BUTTON_VIS)
+                .build(),
+            )
+            .build()
+    };
 
     let enemy_row = containers::HorizontalBox::new()
         .to_element_builder(0, ctx)
@@ -643,22 +646,24 @@ fn construct_buildings_menu(
             .with_hover_visuals(super::BUTTON_HOVER_VIS)
             .with_tooltip(
                 graphics::Text::new(
-                    graphics::TextFragment::new(if buildings.target[i] < buildings::BUILDING_MAX_LEVEL as u8 {
-                        format!(
-                            "{} the {}.\nCurrent level: {}\n{}\nCost: {}g",
-                            if buildings.target[i] == 0 {
-                                "Construct"
-                            } else {
-                                "Upgrade"
-                            },
-                            info.name,
-                            buildings.target[i],
-                            info.description,
-                            info.level_costs[buildings.target[i] as usize],
-                        )
-                    } else {
-                        format!("{} is fully upgraded.", info.name,)
-                    })
+                    graphics::TextFragment::new(
+                        if buildings.target[i] < buildings::BUILDING_MAX_LEVEL as u8 {
+                            format!(
+                                "{} the {}.\nCurrent level: {}\n{}\nCost: {}g",
+                                if buildings.target[i] == 0 {
+                                    "Construct"
+                                } else {
+                                    "Upgrade"
+                                },
+                                info.name,
+                                buildings.target[i],
+                                info.description,
+                                info.level_costs[buildings.target[i] as usize],
+                            )
+                        } else {
+                            format!("{} is fully upgraded.", info.name,)
+                        },
+                    )
                     .color(graphics::Color::from_rgb_u32(PALETTE[6])),
                 )
                 .set_scale(24.)
