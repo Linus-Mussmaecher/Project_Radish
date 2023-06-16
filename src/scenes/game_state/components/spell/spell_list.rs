@@ -416,12 +416,12 @@ pub(super) fn construct_arcane_blast(sprite_pool: &SpritePool) -> Spell {
 pub(super) fn construct_blackhole(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Blackhole",
-        "Launch a slow-moving ball of antimatter. After travelling for 2 seconds without colliding, it will spawn a blackhole that attracts enemies for 6 seconds, then damages and shortly silences close enemies.",
+        "Launch a slow-moving ball of antimatter. When colliding with an enemy, it will spawn a blackhole that attracts enemies for 6 seconds, then damages and shortly silences close enemies.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/blackhole", Duration::ZERO),
         GameAction::spawn(|_, pos, cmd| {
             cmd.push((
                 pos,
-                components::LifeDuration::new(Duration::from_secs(2)),
+                components::LifeDuration::new(Duration::from_secs(3)),
                 components::Graphics::new(
                     "/sprites/spells/blackhole_mini",
                     Duration::from_secs_f32(0.2),
@@ -430,49 +430,44 @@ pub(super) fn construct_blackhole(sprite_pool: &SpritePool) -> Spell {
                 components::Collision::new(16., 16., |e1, e2| vec![
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                             (e2, GameAction::TakeDamage { dmg: 80 }),
+                            (e1, GameAction::spawn(|_, pos, cmd|{
+                                cmd.push((
+                                    pos + ggez::glam::Vec2::new(0., -30.),
+                                    components::LifeDuration::new(Duration::from_secs(6)),
+                                    components::Graphics::new(
+                                        "/sprites/spells/blackhole",
+                                        Duration::from_secs_f32(0.1),
+                                    ),
+                                    components::Actions::new()
+                                        .with_effect(
+                                            ActionEffect::repeat(
+                                                ActionEffectTarget::new_only_self(),
+                                                GameAction::spawn(|_, pos_src, cmd|{
+                                                    // execute the following every seconds:
+                                                    cmd.exec_mut(move |world, _|{
+                                                        // iterator over all (close) enemies
+                                                        for (_, pos_tar, act_tar) in <(&components::Velocity, &components::Position, &mut Actions)>::query()
+                                                            .iter_mut(world)
+                                                            .filter(|(_, pos, _)| pos.distance(pos_src) < 175.)
+                                                        {
+                                                            act_tar.push(GameAction::Move { delta: (pos_src - *pos_tar).clamp_length_max(1.) })
+                                                        }
+                                                    });
+                                                }),
+                                                Duration::from_secs_f32(0.02)
+                                            ).with_duration(Duration::new(6, 0))
+                                        )
+                                        .with_effect(ActionEffect::on_death(
+                                            ActionEffectTarget::new().with_range(64.).with_enemies_only(true),
+                                            RemoveSource::TimedOut,
+                                            vec![
+                                                GameAction::TakeDamage { dmg: 30 },
+                                                GameAction::Silence(Duration::new(1, 0))
+                                            ],
+                                        ))
+                                ));
+                            }),)
                         ],),
-                components::Actions::new()
-                    .with_effect(ActionEffect::on_death(
-                        ActionEffectTarget::new_only_self(),
-                        RemoveSource::TimedOut,
-                        GameAction::spawn(|_, pos, cmd|{
-                            cmd.push((
-                                pos,
-                                components::LifeDuration::new(Duration::from_secs(6)),
-                                components::Graphics::new(
-                                    "/sprites/spells/blackhole",
-                                    Duration::from_secs_f32(0.1),
-                                ),
-                                components::Actions::new()
-                                    .with_effect(
-                                        ActionEffect::repeat(
-                                            ActionEffectTarget::new_only_self(),
-                                            GameAction::spawn(|_, pos_src, cmd|{
-                                                // execute the following every seconds:
-                                                cmd.exec_mut(move |world, _|{
-                                                    // iterator over all (close) enemies
-                                                    for (_, pos_tar, act_tar) in <(&components::Velocity, &components::Position, &mut Actions)>::query()
-                                                        .iter_mut(world)
-                                                        .filter(|(_, pos, _)| pos.distance(pos_src) < 175.)
-                                                    {
-                                                        act_tar.push(GameAction::Move { delta: (pos_src - *pos_tar).clamp_length_max(1.) })
-                                                    }
-                                                });
-                                            }),
-                                            Duration::from_secs_f32(0.02)
-                                        ).with_duration(Duration::new(6, 0))
-                                    )
-                                    .with_effect(ActionEffect::on_death(
-                                        ActionEffectTarget::new().with_range(64.).with_enemies_only(true),
-                                        RemoveSource::TimedOut,
-                                        vec![
-                                            GameAction::TakeDamage { dmg: 30 },
-                                            GameAction::Silence(Duration::new(1, 0))
-                                        ],
-                                    ))
-                            ));
-                        }),
-                )),
             ));
         }),
         tiny_vec!([f32; MAX_SPELL_SLOTS] => 6., 6., 6., 6.),
@@ -623,8 +618,9 @@ pub(super) fn construct_gale_force(sprite_pool: &SpritePool) -> Spell {
                         Duration::from_secs_f32(0.2),
                     ),
                     components::Velocity::new(0., -300.),
-                    components::Collision::new(128., 16., |_, e2| {
+                    components::Collision::new(128., 16., |e1, e2| {
                         vec![
+                            (e1, GameAction::AddImmunity { other: e2 }),
                             (e2, GameAction::TakeDamage { dmg: 10 }),
                             (
                                 e2,
@@ -632,11 +628,11 @@ pub(super) fn construct_gale_force(sprite_pool: &SpritePool) -> Spell {
                                     ActionEffect::repeat(
                                         ActionEffectTarget::new_only_self(),
                                         GameAction::Move {
-                                            delta: ggez::glam::Vec2::new(0., -2.),
+                                            delta: ggez::glam::Vec2::new(0., -7.),
                                         },
-                                        Duration::from_secs_f32(0.05),
+                                        Duration::from_secs_f32(0.02),
                                     )
-                                    .with_duration(Duration::from_secs(1)),
+                                    .with_duration(Duration::from_secs_f32(0.2)),
                                 )),
                             ),
                         ]
@@ -646,5 +642,59 @@ pub(super) fn construct_gale_force(sprite_pool: &SpritePool) -> Spell {
             GameAction::play_sound("/audio/sounds/fireball_cast"),
         ],
         tiny_vec!([f32; MAX_SPELL_SLOTS] => 2.5, 2.5, 5., 5., 8.),
+    )
+}
+
+pub(super) fn construct_airburst(sprite_pool: &SpritePool) -> Spell {
+    Spell::new(
+        "Airburst",
+        "Launch a ball of compressed air. Upon hitting an enemy, it deals area damage and pulls nearby enemies towards a point behind the target.",
+        sprite_pool.init_sprite_unchecked("/sprites/spells/fireball", Duration::ZERO),
+        vec![
+            GameAction::spawn(|_, pos, cmd| {
+                cmd.push((
+                    pos,
+                    components::LifeDuration::new(Duration::from_secs(4)),
+                    components::Graphics::new(
+                        "/sprites/spells/fireball",
+                        Duration::from_secs_f32(0.2),
+                    ),
+                    components::Velocity::new(0., -350.),
+                    components::Collision::new(32., 32., |e1, e2| {
+                        vec![
+                            (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
+                            (e2, GameAction::TakeDamage { dmg: 45 }),
+                            (e2, GameAction::spawn(|_, pos, cmd|{
+                                cmd.push((
+                                    pos + ggez::glam::Vec2::new(0., -64.),
+                                    components::LifeDuration::new(Duration::from_secs_f32(0.3)),
+                                    components::Actions::new()
+                                        .with_effect(
+                                            ActionEffect::repeat(
+                                                ActionEffectTarget::new_only_self(),
+                                                GameAction::spawn(|_, pos_src, cmd|{
+                                                    // execute the following every seconds:
+                                                    cmd.exec_mut(move |world, _|{
+                                                        // iterator over all (close) enemies
+                                                        for (_, pos_tar, act_tar) in <(&components::Velocity, &components::Position, &mut Actions)>::query()
+                                                            .iter_mut(world)
+                                                            .filter(|(_, pos, _)| pos.distance(pos_src) < 175.)
+                                                        {
+                                                            act_tar.push(GameAction::Move { delta: (pos_src - *pos_tar).clamp_length_max(3.) })
+                                                        }
+                                                    });
+                                                }),
+                                                Duration::from_secs_f32(0.02)
+                                            ).with_duration(Duration::from_secs_f32(0.7))
+                                        )
+                                ));
+                            }),)
+                        ]
+                    }),
+                ));
+            }),
+            GameAction::play_sound("/audio/sounds/fireball_cast"),
+        ],
+        tiny_vec!([f32; MAX_SPELL_SLOTS] => 8., 15.),
     )
 }

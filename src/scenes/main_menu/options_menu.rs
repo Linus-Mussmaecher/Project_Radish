@@ -74,7 +74,7 @@ impl OptionsMenu {
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .build();
 
-    let options = options::OptionsConfig::from_path(".data/options.toml").unwrap_or_default();
+    let options = options::OptionsConfig::from_path("./data/options.toml").unwrap_or_default();
 
         // Container
 
@@ -85,7 +85,7 @@ impl OptionsMenu {
             .with_child(
                 containers::StackBox::new()
                 .to_element_builder(VOLUME_CONTAINER_ID, ctx)
-                .with_child(create_sould_adjuster(ctx, VOLUME_IDS, options.volume))
+                .with_child(create_sound_adjuster(ctx, VOLUME_IDS, options.volume))
                 .with_wrapper_layout(mooeye::ui_element::Layout::default())
                 .build()
             )
@@ -93,7 +93,7 @@ impl OptionsMenu {
             .with_child(
                 containers::StackBox::new()
                 .to_element_builder(VOLUME_MUSIC_CONTAINER_ID, ctx)
-                .with_child(create_sould_adjuster(ctx, VOLUME_MUSIC_IDS, options.music_volume))
+                .with_child(create_sound_adjuster(ctx, VOLUME_MUSIC_IDS, options.music_volume))
                 .with_wrapper_layout(mooeye::ui_element::Layout::default())
                 .build()
             )
@@ -127,23 +127,23 @@ impl scene_manager::Scene for OptionsMenu {
 
         if messages.contains(&mooeye::UiMessage::Triggered(VOLUME_IDS + 1)) {
             // adjust sound
-            self.options.volume -= 0.1;
+            self.options.volume = self.options.volume.saturating_sub(10);
             // set marker 
             rebuild_meter = true;
         }
 
         if messages.contains(&mooeye::UiMessage::Triggered(VOLUME_IDS + 2)) {
-            self.options.volume -= 0.01;
+            self.options.volume = self.options.volume.saturating_sub(1);
             rebuild_meter = true;
         }
 
         if messages.contains(&mooeye::UiMessage::Triggered(VOLUME_IDS + 3)) {
-            self.options.volume += 0.01;
+            self.options.volume = self.options.volume.saturating_add(1);
             rebuild_meter = true;
         }
 
         if messages.contains(&mooeye::UiMessage::Triggered(VOLUME_IDS + 4)) {
-            self.options.volume += 0.1;
+            self.options.volume = self.options.volume.saturating_add(10);
             rebuild_meter = true;
         }
 
@@ -151,7 +151,7 @@ impl scene_manager::Scene for OptionsMenu {
             // remove old element
             self.gui.remove_elements(VOLUME_IDS);
             // add element with new value
-            self.gui.add_element(VOLUME_CONTAINER_ID, create_sould_adjuster(ctx, VOLUME_IDS, self.options.volume));
+            self.gui.add_element(VOLUME_CONTAINER_ID, create_sound_adjuster(ctx, VOLUME_IDS, self.options.volume));
             // reset marker
             rebuild_meter = false;
         }
@@ -159,28 +159,28 @@ impl scene_manager::Scene for OptionsMenu {
         // Adjust music volume
 
         if messages.contains(&mooeye::UiMessage::Triggered(VOLUME_MUSIC_IDS + 1)) {
-            self.options.music_volume -= 0.1;
+            self.options.music_volume = self.options.music_volume.saturating_sub(10);
             rebuild_meter = true;
         }
 
         if messages.contains(&mooeye::UiMessage::Triggered(VOLUME_MUSIC_IDS + 2)) {
-            self.options.music_volume -= 0.01;
+            self.options.music_volume = self.options.music_volume.saturating_sub(1);
             rebuild_meter = true;
         }
 
         if messages.contains(&mooeye::UiMessage::Triggered(VOLUME_MUSIC_IDS + 3)) {
-            self.options.music_volume += 0.01;
+            self.options.music_volume = self.options.music_volume.saturating_add(1);
             rebuild_meter = true;
         }
 
         if messages.contains(&mooeye::UiMessage::Triggered(VOLUME_MUSIC_IDS + 4)) {
-            self.options.music_volume += 0.1;
+            self.options.music_volume = self.options.music_volume.saturating_add(10);
             rebuild_meter = true;
         }
 
         if rebuild_meter{
             self.gui.remove_elements(VOLUME_MUSIC_IDS);
-            self.gui.add_element(VOLUME_MUSIC_CONTAINER_ID, create_sould_adjuster(ctx, VOLUME_MUSIC_IDS, self.options.music_volume));
+            self.gui.add_element(VOLUME_MUSIC_CONTAINER_ID, create_sound_adjuster(ctx, VOLUME_MUSIC_IDS, self.options.music_volume));
         }
 
         // Reset keybinginds
@@ -216,7 +216,7 @@ impl scene_manager::Scene for OptionsMenu {
     }
 }
 
-fn create_sould_adjuster(ctx: &ggez::Context, id_start: u32, value: f32) -> mooeye::UiElement<()> {
+fn create_sound_adjuster(ctx: &ggez::Context, id_start: u32, value: u8) -> mooeye::UiElement<()> {
     containers::HorizontalBox::new_spaced(0.)
         .to_element_builder(id_start, ctx)
         .with_child(
@@ -261,7 +261,7 @@ fn create_sould_adjuster(ctx: &ggez::Context, id_start: u32, value: f32) -> mooe
         )
         .with_child(
             graphics::Text::new(
-                graphics::TextFragment::new(format!("{}", (value * 100.) as u8))
+                graphics::TextFragment::new(format!("{}", value))
                     .color(graphics::Color::from_rgb_u32(PALETTE[6])),
             )
             .set_font("Retro")

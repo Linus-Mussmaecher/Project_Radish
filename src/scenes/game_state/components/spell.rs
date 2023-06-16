@@ -57,7 +57,7 @@ pub fn init_spell_pool(
 
             SpellTemplate::new(spell_list::construct_gale_force(sprite_pool), 120)
                 .guild_condition(3),
-            SpellTemplate::new(spell_list::construct_gale_force(sprite_pool), 120)
+            SpellTemplate::new(spell_list::construct_airburst(sprite_pool), 170)
                 .guild_condition(4)
                 .achievement_condition(achievements.list.get(10), sprite_pool),
 

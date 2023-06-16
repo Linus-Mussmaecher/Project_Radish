@@ -74,7 +74,8 @@ impl AudioPool {
             let len = path_string.len();
             if path_string[len - 4..] == *".wav" {
                 if let Ok(mut source) = audio::Source::new(ctx, sub_path) {
-                    source.set_volume(self.options.volume);
+                    println!("{}", self.options.volume);
+                    source.set_volume(self.options.volume as f32 / 100.);
                     self.sources
                         .insert(path_string.replace(r"\", "/")[..len - 4].to_owned(), source);
                 }

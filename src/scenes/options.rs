@@ -9,9 +9,9 @@ use serde::{Serialize, Deserialize};
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct OptionsConfig{
     /// The volume of sound effects played by the game.
-    pub volume: f32,
+    pub volume: u8,
     /// The volume of the in-game music.
-    pub music_volume: f32,
+    pub music_volume: u8,
 }
 
 impl OptionsConfig{
@@ -39,6 +39,6 @@ impl OptionsConfig{
 
 impl Default for OptionsConfig{
     fn default() -> Self {
-        Self { volume: 0.5, music_volume: 0.5 }
+        Self { volume: 50, music_volume: 50 }
     }
 }
