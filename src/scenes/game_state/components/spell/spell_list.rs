@@ -241,7 +241,7 @@ pub(super) fn construct_scorch(sprite_pool: &SpritePool) -> Spell {
         GameAction::spawn(|_, pos, cmd| {
             cmd.push((
                 pos,
-                components::LifeDuration::new(Duration::from_secs(2)),
+                components::LifeDuration::new(Duration::from_secs(3)),
                 components::Graphics::new(
                     "/sprites/spells/scorch",
                     Duration::from_secs_f32(0.2),

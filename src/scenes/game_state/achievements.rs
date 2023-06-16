@@ -199,7 +199,7 @@ impl AchievementSet {
         ));
 
         list.push(Achievement::new(
-            "Board clear",
+            "Puttin' on the broom",
             "Kill 1000 non-elite enemies.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a04_16_16.png").ok(),
             1000,
@@ -215,7 +215,7 @@ impl AchievementSet {
         ));
 
         list.push(Achievement::new(
-            "Can't touch this.",
+            "Can't touch this",
             "Reach wave 5.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a06_16_16.png").ok(),
             1,
@@ -223,7 +223,7 @@ impl AchievementSet {
         ));
 
         list.push(Achievement::new(
-            "Consistent",
+            "One kick, a thousand times",
             "Reach level 10, 10 times.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a07_16_16.png").ok(),
             10,
@@ -245,7 +245,7 @@ impl AchievementSet {
             "Kill an elite enemy.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a09_16_16.png").ok(),
             1,
-            (GameMessage::EnemyKilled(20), GameMessageFilter::Min),
+            (GameMessage::EnemyKilled(4), GameMessageFilter::Min),
         ));
 
         list.push(Achievement::new(
@@ -253,7 +253,7 @@ impl AchievementSet {
             "Kill 50 elite enemies.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a10_16_16.png").ok(),
             50,
-            (GameMessage::EnemyKilled(20), GameMessageFilter::Min),
+            (GameMessage::EnemyKilled(4), GameMessageFilter::Min),
         ));
 
         list.push(Achievement::new(
@@ -307,9 +307,9 @@ impl AchievementSet {
 
         list.push(Achievement::new(
             "Oops",
-            "Lose 10 buildings.",
+            "Lose ten buildings.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a16_16_16.png").ok(),
-            30,
+            10,
             (GameMessage::BuildingDown(0, 0), GameMessageFilter::Type),
         ));
 
