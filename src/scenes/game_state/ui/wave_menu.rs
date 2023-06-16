@@ -104,7 +104,9 @@ pub fn handle_wave_menu(
                 // if anything was purchased, increase cost of remaining spells
                 if purchased {
                     for spell in spell_pool.1.iter_mut() {
-                        spell.cost += 30;
+                        if spell.cost > 0 {
+                            spell.cost += 30;
+                        }
                     }
                 }
             }

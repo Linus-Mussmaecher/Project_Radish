@@ -30,43 +30,34 @@ pub fn init_spell_pool(
         vec![
             SpellTemplate::new(spell_list::construct_fireball(sprite_pool), 50).purchased(),
             SpellTemplate::new(spell_list::construct_scorch(sprite_pool), 90),
-            SpellTemplate::new(spell_list::construct_mortar(sprite_pool), 145)
-                .guild_condition(1),
-            SpellTemplate::new(spell_list::construct_flameorb(sprite_pool), 50)
-                .guild_condition(2),
+            SpellTemplate::new(spell_list::construct_mortar(sprite_pool), 145).guild_condition(1),
+            SpellTemplate::new(spell_list::construct_flameorb(sprite_pool), 50).guild_condition(2),
             SpellTemplate::new(spell_list::construct_conflagrate(sprite_pool), 110)
                 .guild_condition(3)
                 .achievement_condition(achievements.list.get(8), sprite_pool),
             SpellTemplate::new(spell_list::construct_phoenix(sprite_pool), 50)
                 .guild_condition(4)
                 .achievement_condition(achievements.list.get(5), sprite_pool),
-
             SpellTemplate::new(spell_list::construct_ice_bomb(sprite_pool), 75).purchased(),
-            SpellTemplate::new(spell_list::construct_shard(sprite_pool), 60)
-                .guild_condition(1),
+            SpellTemplate::new(spell_list::construct_shard(sprite_pool), 60).guild_condition(1),
             SpellTemplate::new(spell_list::construct_ice_lance(sprite_pool), 80)
                 .guild_condition(2)
                 .achievement_condition(achievements.list.get(9), sprite_pool),
-
             SpellTemplate::new(spell_list::construct_lightning_orb(sprite_pool), 90),
-            SpellTemplate::new(spell_list::construct_overload(sprite_pool), 120)
-                .guild_condition(1),
+            SpellTemplate::new(spell_list::construct_overload(sprite_pool), 120).guild_condition(1),
             SpellTemplate::new(spell_list::construct_lightning_ball(sprite_pool), 145)
                 .guild_condition(2)
                 .achievement_condition(achievements.list.get(1), sprite_pool),
-
             SpellTemplate::new(spell_list::construct_gale_force(sprite_pool), 120)
                 .guild_condition(3),
             SpellTemplate::new(spell_list::construct_airburst(sprite_pool), 170)
                 .guild_condition(4)
                 .achievement_condition(achievements.list.get(10), sprite_pool),
-
             SpellTemplate::new(spell_list::construct_mind_wipe(sprite_pool), 200)
                 .guild_condition(3),
             SpellTemplate::new(spell_list::construct_blackhole(sprite_pool), 200)
                 .guild_condition(4)
                 .achievement_condition(achievements.list.get(11), sprite_pool),
-
             SpellTemplate::new(spell_list::construct_arcane_blast(sprite_pool), 140)
                 .guild_condition(3),
             SpellTemplate::new(spell_list::construct_arcane_missiles(sprite_pool), 150)
@@ -438,9 +429,13 @@ impl Spell {
                         .scale(20.),
                 )
                 .add(
-                    graphics::TextFragment::new("\nCasting slots:")
-                        .color(graphics::Color::from_rgb_u32(PALETTE[6]))
-                        .scale(20.),
+                    graphics::TextFragment::new(if self.spell_slots.len() > 0 {
+                        "\nCasting slots:"
+                    } else {
+                        ""
+                    })
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                    .scale(20.),
                 )
                 .add(
                     graphics::TextFragment::new(self.spell_slots.iter().fold(
