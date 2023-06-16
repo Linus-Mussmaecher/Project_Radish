@@ -33,7 +33,7 @@ impl GameConfig {
             base_credits: 15.,
             wave_credits: 6.,
             wave_enemies: [1, 2, 3, 4],
-            base_spells: [1, 7, 13, 14],
+            base_spells: [1, 7, 4, 6],
             base_slots: 6,
             base_speed: 150.,
             starting_gold: 10000,

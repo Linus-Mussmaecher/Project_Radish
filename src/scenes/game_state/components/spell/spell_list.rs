@@ -40,6 +40,108 @@ pub(super) fn construct_fireball(sprite_pool: &SpritePool) -> Spell {
     )
 }
 
+pub(super) fn construct_phoenix(sprite_pool: &SpritePool) -> Spell {
+    Spell::new(
+        "Summon Phoenix",
+        "Summons a phoenix in front of you for 20 seconds. It regularly flaps its wings, dealing damage to nearby enemies and launching fireballs.",
+        sprite_pool.init_sprite_unchecked("/sprites/spells/fireball", Duration::ZERO),
+        vec![
+            GameAction::spawn(|_, pos, cmd| {
+                cmd.push((
+                    pos + ggez::glam::Vec2::new(0., -64.),
+                    components::LifeDuration::new(Duration::from_secs(20)),
+                    components::Graphics::new(
+                        "/sprites/spells/fireball",
+                        Duration::from_secs_f32(0.2),
+                    ),
+                    components::actions::Actions::new()
+                    .with_effect(ActionEffect::repeat(
+                        ActionEffectTarget::new_only_self(), 
+                        vec![
+                            GameAction::spawn(|_, pos, cmd| {
+                                cmd.push((
+                                    pos,
+                                    components::LifeDuration::new(Duration::from_secs(10)),
+                                    components::Graphics::new(
+                                        "/sprites/spells/fireball",
+                                        Duration::from_secs_f32(0.2),
+                                    ),
+                                    components::Velocity::new(0., -250.),
+                                    components::Collision::new(32., 32., |e1, e2| {
+                                        vec![
+                                            (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
+                                            (e2, GameAction::TakeDamage { dmg: 20 }),
+                                            (e1, GameAction::play_sound("/audio/sounds/explosion")),
+                                        ]
+                                    }),
+                                ));
+                            }),
+                            GameAction::play_sound("/audio/sounds/fireball_cast"),
+                        ],
+                        Duration::new(1,0),
+                    ))
+                    .with_effect(ActionEffect::repeat(
+                        ActionEffectTarget::new().with_affect_self(false).with_range(96.).with_enemies_only(true),
+                        GameAction::TakeDamage { dmg: 15 },
+                        Duration::new(1,0),
+                    )),
+                    
+                ));
+            }),
+        ],
+        tiny_vec!([f32; MAX_SPELL_SLOTS] => 5., 15., 25.),
+    )
+}
+
+pub(super) fn construct_flameorb(sprite_pool: &SpritePool) -> Spell {
+    Spell::new(
+        "Flame Orb",
+        "Hurl an orb of flame, dealing a not-quite-as-small amount of damage and igniting enemies near the target.",
+        sprite_pool.init_sprite_unchecked("/sprites/spells/fireball", Duration::ZERO),
+        vec![
+            GameAction::spawn(|_, pos, cmd| {
+                cmd.push((
+                    pos,
+                    components::LifeDuration::new(Duration::from_secs(10)),
+                    components::Graphics::new(
+                        "/sprites/spells/fireball",
+                        Duration::from_secs_f32(0.2),
+                    ),
+                    components::Velocity::new(0., -250.),
+                    components::Collision::new(32., 32., |e1, e2| {
+                        vec![
+                            (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
+                            (e2, GameAction::TakeDamage { dmg: 20 }),
+                            (e2, GameAction::ApplyEffect(Box::new(ActionEffect::once(
+                                ActionEffectTarget::new()
+                                .with_affect_self(true)
+                                .with_enemies_only(true)
+                                .with_range(128.),
+                                vec![
+                                    ActionEffect::repeat(
+                                        ActionEffectTarget::new_only_self(),
+                                        GameAction::TakeDamage { dmg: 4 },
+                                        Duration::from_secs_f32(0.5),
+                                    )
+                                    .with_duration(Duration::from_secs(4))
+                                    .into(),
+                                    GameAction::AddParticle(
+                                        Particle::new("/sprites/spells/burning", Duration::from_secs_f32(0.25))
+                                            .with_duration(Duration::from_secs(4)),
+                                    ),
+                                ]
+                            )))),
+                            (e1, GameAction::play_sound("/audio/sounds/explosion")),
+                        ]
+                    }),
+                ));
+            }),
+            GameAction::play_sound("/audio/sounds/fireball_cast"),
+        ],
+        tiny_vec!([f32; MAX_SPELL_SLOTS] => 2.5, 5.),
+    )
+}
+
 pub(super) fn construct_ice_bomb(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Ice Bomb",
