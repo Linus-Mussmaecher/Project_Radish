@@ -622,7 +622,7 @@ pub(super) fn construct_gale_force(sprite_pool: &SpritePool) -> Spell {
                         "/sprites/spells/fireball",
                         Duration::from_secs_f32(0.2),
                     ),
-                    components::Velocity::new(0., -250.),
+                    components::Velocity::new(0., -300.),
                     components::Collision::new(128., 16., |_, e2| {
                         vec![
                             (e2, GameAction::TakeDamage { dmg: 10 }),
@@ -645,6 +645,6 @@ pub(super) fn construct_gale_force(sprite_pool: &SpritePool) -> Spell {
             }),
             GameAction::play_sound("/audio/sounds/fireball_cast"),
         ],
-        tiny_vec!([f32; MAX_SPELL_SLOTS] => 2.5, 2.5, 5., 5.),
+        tiny_vec!([f32; MAX_SPELL_SLOTS] => 2.5, 2.5, 5., 5., 8.),
     )
 }

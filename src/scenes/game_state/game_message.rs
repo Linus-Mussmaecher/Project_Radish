@@ -4,7 +4,7 @@ use mooeye::UiElement;
 pub enum GameMessage {
     UpdateCityHealth(i32),
     UpdateGold(i32),
-    // needs to use u8 instead of f32 to
+    // needs to use u8 instead of f32 to allow ordering
     UpdateSpellSlots(usize, u8),
     NextWave(i32),
     EnemyKilled(u8),
