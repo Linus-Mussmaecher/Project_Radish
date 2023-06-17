@@ -168,7 +168,17 @@ impl SpellCaster {
                         ind += 1;
                     }
                 }
-                return spell.spell_.clone();
+                return if let Some(sound) = &spell.sound {
+                    match spell.spell_.clone() {
+                        ActionContainer::ApplySingle(a) =>   ActionContainer::ApplyMultiple(vec![a, GameAction::PlaySound(sound.clone())]),
+                        ActionContainer::ApplyMultiple(mut vec) => {
+                            vec.push(GameAction::PlaySound(sound.clone()));
+                            ActionContainer::ApplyMultiple(vec)
+                        },
+                    }
+                } else {
+                    spell.spell_.clone()
+                };
             }
         }
         ActionContainer::ApplySingle(GameAction::None)
@@ -364,6 +374,8 @@ pub struct Spell {
     description: String,
     /// The visual representation of the spell in the spell bar or spell book.
     icon: Sprite,
+    /// The sound played on casting the spell
+    sound: Option<String>,
 
     // -------- FUNCTIONAL --------
     /// The actual action that is activated when casting the spell. This action is added to the caster!
@@ -378,6 +390,7 @@ impl Spell {
         name: &str,
         description: &str,
         icon: Sprite,
+        sound: impl Into<Option<&'static str>>,
         spell_: impl Into<ActionContainer>,
         spell_slots: TinyVec<[f32; MAX_SPELL_SLOTS]>,
     ) -> Self {
@@ -387,6 +400,7 @@ impl Spell {
             icon,
             spell_: spell_.into(),
             spell_slots,
+            sound: sound.into().map(|s| s.to_owned()),
         }
     }
 
@@ -399,6 +413,7 @@ impl Spell {
                 .unwrap_or_default(),
             spell_: GameAction::None.into(),
             spell_slots: TinyVec::new(),
+            sound: None,
         }
     }
 

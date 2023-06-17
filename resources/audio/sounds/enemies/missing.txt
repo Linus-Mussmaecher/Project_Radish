@@ -1,0 +1,48 @@
+Phoenix summon
+? Phoenix death
+
+flameorb cast
+flameorb hit
+
+conflagrate cast
+
+ice lance cast
+ice lance hit
+
+overload cast
+overload hit
+overload trigger
+
+scorch cast
+scorch hit
+
+shard cast
+shard hit
+
+missiles cast
+missiles launch
+missiles hit
+
+arcane blast cast
+arcane blast hit 1
+arcane blast hit 2
+
+blackhole cast
+blackhole hit
+blackhole explosion
+
+mindwipe cast
+mindwipe hit
+mindwipe secondary
+
+mortar launch
+mortar hit
+
+lball cast
+lball shock
+
+gale force cast
+gale force hit
+
+airburst launch
+airburst suck
