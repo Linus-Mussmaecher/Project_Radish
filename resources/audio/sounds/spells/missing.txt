@@ -6,7 +6,7 @@ flameorb hit
 
 conflagrate cast
 
-ice lance cast
+	ice lance cast
 ice lance hit
 
 overload cast
@@ -19,11 +19,11 @@ scorch hit
 shard cast
 shard hit
 
-missiles cast
+	missiles cast
 missiles launch
 missiles hit
 
-arcane blast cast
+	arcane blast cast
 arcane blast hit 1
 arcane blast hit 2
 

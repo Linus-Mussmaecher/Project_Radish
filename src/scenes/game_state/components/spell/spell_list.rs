@@ -719,39 +719,36 @@ pub(super) fn construct_gale_force(sprite_pool: &SpritePool) -> Spell {
         "Create a gust of wind, pushing back enemies and dealing slight damage.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/icons/gale_icon", Duration::ZERO),
         None,
-        vec![
-            GameAction::spawn(|_, pos, cmd| {
-                cmd.push((
-                    pos,
-                    components::LifeDuration::new(Duration::from_secs(3)),
-                    components::Graphics::new(
-                        "/sprites/spells/galeforce",
-                        Duration::from_secs_f32(0.2),
-                    ),
-                    components::Velocity::new(0., -300.),
-                    components::Collision::new(128., 16., |e1, e2| {
-                        vec![
-                            (e1, GameAction::AddImmunity { other: e2 }),
-                            (e2, GameAction::TakeDamage { dmg: 10 }),
-                            (
-                                e2,
-                                GameAction::ApplyEffect(Box::new(
-                                    ActionEffect::repeat(
-                                        ActionEffectTarget::new_only_self(),
-                                        GameAction::Move {
-                                            delta: ggez::glam::Vec2::new(0., -7.),
-                                        },
-                                        Duration::from_secs_f32(0.02),
-                                    )
-                                    .with_duration(Duration::from_secs_f32(0.2)),
-                                )),
-                            ),
-                        ]
-                    }),
-                ));
-            }),
-            GameAction::play_sound("/audio/sounds/fireball_cast"),
-        ],
+        GameAction::spawn(|_, pos, cmd| {
+            cmd.push((
+                pos,
+                components::LifeDuration::new(Duration::from_secs(3)),
+                components::Graphics::new(
+                    "/sprites/spells/galeforce",
+                    Duration::from_secs_f32(0.2),
+                ),
+                components::Velocity::new(0., -300.),
+                components::Collision::new(128., 16., |e1, e2| {
+                    vec![
+                        (e1, GameAction::AddImmunity { other: e2 }),
+                        (e2, GameAction::TakeDamage { dmg: 10 }),
+                        (
+                            e2,
+                            GameAction::ApplyEffect(Box::new(
+                                ActionEffect::repeat(
+                                    ActionEffectTarget::new_only_self(),
+                                    GameAction::Move {
+                                        delta: ggez::glam::Vec2::new(0., -7.),
+                                    },
+                                    Duration::from_secs_f32(0.02),
+                                )
+                                .with_duration(Duration::from_secs_f32(0.2)),
+                            )),
+                        ),
+                    ]
+                }),
+            ));
+        }),
         tiny_vec!([f32; MAX_SPELL_SLOTS] => 2.5, 2.5, 5., 5., 8.),
     )
 }
@@ -762,51 +759,48 @@ pub(super) fn construct_airburst(sprite_pool: &SpritePool) -> Spell {
         "Launch a ball of compressed air. Upon hitting an enemy, it deals area damage and pulls nearby enemies towards a point behind the target.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/airburst", Duration::ZERO),
         None,
-        vec![
-            GameAction::spawn(|_, pos, cmd| {
-                cmd.push((
-                    pos,
-                    components::LifeDuration::new(Duration::from_secs(4)),
-                    components::Graphics::new(
-                        "/sprites/spells/airburst",
-                        Duration::from_secs_f32(0.2),
-                    ),
-                    components::Velocity::new(0., -350.),
-                    components::Collision::new(32., 32., |e1, e2| {
-                        vec![
-                            (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
-                            (e2, GameAction::TakeDamage { dmg: 45 }),
-                            (e2, GameAction::spawn(|_, pos, cmd|{
-                                cmd.push((
-                                    pos + ggez::glam::Vec2::new(0., -64.),
-                                    components::LifeDuration::new(Duration::from_secs_f32(0.3)),
-                                    components::Actions::new()
-                                        .with_effect(
-                                            ActionEffect::repeat(
-                                                ActionEffectTarget::new_only_self(),
-                                                GameAction::spawn(|_, pos_src, cmd|{
-                                                    // execute the following every seconds:
-                                                    cmd.exec_mut(move |world, _|{
-                                                        // iterator over all (close) enemies
-                                                        for (_, pos_tar, act_tar) in <(&components::Velocity, &components::Position, &mut Actions)>::query()
-                                                            .iter_mut(world)
-                                                            .filter(|(_, pos, _)| pos.distance(pos_src) < 175.)
-                                                        {
-                                                            act_tar.push(GameAction::Move { delta: (pos_src - *pos_tar).clamp_length_max(3.) })
-                                                        }
-                                                    });
-                                                }),
-                                                Duration::from_secs_f32(0.02)
-                                            ).with_duration(Duration::from_secs_f32(0.7))
-                                        )
-                                ));
-                            }),)
-                        ]
-                    }),
-                ));
-            }),
-            GameAction::play_sound("/audio/sounds/fireball_cast"),
-        ],
+        GameAction::spawn(|_, pos, cmd| {
+            cmd.push((
+                pos,
+                components::LifeDuration::new(Duration::from_secs(4)),
+                components::Graphics::new(
+                    "/sprites/spells/airburst",
+                    Duration::from_secs_f32(0.2),
+                ),
+                components::Velocity::new(0., -350.),
+                components::Collision::new(32., 32., |e1, e2| {
+                    vec![
+                        (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
+                        (e2, GameAction::TakeDamage { dmg: 45 }),
+                        (e2, GameAction::spawn(|_, pos, cmd|{
+                            cmd.push((
+                                pos + ggez::glam::Vec2::new(0., -64.),
+                                components::LifeDuration::new(Duration::from_secs_f32(0.3)),
+                                components::Actions::new()
+                                    .with_effect(
+                                        ActionEffect::repeat(
+                                            ActionEffectTarget::new_only_self(),
+                                            GameAction::spawn(|_, pos_src, cmd|{
+                                                // execute the following every seconds:
+                                                cmd.exec_mut(move |world, _|{
+                                                    // iterator over all (close) enemies
+                                                    for (_, pos_tar, act_tar) in <(&components::Velocity, &components::Position, &mut Actions)>::query()
+                                                        .iter_mut(world)
+                                                        .filter(|(_, pos, _)| pos.distance(pos_src) < 175.)
+                                                    {
+                                                        act_tar.push(GameAction::Move { delta: (pos_src - *pos_tar).clamp_length_max(3.) })
+                                                    }
+                                                });
+                                            }),
+                                            Duration::from_secs_f32(0.02)
+                                        ).with_duration(Duration::from_secs_f32(0.7))
+                                    )
+                            ));
+                        }),)
+                    ]
+                }),
+            ));
+        }),
         tiny_vec!([f32; MAX_SPELL_SLOTS] => 8., 15.),
     )
 }
