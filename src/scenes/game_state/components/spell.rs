@@ -32,10 +32,10 @@ pub fn init_spell_pool(
             SpellTemplate::new(spell_list::construct_scorch(sprite_pool), 90),
             SpellTemplate::new(spell_list::construct_mortar(sprite_pool), 145).guild_condition(1),
             SpellTemplate::new(spell_list::construct_flameorb(sprite_pool), 50).guild_condition(2),
-            SpellTemplate::new(spell_list::construct_conflagrate(sprite_pool), 110)
+            SpellTemplate::new(spell_list::construct_conflagrate(sprite_pool), 150)
                 .guild_condition(3)
                 .achievement_condition(achievements.list.get(8), sprite_pool),
-            SpellTemplate::new(spell_list::construct_phoenix(sprite_pool), 50)
+            SpellTemplate::new(spell_list::construct_phoenix(sprite_pool), 200)
                 .guild_condition(4)
                 .achievement_condition(achievements.list.get(5), sprite_pool),
             SpellTemplate::new(spell_list::construct_ice_bomb(sprite_pool), 75).purchased(),

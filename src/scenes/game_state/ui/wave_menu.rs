@@ -105,7 +105,7 @@ pub fn handle_wave_menu(
                 if purchased {
                     for spell in spell_pool.1.iter_mut() {
                         if spell.cost > 0 {
-                            spell.cost += 30;
+                            spell.cost += 20;
                         }
                     }
                 }

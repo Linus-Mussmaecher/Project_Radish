@@ -44,14 +44,14 @@ pub(super) fn construct_phoenix(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Summon Phoenix",
         "Summons a phoenix in front of you for 20 seconds. It regularly flaps its wings, dealing damage to nearby enemies and launching fireballs.",
-        sprite_pool.init_sprite_unchecked("/sprites/spells/fireball", Duration::ZERO),
+        sprite_pool.init_sprite_unchecked("/sprites/spells/icons/phoenix_icon", Duration::ZERO),
         vec![
             GameAction::spawn(|_, pos, cmd| {
                 cmd.push((
                     pos + ggez::glam::Vec2::new(0., -64.),
                     components::LifeDuration::new(Duration::from_secs(20)),
                     components::Graphics::new(
-                        "/sprites/spells/fireball",
+                        "/sprites/spells/phoenix",
                         Duration::from_secs_f32(0.2),
                     ),
                     components::actions::Actions::new()
@@ -64,7 +64,7 @@ pub(super) fn construct_phoenix(sprite_pool: &SpritePool) -> Spell {
                                     components::LifeDuration::new(Duration::from_secs(10)),
                                     components::Graphics::new(
                                         "/sprites/spells/fireball",
-                                        Duration::from_secs_f32(0.2),
+                                        Duration::from_secs_f32(0.3),
                                     ),
                                     components::Velocity::new(0., -250.),
                                     components::Collision::new(32., 32., |e1, e2| {
@@ -97,18 +97,18 @@ pub(super) fn construct_flameorb(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Flame Orb",
         "Hurl an orb of flame, dealing a not-quite-as-small amount of damage and igniting enemies near the target.",
-        sprite_pool.init_sprite_unchecked("/sprites/spells/fireball", Duration::ZERO),
+        sprite_pool.init_sprite_unchecked("/sprites/spells/flameorb", Duration::ZERO),
         vec![
             GameAction::spawn(|_, pos, cmd| {
                 cmd.push((
                     pos,
                     components::LifeDuration::new(Duration::from_secs(10)),
                     components::Graphics::new(
-                        "/sprites/spells/fireball",
+                        "/sprites/spells/flameorb",
                         Duration::from_secs_f32(0.2),
                     ),
                     components::Velocity::new(0., -250.),
-                    components::Collision::new(32., 32., |e1, e2| {
+                    components::Collision::new(24., 24., |e1, e2| {
                         vec![
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                             (e2, GameAction::TakeDamage { dmg: 20 }),
@@ -709,14 +709,14 @@ pub(super) fn construct_gale_force(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Gale Force",
         "Create a gust of wind, pushing back enemies and dealing slight damage.",
-        sprite_pool.init_sprite_unchecked("/sprites/spells/fireball", Duration::ZERO),
+        sprite_pool.init_sprite_unchecked("/sprites/spells/icons/gale_icon", Duration::ZERO),
         vec![
             GameAction::spawn(|_, pos, cmd| {
                 cmd.push((
                     pos,
                     components::LifeDuration::new(Duration::from_secs(3)),
                     components::Graphics::new(
-                        "/sprites/spells/fireball",
+                        "/sprites/spells/galeforce",
                         Duration::from_secs_f32(0.2),
                     ),
                     components::Velocity::new(0., -300.),
@@ -751,14 +751,14 @@ pub(super) fn construct_airburst(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Airburst",
         "Launch a ball of compressed air. Upon hitting an enemy, it deals area damage and pulls nearby enemies towards a point behind the target.",
-        sprite_pool.init_sprite_unchecked("/sprites/spells/fireball", Duration::ZERO),
+        sprite_pool.init_sprite_unchecked("/sprites/spells/airburst", Duration::ZERO),
         vec![
             GameAction::spawn(|_, pos, cmd| {
                 cmd.push((
                     pos,
                     components::LifeDuration::new(Duration::from_secs(4)),
                     components::Graphics::new(
-                        "/sprites/spells/fireball",
+                        "/sprites/spells/airburst",
                         Duration::from_secs_f32(0.2),
                     ),
                     components::Velocity::new(0., -350.),
