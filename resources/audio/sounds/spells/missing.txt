@@ -1,48 +1,46 @@
-Phoenix summon
-? Phoenix death
+Sound				Found	Linked
+----------------------------------------------------
+Fireball cast			+	+
+Fireball hit			+	+
+conflagrate cast		+	
+Phoenix summon			+	+	
+flameorb cast			+	
+flameorb hit			+	
+scorch cast			+	
+scorch hit			+	
+mortar launch			+	
+mortar hit			+	
+....................................................
+icebomb cast			+	+
+icebomb hit			+	+
+ice lance cast			+	+
+ice lance hit			+	
+shard cast			+	
+shard hit			+	
+....................................................
+electroorb			+	+
+overload cast				
+overload hit			+	
+overload trigger		+
+lball cast				
+lball shock			+			
+....................................................
+missiles cast			+	+
+missiles launch			+	
+missiles hit			+	
+arcane blast cast		+	+
+arcane blast hit 1		+		
+arcane blast hit 2		+		
+....................................................
+blackhole cast			+	
+blackhole hit			+	
+blackhole explosion		?		
+mindwipe cast			+	
+mindwipe hit			+	
+mindwipe secondary		?		
+....................................................
+gale force cast			+
+airburst cast			+	
+airburst suck			+	
 
-flameorb cast
-flameorb hit
-
-conflagrate cast
-
-	ice lance cast
-ice lance hit
-
-overload cast
-overload hit
-overload trigger
-
-scorch cast
-scorch hit
-
-shard cast
-shard hit
-
-	missiles cast
-missiles launch
-missiles hit
-
-	arcane blast cast
-arcane blast hit 1
-arcane blast hit 2
-
-blackhole cast
-blackhole hit
-blackhole explosion
-
-mindwipe cast
-mindwipe hit
-mindwipe secondary
-
-mortar launch
-mortar hit
-
-lball cast
-lball shock
-
-gale force cast
-gale force hit
-
-airburst launch
-airburst suck
+Improve: Shard hit, Shard cast timing

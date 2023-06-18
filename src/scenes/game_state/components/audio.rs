@@ -73,7 +73,7 @@ impl AudioPool {
         for sub_path in paths {
             let path_string = sub_path.to_string_lossy().to_string();
             let len = path_string.len();
-            if path_string[len - 4..] == *".wav" {
+            if path_string[len - 4..] == *".wav" || path_string[len -4..] == *".ogg" {
                 if let Ok(source) = audio::Source::new(ctx, sub_path) {
                     self.sources
                         .insert(path_string.replace(r"\", "/")[..len - 4].to_owned(), source);

@@ -29,7 +29,7 @@ pub(super) fn construct_fireball(sprite_pool: &SpritePool) -> Spell {
                     vec![
                         (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                         (e2, GameAction::TakeDamage { dmg: 20 }),
-                        (e1, GameAction::play_sound("/audio/sounds/spells/fireball_explosion")),
+                        (e1, GameAction::play_sound("/audio/sounds/spells/fireball_hit")),
                     ]
                 }),
             ));
@@ -43,7 +43,7 @@ pub(super) fn construct_phoenix(sprite_pool: &SpritePool) -> Spell {
         "Summon Phoenix",
         "Summons a phoenix in front of you for 20 seconds. It regularly flaps its wings, dealing damage to nearby enemies and launching fireballs.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/icons/phoenix_icon", Duration::ZERO),
-        None,
+        "/audio/sounds/spells/phoenix_cast",
         GameAction::spawn(|_, pos, cmd| {
             cmd.push((
                 pos + ggez::glam::Vec2::new(0., -64.),
@@ -69,7 +69,7 @@ pub(super) fn construct_phoenix(sprite_pool: &SpritePool) -> Spell {
                                     vec![
                                         (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                                         (e2, GameAction::TakeDamage { dmg: 20 }),
-                                        (e1, GameAction::play_sound("/audio/sounds/spells/fireball_explosion")),
+                                        (e1, GameAction::play_sound("/audio/sounds/spells/fireball_hit")),
                                     ]
                                 }),
                             ));
@@ -108,6 +108,7 @@ pub(super) fn construct_flameorb(sprite_pool: &SpritePool) -> Spell {
                 components::Collision::new(24., 24., |e1, e2| {
                     vec![
                         (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
+                        (e1, GameAction::play_sound("/audio/sounds/spells/flameorb_hit")),
                         (e2, GameAction::TakeDamage { dmg: 20 }),
                         (e2, GameAction::ApplyEffect(Box::new(ActionEffect::once(
                             ActionEffectTarget::new()
@@ -191,6 +192,11 @@ fn spawn_icebomb(_: Entity, pos: components::Position, cmd: &mut CommandBuffer) 
                     GameAction::Move { delta } => *delta *= 0.35,
                     _ => {}
                 },
+            ))
+            .with_effect(ActionEffect::on_death(
+                ActionEffectTarget::new_only_self(),
+                RemoveSource::TimedOut, 
+                GameAction::play_sound("/audio/sounds/spells/icebomb_explosion"),
             )),
     ));
 }
@@ -201,7 +207,7 @@ pub(super) fn construct_lightning_orb(sprite_pool: &SpritePool) -> Spell {
         "Launch a ball of lightning that pierces through enemies and deals area damage on every contact.",
         sprite_pool
             .init_sprite_unchecked("/sprites/spells/electroorb", Duration::ZERO),
-            None,
+        None,
         GameAction::spawn(|_, pos, cmd| {
             cmd.push((
                 pos,
@@ -213,6 +219,7 @@ pub(super) fn construct_lightning_orb(sprite_pool: &SpritePool) -> Spell {
                 components::Velocity::new(0., -180.),
                 components::Collision::new(32., 32., |e1, e2| vec![
                             (e1, GameAction::AddImmunity { other: e2 }),
+                            (e1, GameAction::play_sound("/audio/sounds/spells/electroorb_hit")),
                             (
                                 e2,
                                 ActionEffect::once(
@@ -224,7 +231,6 @@ pub(super) fn construct_lightning_orb(sprite_pool: &SpritePool) -> Spell {
                                 )
                                 .into(),
                             ),
-                            (e1, GameAction::play_sound("/audio/sounds/spells/electroorb_hit"))
                         ],),
             ));
         }),
@@ -237,7 +243,7 @@ pub(super) fn construct_conflagrate(sprite_pool: &SpritePool) -> Spell {
         "Conflagrate",
         "Burn the three nearest enemies for 8 seconds, dealing high damage over time",
         sprite_pool.init_sprite_unchecked("/sprites/spells/icons/conflagrate_icon", Duration::ZERO),
-        None,
+        "/audio/sounds/spells/conflagrate_cast",
         ActionEffect::once(
             ActionEffectTarget::new()
                 .with_enemies_only(true)
@@ -265,7 +271,7 @@ pub(super) fn construct_ice_lance(sprite_pool: &SpritePool) -> Spell {
         "Ice Lance",
         "Launch a volley of 3 quick-striking ice lances, each dealing damage to a single target and increasing their damage taken.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/icons/icespike_icon", Duration::ZERO),
-        None,
+        "/audio/sounds/spells/lance_cast",
             ActionEffect::repeat(ActionEffectTarget::new_only_self(),
                 vec![GameAction::spawn(|_, pos, cmd|{
                     cmd.push(
@@ -278,6 +284,7 @@ pub(super) fn construct_ice_lance(sprite_pool: &SpritePool) -> Spell {
                 components::Velocity::new(0., -450.),
                 components::Collision::new(32., 32., move |e1, e2| vec![
                             (e1, GameAction::AddImmunity { other: e2 }),
+                            (e1, GameAction::play_sound("/audio/sounds/spells/lance_hit")),
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                             (
                                 e2,
@@ -307,7 +314,7 @@ pub(super) fn construct_overload(sprite_pool: &SpritePool) -> Spell {
         "Overload",
         "Shoot out an electric spark that overloads the first enemy hit. When they die within a short timeframe, nearby enemies take high damage.",
         sprite_pool.init_sprite_unchecked("/sprites/effects/overloaded", Duration::ZERO),
-        None,
+        "/audio/sounds/spells/overload_cast",
         GameAction::spawn(|_, pos, cmd| {
 
             cmd.push((
@@ -320,13 +327,19 @@ pub(super) fn construct_overload(sprite_pool: &SpritePool) -> Spell {
                 components::Velocity::new(0., -300.),
                 components::Collision::new(12., 32., move |e1, e2| vec![
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
+                            (e1, GameAction::play_sound("/audio/sounds/spells/overload_hit")),
                             (e2, GameAction::TakeDamage { dmg: 10 }),
                             (e2, ActionEffect::on_death(
                                 ActionEffectTarget::new()
                                     .with_enemies_only(true)
                                     .with_range(160.) ,
                                 RemoveSource::HealthLoss,
-                                GameAction::TakeDamage { dmg: 60 } ,
+                                GameAction::TakeDamage { dmg: 60 },
+                            ).with_duration(Duration::from_secs(8)).into()),
+                            (e2, ActionEffect::on_death(
+                                ActionEffectTarget::new_only_self(),
+                                RemoveSource::HealthLoss,
+                                GameAction::play_sound("/audio/sounds/spells/overload_trigger"),
                             ).with_duration(Duration::from_secs(8)).into()),
                             (e2, GameAction::AddParticle(Particle::new("/sprites/effects/overloaded", Duration::from_secs_f32(0.4)).with_duration(Duration::from_secs(8)))),
                         ],),
@@ -340,7 +353,7 @@ pub(super) fn construct_scorch(sprite_pool: &SpritePool) -> Spell {
         "Scorch",
         "Hurl a short ranged fireball, dealing low impact damage but igniting the area hit for 10 seconds, dealing damage over time to all enemies inside.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/scorch", Duration::ZERO),
-        None,
+        "/audio/sounds/spells/scorch_cast",
         GameAction::spawn(|_, pos, cmd| {
             cmd.push((
                 pos,
@@ -352,6 +365,7 @@ pub(super) fn construct_scorch(sprite_pool: &SpritePool) -> Spell {
                 components::Velocity::new(0., -200.),
                 components::Collision::new(32., 32., |e1, e2| vec![
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
+                            (e1, GameAction::play_sound("/audio/sounds/spells/scorch_hit")),
                             (e1, GameAction::spawn(|_, pos, cmd|{
                                 cmd.push((
                                     pos,
@@ -383,7 +397,7 @@ pub(super) fn construct_shard(sprite_pool: &SpritePool) -> Spell {
                 s.set_variant(1);
                 s
             },
-            None,
+            "/audio/sounds/spells/shard_cast",
         GameAction::spawn(|_, pos, cmd|{
             cmd.push((
                 pos,
@@ -392,6 +406,7 @@ pub(super) fn construct_shard(sprite_pool: &SpritePool) -> Spell {
                 components::Graphics::new("/sprites/spells/icebomb", Duration::from_secs_f32(0.25)),
                 components::Collision::new(32., 32., |e1, e2| vec![
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
+                            (e1, GameAction::play_sound("/audio/sounds/spells/shard_hit")),
                             (e2, GameAction::TakeDamage { dmg: 20 }),
                             (e2, ActionEffect::transform(ActionEffectTarget::new_only_self(), |action| match action {
                                 GameAction::Move { delta } => *delta *= 0.9,
@@ -409,6 +424,7 @@ pub(super) fn construct_shard(sprite_pool: &SpritePool) -> Spell {
                                         ).with_sprite_variant(2),
                                         components::Collision::new(32., 32., |e1, e2| vec![
                                                 (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
+                                                (e1, GameAction::play_sound("/audio/sounds/spells/shard_hit")),
                                                 (e2, GameAction::TakeDamage { dmg: 8 }),
                                                 (e2, ActionEffect::transform(ActionEffectTarget::new_only_self(), |action| match action {
                                                     GameAction::Move { delta } => *delta *= 0.7,
@@ -466,6 +482,7 @@ pub(super) fn construct_arcane_missiles(sprite_pool: &SpritePool) -> Spell {
                             components::Velocity::from((target - pos_src).clamp_length(240., 240.)),
                             components::Collision::new(32., 32., |e1, e2| vec![
                                         (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
+                                        (e1, GameAction::play_sound("/audio/sounds/spells/amissiles_hit")),
                                         (e2, GameAction::TakeDamage { dmg: 25 }),
                                     ],),
                         ));
@@ -494,6 +511,7 @@ pub(super) fn construct_arcane_blast(sprite_pool: &SpritePool) -> Spell {
                 components::Velocity::new(0., -360.),
                 components::Collision::new(32., 32., |e1, e2| vec![
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
+                            (e1, GameAction::play_sound("/audio/sounds/spells/ablast_hit1")),
                             (e2, GameAction::TakeDamage { dmg: 30 }),
                             (e2, GameAction::spawn(|_, pos,cmd|{
                                 for i in 0..8{
@@ -508,6 +526,7 @@ pub(super) fn construct_arcane_blast(sprite_pool: &SpritePool) -> Spell {
                                         components::Velocity::from(rel.clamp_length(240., 240.) * -1.),
                                         components::Collision::new(8., 8., |e1, e2| vec![
                                                     (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
+                                                    (e1, GameAction::play_sound("/audio/sounds/spells/ablast_hit2")),
                                                     (e2, GameAction::TakeDamage { dmg: 30 }),
                                                 ],),
                                     ));
@@ -524,7 +543,7 @@ pub(super) fn construct_blackhole(sprite_pool: &SpritePool) -> Spell {
         "Blackhole",
         "Launch a slow-moving ball of antimatter. When colliding with an enemy, it will spawn a blackhole that attracts enemies for 6 seconds, then damages and shortly silences close enemies.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/blackhole", Duration::ZERO),
-        None,
+        "/audio/sounds/spells/blackhole_cast",
         GameAction::spawn(|_, pos, cmd| {
             cmd.push((
                 pos,
@@ -536,6 +555,7 @@ pub(super) fn construct_blackhole(sprite_pool: &SpritePool) -> Spell {
                 components::Velocity::new(0., -180.),
                 components::Collision::new(16., 16., |e1, e2| vec![
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
+                            (e1, GameAction::play_sound("/audio/sounds/spells/blackhole_hit")),
                             (e2, GameAction::TakeDamage { dmg: 80 }),
                             (e1, GameAction::spawn(|_, pos, cmd|{
                                 cmd.push((
@@ -572,6 +592,11 @@ pub(super) fn construct_blackhole(sprite_pool: &SpritePool) -> Spell {
                                                 GameAction::Silence(Duration::new(1, 0))
                                             ],
                                         ))
+                                        .with_effect(ActionEffect::on_death(
+                                            ActionEffectTarget::new_only_self(),
+                                            RemoveSource::TimedOut, 
+                                            GameAction::play_sound("/audio/sounds/spells/blackhole_explosion"),
+                                        )),
                                 ));
                             }),)
                         ],),
@@ -586,7 +611,7 @@ pub(super) fn construct_mind_wipe(sprite_pool: &SpritePool) -> Spell {
         "Mind wipe",
         "Launch a bolt of dark energy that deals a medium amount of damage to the first enemy hit. After a short delay, deal the same damage again and silence the target for 15 seconds.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/icons/mindwipe_icon", Duration::ZERO),
-        None,
+        "/audio/sounds/spells/mindwipe_cast",
         GameAction::spawn(|_, pos, cmd| {
             cmd.push((
                 pos,
@@ -598,10 +623,12 @@ pub(super) fn construct_mind_wipe(sprite_pool: &SpritePool) -> Spell {
                 components::Velocity::new(0., -250.),
                 components::Collision::new(32., 32., |e1, e2| vec![
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
+                            (e1, GameAction::play_sound("/audio/sounds/spells/mindwipe_hit")),
                             (e2, GameAction::TakeDamage { dmg: 42 }),
                             (e2, ActionEffect::once(ActionEffectTarget::new_only_self(), vec![
                                 GameAction::TakeDamage { dmg: 42 },
                                 GameAction::Silence(Duration::new(15, 0)),
+                                GameAction::play_sound("/audio/sounds/spells/mindwipe_hit"),
                             ]).with_duration(Duration::new(2, 0)).into()),
                         ],),
             ));
@@ -615,7 +642,7 @@ pub(super) fn construct_mortar(sprite_pool: &SpritePool) -> Spell {
         "Fiery mortar", 
         "Launch five mortar shells that pass over enemies and impact the middle of the battlefield, dealing area damage.", 
         sprite_pool.init_sprite_unchecked("/sprites/spells/icons/mortar_icon", Duration::ZERO),
-        None,
+        "/audio/sounds/spells/mortar_cast",
         GameAction::spawn(|_, pos, cmd| {
             for _ in 0..5{
                 cmd.push((
@@ -632,13 +659,16 @@ pub(super) fn construct_mortar(sprite_pool: &SpritePool) -> Spell {
                         .with_effect(ActionEffect::on_death(
                             ActionEffectTarget::new_only_self(),
                             RemoveSource::TimedOut,
-                            GameAction::spawn(|_,pos,cmd|{
-                                cmd.push((
-                                    pos,
-                                    components::LifeDuration::from(Duration::from_secs_f32(0.64)),
-                                    components::Graphics::new("/sprites/effects/explosion_small", Duration::ZERO),
-                                ));
-                            }),
+                            vec![
+                                GameAction::spawn(|_,pos,cmd|{
+                                    cmd.push((
+                                        pos,
+                                        components::LifeDuration::from(Duration::from_secs_f32(0.64)),
+                                        components::Graphics::new("/sprites/effects/explosion_small", Duration::ZERO),
+                                    ));
+                                }),
+                                GameAction::play_sound("/audio/sounds/spells/mortar_hit"),
+                            ],
                         )),
                 ));
             }
@@ -689,11 +719,14 @@ pub(super) fn construct_lightning_ball(sprite_pool: &SpritePool) -> Spell {
                     .with_effect(
                         ActionEffect::repeat(
                             ActionEffectTarget::new_only_self(),
-                            GameAction::AddParticle(
-                                Particle::new("/sprites/spells/lightning_ball", Duration::from_secs_f32(0.1))
-                                    .with_sprite_variant(1)
-                                    .with_duration(Duration::from_secs_f32(0.15))
-                            ),
+                            vec![
+                                GameAction::AddParticle(
+                                    Particle::new("/sprites/spells/lightning_ball", Duration::from_secs_f32(0.1))
+                                        .with_sprite_variant(1)
+                                        .with_duration(Duration::from_secs_f32(0.15))
+                                ),
+                                GameAction::play_sound("/audio/sounds/spells/lball_hit"),
+                            ],
                             Duration::from_secs_f32(0.4),
                         )
                     )
@@ -718,7 +751,7 @@ pub(super) fn construct_gale_force(sprite_pool: &SpritePool) -> Spell {
         "Gale Force",
         "Create a gust of wind, pushing back enemies and dealing slight damage.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/icons/gale_icon", Duration::ZERO),
-        None,
+        "/audio/sounds/spells/galeforce_cast",
         GameAction::spawn(|_, pos, cmd| {
             cmd.push((
                 pos,
@@ -758,7 +791,7 @@ pub(super) fn construct_airburst(sprite_pool: &SpritePool) -> Spell {
         "Airburst",
         "Launch a ball of compressed air. Upon hitting an enemy, it deals area damage and pulls nearby enemies towards a point behind the target.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/airburst", Duration::ZERO),
-        None,
+        "/audio/sounds/spells/airburst_cast",
         GameAction::spawn(|_, pos, cmd| {
             cmd.push((
                 pos,
@@ -771,6 +804,7 @@ pub(super) fn construct_airburst(sprite_pool: &SpritePool) -> Spell {
                 components::Collision::new(32., 32., |e1, e2| {
                     vec![
                         (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
+                        (e1, GameAction::play_sound("/audio/sounds/spells/airburst_hit")),
                         (e2, GameAction::TakeDamage { dmg: 45 }),
                         (e2, GameAction::spawn(|_, pos, cmd|{
                             cmd.push((
