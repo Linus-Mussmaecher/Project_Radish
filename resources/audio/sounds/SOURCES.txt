@@ -12,3 +12,6 @@ By User qubodup at https://opengameart.org/content/ice-electricity-magic
 		at https://opengameart.org/content/2-high-quality-explosions
 
 By User Reemax at https://opengameart.org/content/rpg-sound-package
+
+
+All other sounds are self-created using JSFXR at https://sfxr.me.

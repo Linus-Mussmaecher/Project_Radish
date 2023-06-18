@@ -164,7 +164,7 @@ pub fn spawn_tank_skeleton(
                     ),
                 ],
             )),
-        components::Enemy::new(2, 20, 4),
+        components::Enemy::new(2, 20, 10),
         components::Health::new(75),
         components::Collision::new_basic(64., 64.),
     ));
@@ -231,7 +231,7 @@ pub fn spawn_charge_skeleton(
                     .into(),
                 ],
             )),
-        components::Enemy::new(2, 20, 5),
+        components::Enemy::new(2, 20, 11),
         components::Health::new(75),
         components::Collision::new_basic(64., 64.),
     ));
@@ -306,7 +306,7 @@ pub fn spawn_wizard_skeleton(
                 ],
                 Duration::from_secs(8),
             )),
-        components::Enemy::new(3, 25, 6),
+        components::Enemy::new(3, 25, 12),
         components::Health::new(150),
         components::Collision::new_basic(64., 64.),
     ));
@@ -379,7 +379,7 @@ pub fn spawn_wizard_skeleton2(
                 ],
                 Duration::from_secs(5),
             )),
-        components::Enemy::new(3, 25, 7),
+        components::Enemy::new(3, 25, 13),
         components::Health::new(150),
         components::Collision::new_basic(64., 64.),
     ));
@@ -413,7 +413,7 @@ pub fn spawn_splitter(cmd: &mut CommandBuffer, pos: components::Position) -> Res
                 }
             }),
         )),
-        components::Enemy::new(3, 20, 8),
+        components::Enemy::new(3, 20, 14),
         components::Health::new(200),
         components::Collision::new_basic(64., 64.),
     ));
@@ -463,7 +463,7 @@ pub fn spawn_ghost(cmd: &mut CommandBuffer, pos: components::Position) -> Result
                 _ => actions::GameAction::None.into(),
             },
         )),
-        components::Enemy::new(2, 30, 9),
+        components::Enemy::new(2, 30, 15),
         components::Health::new(100),
         components::Collision::new_basic(64., 64.),
     ));

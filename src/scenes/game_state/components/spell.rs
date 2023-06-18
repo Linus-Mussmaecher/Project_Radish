@@ -15,8 +15,12 @@ use super::{
     Actions,
 };
 
-/// A mod containing construction functions for all spells.
-mod spell_list;
+/// Module containing constructor functions for all fire spells.
+mod fire;
+/// Module containing constructor functions for all ice and lightning spells.
+mod iceligthning;
+/// Module containing constructor functions for all air, void and arcane spells.
+mod misc;
 
 /// The maximum amount of Spell Slots an entity can (by default) have.
 pub const MAX_SPELL_SLOTS: usize = 8;
@@ -28,39 +32,39 @@ pub fn init_spell_pool(
     (
         None,
         vec![
-            SpellTemplate::new(spell_list::construct_fireball(sprite_pool), 50).purchased(),
-            SpellTemplate::new(spell_list::construct_scorch(sprite_pool), 90),
-            SpellTemplate::new(spell_list::construct_mortar(sprite_pool), 145).guild_condition(1),
-            SpellTemplate::new(spell_list::construct_flameorb(sprite_pool), 50).guild_condition(2),
-            SpellTemplate::new(spell_list::construct_conflagrate(sprite_pool), 150)
+            SpellTemplate::new(fire::construct_fireball(sprite_pool), 50).purchased(),
+            SpellTemplate::new(fire::construct_scorch(sprite_pool), 90),
+            SpellTemplate::new(fire::construct_mortar(sprite_pool), 145).guild_condition(1),
+            SpellTemplate::new(fire::construct_flameorb(sprite_pool), 50).guild_condition(2),
+            SpellTemplate::new(fire::construct_conflagrate(sprite_pool), 150)
                 .guild_condition(3)
                 .achievement_condition(achievements.list.get(8), sprite_pool),
-            SpellTemplate::new(spell_list::construct_phoenix(sprite_pool), 200)
+            SpellTemplate::new(fire::construct_phoenix(sprite_pool), 200)
                 .guild_condition(4)
                 .achievement_condition(achievements.list.get(5), sprite_pool),
-            SpellTemplate::new(spell_list::construct_ice_bomb(sprite_pool), 75).purchased(),
-            SpellTemplate::new(spell_list::construct_shard(sprite_pool), 60).guild_condition(1),
-            SpellTemplate::new(spell_list::construct_ice_lance(sprite_pool), 80)
+            SpellTemplate::new(iceligthning::construct_ice_bomb(sprite_pool), 75).purchased(),
+            SpellTemplate::new(iceligthning::construct_shard(sprite_pool), 60).guild_condition(1),
+            SpellTemplate::new(iceligthning::construct_ice_lance(sprite_pool), 80)
                 .guild_condition(2)
                 .achievement_condition(achievements.list.get(9), sprite_pool),
-            SpellTemplate::new(spell_list::construct_lightning_orb(sprite_pool), 90),
-            SpellTemplate::new(spell_list::construct_overload(sprite_pool), 120).guild_condition(1),
-            SpellTemplate::new(spell_list::construct_lightning_ball(sprite_pool), 145)
+            SpellTemplate::new(iceligthning::construct_lightning_orb(sprite_pool), 90),
+            SpellTemplate::new(iceligthning::construct_overload(sprite_pool), 120).guild_condition(1),
+            SpellTemplate::new(iceligthning::construct_lightning_ball(sprite_pool), 145)
                 .guild_condition(2)
                 .achievement_condition(achievements.list.get(1), sprite_pool),
-            SpellTemplate::new(spell_list::construct_gale_force(sprite_pool), 120)
+            SpellTemplate::new(misc::construct_gale_force(sprite_pool), 120)
                 .guild_condition(3),
-            SpellTemplate::new(spell_list::construct_airburst(sprite_pool), 170)
+            SpellTemplate::new(misc::construct_airburst(sprite_pool), 170)
                 .guild_condition(4)
                 .achievement_condition(achievements.list.get(10), sprite_pool),
-            SpellTemplate::new(spell_list::construct_mind_wipe(sprite_pool), 200)
+            SpellTemplate::new(misc::construct_mind_wipe(sprite_pool), 200)
                 .guild_condition(3),
-            SpellTemplate::new(spell_list::construct_blackhole(sprite_pool), 200)
+            SpellTemplate::new(misc::construct_blackhole(sprite_pool), 200)
                 .guild_condition(4)
                 .achievement_condition(achievements.list.get(11), sprite_pool),
-            SpellTemplate::new(spell_list::construct_arcane_blast(sprite_pool), 140)
+            SpellTemplate::new(misc::construct_arcane_blast(sprite_pool), 140)
                 .guild_condition(3),
-            SpellTemplate::new(spell_list::construct_arcane_missiles(sprite_pool), 150)
+            SpellTemplate::new(misc::construct_arcane_missiles(sprite_pool), 150)
                 .guild_condition(4)
                 .achievement_condition(achievements.list.get(14), sprite_pool),
         ],

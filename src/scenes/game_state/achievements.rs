@@ -245,7 +245,7 @@ impl AchievementSet {
             "Kill an elite enemy.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a09_16_16.png").ok(),
             1,
-            (GameMessage::EnemyKilled(4), GameMessageFilter::Min),
+            (GameMessage::EnemyKilled(10), GameMessageFilter::Min),
         ));
 
         list.push(Achievement::new(
@@ -253,7 +253,7 @@ impl AchievementSet {
             "Kill 50 elite enemies.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a10_16_16.png").ok(),
             50,
-            (GameMessage::EnemyKilled(4), GameMessageFilter::Min),
+            (GameMessage::EnemyKilled(10), GameMessageFilter::Min),
         ));
 
         list.push(Achievement::new(
