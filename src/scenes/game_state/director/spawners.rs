@@ -77,6 +77,71 @@ pub fn spawn_dodge_skeleton(cmd: &mut CommandBuffer, pos: components::Position) 
     ));
 }
 
+/// #Jump Skeleton
+/// ## Enemy
+/// A fast enemy that runs sideways when hit.
+pub fn spawn_jump_skeleton(cmd: &mut CommandBuffer, pos: components::Position) {
+    cmd.push((
+        pos,
+        components::Velocity::new(5., 25.),
+        components::BoundaryCollision::new(true, false, true),
+        components::Graphics::new(
+            "/sprites/enemies/skeleton_sword",
+            Duration::from_secs_f32(0.25),
+        ),
+        components::Actions::new().with_effect(actions::ActionEffect::react(
+            actions::ActionEffectTarget::new_only_self(),
+            |act| match act {
+                actions::GameAction::TakeDamage { dmg: _ } => actions::GameAction::ApplyEffect(
+                    actions::ActionEffect::transform(
+                        actions::ActionEffectTarget::new_only_self(),
+                        |action| {
+                            match action {
+                                actions::GameAction::Move { delta } => {
+                                    delta.x *= 25.;
+                                    delta.y *= 0.;
+                                }
+                                _ => {}
+                            };
+                        },
+                    )
+                    .with_duration(Duration::from_secs(2))
+                    .into(),
+                )
+                .into(),
+                _ => actions::GameAction::None.into(),
+            },
+        )),
+        components::Enemy::new(1, 15, 3),
+        components::Health::new(50),
+        components::Collision::new_basic(64., 64.),
+    ));
+}
+
+/// # Dynamite skeleton
+/// ## Enemy
+/// A simple enemy that blows up on death..
+pub fn spawn_dynamite_skeleton(cmd: &mut CommandBuffer, pos: components::Position) {
+    cmd.push((
+        pos,
+        components::Velocity::new(0., 10.),
+        components::Graphics::new(
+            "/sprites/enemies/skeleton_basic",
+            Duration::from_secs_f32(0.25),
+        ),
+        components::Actions::new().with_effect(actions::ActionEffect::on_death(
+            actions::ActionEffectTarget::new()
+                .with_range(128.)
+                .with_enemies_only(true),
+            actions::RemoveSource::HealthLoss,
+            actions::GameAction::TakeDamage { dmg: 30 },
+        )),
+        components::Enemy::new(3, 30, 8),
+        components::Health::new(150),
+        components::Collision::new_basic(64., 64.),
+    ));
+}
+
 /// # Loot goblin
 /// ## Enemy
 /// A skeleton that does not move down, only sideways.
@@ -90,7 +155,7 @@ pub fn spawn_loot_skeleton(cmd: &mut CommandBuffer, pos: components::Position) {
             "/sprites/enemies/skeleton_loot",
             Duration::from_secs_f32(0.20),
         ),
-        components::Enemy::new(0, 100, 3),
+        components::Enemy::new(0, 100, 9),
         components::Health::new(150),
         components::LifeDuration::new(Duration::from_secs(15)),
         components::Collision::new_basic(64., 64.),
@@ -278,7 +343,7 @@ pub fn spawn_wizard_skeleton(cmd: &mut CommandBuffer, pos: components::Position)
                 ],
                 Duration::from_secs(8),
             )),
-        components::Enemy::new(3, 25, 12),
+        components::Enemy::new(2, 25, 12),
         components::Health::new(150),
         components::Collision::new_basic(64., 64.),
     ));
@@ -347,7 +412,7 @@ pub fn spawn_wizard_skeleton2(cmd: &mut CommandBuffer, pos: components::Position
                 ],
                 Duration::from_secs(5),
             )),
-        components::Enemy::new(3, 25, 13),
+        components::Enemy::new(2, 25, 13),
         components::Health::new(150),
         components::Collision::new_basic(64., 64.),
     ));
@@ -369,7 +434,13 @@ pub fn spawn_wizard_skeleton3(cmd: &mut CommandBuffer, pos: components::Position
             .with_effect(actions::ActionEffect::repeat(
                 actions::ActionEffectTarget::new_only_self(),
                 actions::GameAction::spawn(|_, pos, cmd| {
-                    spawn_basic_skeleton(cmd, pos + ggez::glam::Vec2 { x: -16. + 32. * rand::random::<f32>(), y: -32. });
+                    spawn_basic_skeleton(
+                        cmd,
+                        pos + ggez::glam::Vec2 {
+                            x: -16. + 32. * rand::random::<f32>(),
+                            y: -32.,
+                        },
+                    );
                 }),
                 Duration::from_secs(30),
             ))
@@ -380,33 +451,33 @@ pub fn spawn_wizard_skeleton3(cmd: &mut CommandBuffer, pos: components::Position
                     .with_range(512.)
                     .with_enemies_only(true)
                     .with_limit(5),
-                    vec![
-                        actions::GameAction::TakeDamage{dmg: 25},
-                        actions::GameAction::AddParticle(
-                            components::graphics::Particle::new(
-                                "/sprites/effects/bolt",
-                                Duration::from_secs_f32(0.25),
-                            )
-                            .with_duration(Duration::from_secs(3))
-                            .with_velocity(0., -10.)
-                            .with_relative_position(0., -24.),
-                        ),
-                        actions::ActionEffect::transform(
-                            actions::ActionEffectTarget::new_only_self(),
-                            |act| {
-                                match act {
-                                    // speed up an ally by 150%
-                                    actions::GameAction::Move { delta } => *delta *= 2.5,
-                                    _ => {}
-                                };
-                            },
+                vec![
+                    actions::GameAction::TakeDamage { dmg: 25 },
+                    actions::GameAction::AddParticle(
+                        components::graphics::Particle::new(
+                            "/sprites/effects/bolt",
+                            Duration::from_secs_f32(0.25),
                         )
                         .with_duration(Duration::from_secs(3))
-                        .into(),
-                    ],
+                        .with_velocity(0., -10.)
+                        .with_relative_position(0., -24.),
+                    ),
+                    actions::ActionEffect::transform(
+                        actions::ActionEffectTarget::new_only_self(),
+                        |act| {
+                            match act {
+                                // speed up an ally by 150%
+                                actions::GameAction::Move { delta } => *delta *= 2.5,
+                                _ => {}
+                            };
+                        },
+                    )
+                    .with_duration(Duration::from_secs(3))
+                    .into(),
+                ],
                 Duration::from_secs(7),
             )),
-        components::Enemy::new(3, 25, 13),
+        components::Enemy::new(2, 25, 13),
         components::Health::new(150),
         components::Collision::new_basic(64., 64.),
     ));
@@ -435,7 +506,7 @@ pub fn spawn_splitter(cmd: &mut CommandBuffer, pos: components::Position) {
                 }
             }),
         )),
-        components::Enemy::new(3, 20, 15),
+        components::Enemy::new(2, 20, 15),
         components::Health::new(200),
         components::Collision::new_basic(64., 64.),
     ));
@@ -486,6 +557,108 @@ pub fn spawn_ghost(cmd: &mut CommandBuffer, pos: components::Position) {
         )),
         components::Enemy::new(2, 30, 16),
         components::Health::new(100),
+        components::Collision::new_basic(64., 64.),
+    ));
+}
+
+/// # Blood fiend
+/// ## Enemy
+/// A creature that distributes damage taken on nearby enemies
+pub fn spawn_blood_fiend(cmd: &mut CommandBuffer, pos: components::Position) {
+    cmd.push((
+        pos,
+        components::Velocity::new(0., 12.),
+        components::Graphics::new(
+            "/sprites/enemies/skeleton_basic",
+            Duration::from_secs_f32(0.25),
+        ),
+        components::Actions::new()
+            // reduce damage taken by 60%
+            .with_effect(actions::ActionEffect::transform(
+                actions::ActionEffectTarget::new_only_self(),
+                |act| {
+                    match act {
+                        actions::GameAction::TakeDamage { dmg } => {
+                            *dmg = (*dmg as f32 * 0.4) as i32
+                        }
+                        _ => {}
+                    };
+                },
+            ))
+            // distribute damage to nearby allies
+            .with_effect(actions::ActionEffect::react(
+                actions::ActionEffectTarget::new_only_self(),
+                |act| match act {
+                    actions::GameAction::TakeDamage { dmg } => actions::ActionEffect::once(
+                        actions::ActionEffectTarget::new()
+                            .with_range(256.)
+                            .with_limit(3)
+                            .with_affect_self(false),
+                        actions::GameAction::TakeDamage { dmg: dmg / 5 },
+                    )
+                    .into(),
+                    _ => actions::GameAction::None.into(),
+                },
+            ))
+            // heal on death
+            .with_effect(actions::ActionEffect::on_death(
+                actions::ActionEffectTarget::new()
+                    .with_range(256.)
+                    .with_limit(5)
+                    .with_enemies_only(true),
+                actions::RemoveSource::HealthLoss,
+                vec![
+                    actions::GameAction::TakeHealing { heal: 40 },
+                    actions::GameAction::AddParticle(
+                        components::graphics::Particle::new(
+                            "/sprites/effects/heal",
+                            Duration::from_secs_f32(0.25),
+                        )
+                        .with_duration(Duration::from_secs(1))
+                        .with_velocity(0., -15.)
+                        .with_relative_position(0., -64.),
+                    ),
+                ],
+            )),
+        components::Enemy::new(2, 25, 17),
+        components::Health::new(100),
+        components::Collision::new_basic(64., 64.),
+    ));
+}
+
+pub fn spawn_legionnaire(cmd: &mut CommandBuffer, pos: components::Position) {
+    cmd.push((
+        pos,
+        components::Velocity::new(0., 15.),
+        components::Graphics::new(
+            "/sprites/enemies/skeleton_tank",
+            Duration::from_secs_f32(0.25),
+        ),
+        components::Actions::new().with_effect(actions::ActionEffect::repeat(
+            actions::ActionEffectTarget::new_only_self(),
+            actions::GameAction::ApplyEffect(
+                actions::ActionEffect::transform(
+                    actions::ActionEffectTarget::new_only_self(),
+                    |action| {
+                        match action {
+                            actions::GameAction::Move { delta } => {
+                                delta.x *= 0.;
+                                delta.y *= 0.3;
+                            },
+                            actions::GameAction::TakeDamage { dmg } => {
+                                *dmg /= 8;
+                            },
+                            _ => {}
+                        };
+                    },
+                )
+                .with_duration(Duration::from_secs(5))
+                .into(),
+            ),
+            Duration::from_secs(8),
+        )),
+        components::Enemy::new(2, 30, 18),
+        components::Health::new(120),
         components::Collision::new_basic(64., 64.),
     ));
 }

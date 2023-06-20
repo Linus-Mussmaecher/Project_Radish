@@ -21,7 +21,7 @@ pub(super) fn generate_templates(
         // Fast skeleton
         EnemyTemplate::new(
             sprite_pool.init_sprite("/sprites/enemies/skeleton_sword", Duration::ZERO)?,
-            "Skeleton Runner",
+            "Runner",
             "A nimble enemy that walks faster and also sideways, but has less health than the basic skeleton.",
             070,
             super::spawners::spawn_fast_skeleton,
@@ -29,15 +29,40 @@ pub(super) fn generate_templates(
         // Dodge skeleton
         EnemyTemplate::new(
             sprite_pool.init_sprite("/sprites/enemies/skeleton_sword", Duration::ZERO)?,
-            "Skeleton Dodger",
+            "Dodger",
             "A nimble enemy that walks faster and slightly sideways, but has less health than the basic skeleton. It also does a short sprint from time to time.",
             080,
             super::spawners::spawn_dodge_skeleton,
         ),
+        // Jump skeleton
+        EnemyTemplate::new(
+            sprite_pool.init_sprite("/sprites/enemies/skeleton_sword", Duration::ZERO)?,
+            "Bone Jumper",
+            "A nimble enemy that rapidly jumps sideways when taking damage.",
+            080,
+            super::spawners::spawn_jump_skeleton,
+        ),
+        // Dynamite skeleton
+        EnemyTemplate::new(
+            sprite_pool.init_sprite("/sprites/enemies/skeleton_sword", Duration::ZERO)?,
+            "Dynamite Carrier",
+            "A basic skeleton with extra health and a bomb strapped to its back. Deals high damage to your city, but explodes on death.",
+            090,
+            super::spawners::spawn_dynamite_skeleton,
+        ),
+        // loot
+        EnemyTemplate::new(
+            sprite_pool.init_sprite("/sprites/enemies/skeleton_loot", Duration::ZERO)?,
+            "Loot Goblin",
+            "An enemy that doesn't threaten your city but lingers at a fixed distance, disappearing after a time. Drops large amounts of gold on death.",
+            180,
+            super::spawners::spawn_loot_skeleton,
+        ),
+        
         // Tanky skeleton
         EnemyTemplate::new(
             sprite_pool.init_sprite("/sprites/enemies/skeleton_tank", Duration::ZERO)?,
-            "Skeleton Guardian",
+            "Guardian",
             "An enemy that walks slows, but reduces damage taken on nearby allies and heals them on death.",
             100,
             super::spawners::spawn_tank_skeleton,
@@ -45,7 +70,7 @@ pub(super) fn generate_templates(
         // Speed-up skeleton
         EnemyTemplate::new(
             sprite_pool.init_sprite("/sprites/enemies/skeleton_flag", Duration::ZERO)?,
-            "Skeleton Bannerman",
+            "Bannerman",
             "A skeleton with decent speed and suvivability. Speeds up nearby allies, with a huge speed bost on death.",
             110,
             super::spawners::spawn_charge_skeleton,
@@ -82,14 +107,6 @@ pub(super) fn generate_templates(
             200,
             super::spawners::spawn_splitter,
         ),
-        // loot
-        EnemyTemplate::new(
-            sprite_pool.init_sprite("/sprites/enemies/skeleton_loot", Duration::ZERO)?,
-            "Loot goblin",
-            "An enemy that doesn't threaten your city but lingers at a fixed height, disappearing after a time. Drops huge amounts of gold on death.",
-            180,
-            super::spawners::spawn_loot_skeleton,
-        ),
         // getting-faster
         EnemyTemplate::new(
             sprite_pool.init_sprite("/sprites/enemies/ghost", Duration::ZERO)?,
@@ -98,6 +115,21 @@ pub(super) fn generate_templates(
             200,
             super::spawners::spawn_ghost,
         ),
-
+        // distributing damage
+        EnemyTemplate::new(
+            sprite_pool.init_sprite("/sprites/enemies/skeleton_sword", Duration::ZERO)?,
+            "Blood Fiend",
+            "A high-health creature that distributes damage taken amongst nearby allies and heals them on death.",
+            200,
+            super::spawners::spawn_blood_fiend,
+        ),
+        // periodic bracing
+        EnemyTemplate::new(
+            sprite_pool.init_sprite("/sprites/enemies/skeleton_tank", Duration::ZERO)?,
+            "Legionnaire",
+            "A tanky enemy that periodically braces itself, slowing down while gaining high damage reduction.",
+            220,
+            super::spawners::spawn_legionnaire,
+        ),
     ])
 }
