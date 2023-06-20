@@ -1,16 +1,12 @@
 use std::time::Duration;
 
 use super::{components, components::actions};
-use ggez::GameError;
 use legion::systems::CommandBuffer;
 
 /// # Basic skeleton
 /// ## Enemy
 /// A basic skeleton that has little health and damage and moves slowly.
-pub fn spawn_basic_skeleton(
-    cmd: &mut CommandBuffer,
-    pos: components::Position,
-) -> Result<(), GameError> {
+pub fn spawn_basic_skeleton(cmd: &mut CommandBuffer, pos: components::Position) {
     cmd.push((
         pos,
         components::Velocity::new(0., 10.),
@@ -22,17 +18,13 @@ pub fn spawn_basic_skeleton(
         components::Health::new(75),
         components::Collision::new_basic(64., 64.),
     ));
-    Ok(())
 }
 
 /// # Fast skeleton
 /// ## Enemy
 /// A skeleton that moves faster than the basic skeleton, but also has less health.
 /// Moves from side to side.
-pub fn spawn_fast_skeleton(
-    cmd: &mut CommandBuffer,
-    pos: components::Position,
-) -> Result<(), GameError> {
+pub fn spawn_fast_skeleton(cmd: &mut CommandBuffer, pos: components::Position) {
     cmd.push((
         pos,
         components::Velocity::new(40., 20.),
@@ -45,16 +37,12 @@ pub fn spawn_fast_skeleton(
         components::Health::new(50),
         components::Collision::new_basic(64., 64.),
     ));
-    Ok(())
 }
 
 /// # Dodging skeleton
 /// ## Enemy
 /// A fast skeleton that regularly and does a short sprint
-pub fn spawn_dodge_skeleton(
-    cmd: &mut CommandBuffer,
-    pos: components::Position,
-) -> Result<(), GameError> {
+pub fn spawn_dodge_skeleton(cmd: &mut CommandBuffer, pos: components::Position) {
     cmd.push((
         pos,
         components::Velocity::new(10., 22.),
@@ -87,17 +75,13 @@ pub fn spawn_dodge_skeleton(
         components::Health::new(50),
         components::Collision::new_basic(64., 64.),
     ));
-    Ok(())
 }
 
 /// # Loot goblin
 /// ## Enemy
 /// A skeleton that does not move down, only sideways.
 /// It has lots of health and despawns after a set time, but drops lots of gold on death.
-pub fn spawn_loot_skeleton(
-    cmd: &mut CommandBuffer,
-    pos: components::Position,
-) -> Result<(), GameError> {
+pub fn spawn_loot_skeleton(cmd: &mut CommandBuffer, pos: components::Position) {
     cmd.push((
         pos + ggez::glam::Vec2::new(0., 150.),
         components::Velocity::new(50., 0.),
@@ -111,17 +95,13 @@ pub fn spawn_loot_skeleton(
         components::LifeDuration::new(Duration::from_secs(15)),
         components::Collision::new_basic(64., 64.),
     ));
-    Ok(())
 }
 
 /// # Guardian
 /// ## Enemy
 /// A tanky skeleton with lots of health. Moves slowly, but deals more damage.
 /// Reduces damage taken of nearby allies (and self) and heals nearby allies on death.
-pub fn spawn_tank_skeleton(
-    cmd: &mut CommandBuffer,
-    pos: components::Position,
-) -> Result<(), GameError> {
+pub fn spawn_tank_skeleton(cmd: &mut CommandBuffer, pos: components::Position) {
     cmd.push((
         pos,
         components::Velocity::new(0., 10.),
@@ -168,17 +148,13 @@ pub fn spawn_tank_skeleton(
         components::Health::new(75),
         components::Collision::new_basic(64., 64.),
     ));
-    Ok(())
 }
 
 /// # Bannerman
 /// ## Enemy
 /// A tanky, high-damage skeleton with decent speed.
 /// Speeds up nearby allies, considerably higher on death.
-pub fn spawn_charge_skeleton(
-    cmd: &mut CommandBuffer,
-    pos: components::Position,
-) -> Result<(), GameError> {
+pub fn spawn_charge_skeleton(cmd: &mut CommandBuffer, pos: components::Position) {
     cmd.push((
         pos,
         components::Velocity::new(0., 21.),
@@ -235,16 +211,12 @@ pub fn spawn_charge_skeleton(
         components::Health::new(75),
         components::Collision::new_basic(64., 64.),
     ));
-    Ok(())
 }
 
 /// # Wizard
 /// ## Enemy
 /// A tanky but slow caster that heals and speeds up allies on the regular.
-pub fn spawn_wizard_skeleton(
-    cmd: &mut CommandBuffer,
-    pos: components::Position,
-) -> Result<(), GameError> {
+pub fn spawn_wizard_skeleton(cmd: &mut CommandBuffer, pos: components::Position) {
     cmd.push((
         pos,
         components::Velocity::new(0., 7.),
@@ -310,16 +282,12 @@ pub fn spawn_wizard_skeleton(
         components::Health::new(150),
         components::Collision::new_basic(64., 64.),
     ));
-    Ok(())
 }
 
 /// # Wizard 2
 /// ## Enemy
 /// A tanky but slow caster that heals allies and gives them a damage protection aura.
-pub fn spawn_wizard_skeleton2(
-    cmd: &mut CommandBuffer,
-    pos: components::Position,
-) -> Result<(), GameError> {
+pub fn spawn_wizard_skeleton2(cmd: &mut CommandBuffer, pos: components::Position) {
     cmd.push((
         pos,
         components::Velocity::new(0., 7.),
@@ -383,13 +351,71 @@ pub fn spawn_wizard_skeleton2(
         components::Health::new(150),
         components::Collision::new_basic(64., 64.),
     ));
-    Ok(())
+}
+
+/// # Wizard 3
+/// ## Enemy
+/// A tanky but slow caster that spawns skeletons and damages nearby allies for an area speed boost.
+pub fn spawn_wizard_skeleton3(cmd: &mut CommandBuffer, pos: components::Position) {
+    cmd.push((
+        pos,
+        components::Velocity::new(0., 7.),
+        components::Graphics::new(
+            "/sprites/enemies/skeleton_wizard2",
+            Duration::from_secs_f32(0.25),
+        ),
+        // 'Spell' 1: Spawn a skeleton every 30 seconds.
+        components::actions::Actions::new()
+            .with_effect(actions::ActionEffect::repeat(
+                actions::ActionEffectTarget::new_only_self(),
+                actions::GameAction::spawn(|_, pos, cmd| {
+                    spawn_basic_skeleton(cmd, pos + ggez::glam::Vec2 { x: -16. + 32. * rand::random::<f32>(), y: -32. });
+                }),
+                Duration::from_secs(30),
+            ))
+            // 'Spell' 2: Damage a group of nearby allies and speed them up
+            .with_effect(actions::ActionEffect::repeat(
+                actions::ActionEffectTarget::new()
+                    .with_affect_self(false)
+                    .with_range(512.)
+                    .with_enemies_only(true)
+                    .with_limit(5),
+                    vec![
+                        actions::GameAction::TakeDamage{dmg: 25},
+                        actions::GameAction::AddParticle(
+                            components::graphics::Particle::new(
+                                "/sprites/effects/bolt",
+                                Duration::from_secs_f32(0.25),
+                            )
+                            .with_duration(Duration::from_secs(3))
+                            .with_velocity(0., -10.)
+                            .with_relative_position(0., -24.),
+                        ),
+                        actions::ActionEffect::transform(
+                            actions::ActionEffectTarget::new_only_self(),
+                            |act| {
+                                match act {
+                                    // speed up an ally by 150%
+                                    actions::GameAction::Move { delta } => *delta *= 2.5,
+                                    _ => {}
+                                };
+                            },
+                        )
+                        .with_duration(Duration::from_secs(3))
+                        .into(),
+                    ],
+                Duration::from_secs(7),
+            )),
+        components::Enemy::new(3, 25, 13),
+        components::Health::new(150),
+        components::Collision::new_basic(64., 64.),
+    ));
 }
 
 /// # Stone Golem
 /// ## Enemy
 /// A very tanky and slow enemy that spawns multiple smaller skeletons on death.
-pub fn spawn_splitter(cmd: &mut CommandBuffer, pos: components::Position) -> Result<(), GameError> {
+pub fn spawn_splitter(cmd: &mut CommandBuffer, pos: components::Position) {
     cmd.push((
         pos,
         components::Velocity::new(0., 8.),
@@ -399,31 +425,26 @@ pub fn spawn_splitter(cmd: &mut CommandBuffer, pos: components::Position) -> Res
             actions::RemoveSource::HealthLoss,
             actions::GameAction::spawn(|_, vec, cmd| {
                 for _ in 0..3 {
-                    if spawn_basic_skeleton(
+                    spawn_basic_skeleton(
                         cmd,
                         vec + ggez::glam::Vec2::new(
                             (rand::random::<f32>() - 0.5) * 64.,
                             (rand::random::<f32>() - 0.5) * 64.,
                         ),
-                    )
-                    .is_err()
-                    {
-                        println!("[ERROR] Spawning function non-functional.");
-                    };
+                    );
                 }
             }),
         )),
-        components::Enemy::new(3, 20, 14),
+        components::Enemy::new(3, 20, 15),
         components::Health::new(200),
         components::Collision::new_basic(64., 64.),
     ));
-    Ok(())
 }
 
 /// # Ghost
 /// ## Enemy
 /// A nimble enemy. Taking damage grants it damage reduction for a time and speed permanently.
-pub fn spawn_ghost(cmd: &mut CommandBuffer, pos: components::Position) -> Result<(), GameError> {
+pub fn spawn_ghost(cmd: &mut CommandBuffer, pos: components::Position) {
     cmd.push((
         pos,
         components::Velocity::new(0., 8.),
@@ -463,9 +484,8 @@ pub fn spawn_ghost(cmd: &mut CommandBuffer, pos: components::Position) -> Result
                 _ => actions::GameAction::None.into(),
             },
         )),
-        components::Enemy::new(2, 30, 15),
+        components::Enemy::new(2, 30, 16),
         components::Health::new(100),
         components::Collision::new_basic(64., 64.),
     ));
-    Ok(())
 }

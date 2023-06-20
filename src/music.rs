@@ -10,6 +10,7 @@ pub struct MusicPlayer {
 }
 
 impl MusicPlayer {
+    #[allow(dead_code)]
     /// Creates a new MusicPlayer with the specified playlist
     pub fn new(playlist: VecDeque<audio::Source>) -> Self {
         Self {
@@ -80,7 +81,7 @@ impl MusicPlayer {
     /// Checks for changes in the options file to change music volume if neccessary.
     pub fn poll_options(&mut self) {
         if let Ok(options) = super::options::OptionsConfig::from_path("./data/options.toml") {
-            let target_volume = options.music_volume as f32 / 100.;
+            self.volume = options.music_volume as f32 / 100.;
         }
     }
 }

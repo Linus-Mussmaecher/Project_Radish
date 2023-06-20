@@ -1,7 +1,6 @@
 use std::{fmt::Debug, time::Duration};
 
 use super::*;
-use ggez::{graphics, GameError};
 use legion::{system, systems::CommandBuffer};
 use mooeye::sprite;
 use rand::random;
@@ -93,7 +92,7 @@ impl Director {
     }
 
     /// Returns the current cost of a reroll.
-    pub fn get_reroll_cost(&self) -> i32{
+    pub fn get_reroll_cost(&self) -> i32 {
         self.reroll_cost
     }
 }
@@ -150,23 +149,21 @@ pub fn direct(
                     // unpack enemy
                     if let Some(enemy_template) = enemy {
                         // spawn
-                        if (enemy_template.spawner._spawner)(
+                        (enemy_template.spawner._spawner)(
                             cmd,
                             ggez::glam::Vec2::new(rand::random::<f32>() * boundaries.w, -20.),
-                        )
-                        .is_ok()
-                        {
-                            // if spawning threw no error, reduce available credits
-                            to_spend -= enemy_template.cost;
-                            director.credits -= enemy_template.cost;
+                        );
 
-                            // possible switch state on every spawn
-                            let left = wave_pool.saturating_sub(enemy_template.cost);
-                            director.state = if left > 0 {
-                                DirectorState::Spawning(left)
-                            } else {
-                                DirectorState::WaitingForDead
-                            }
+                        // reduce available credits
+                        to_spend -= enemy_template.cost;
+                        director.credits -= enemy_template.cost;
+
+                        // possible switch state on every spawn
+                        let left = wave_pool.saturating_sub(enemy_template.cost);
+                        director.state = if left > 0 {
+                            DirectorState::Spawning(left)
+                        } else {
+                            DirectorState::WaitingForDead
                         }
                     }
                 }
@@ -247,5 +244,4 @@ impl Debug for EnemySpawner {
     }
 }
 
-type EnemySpawnFunction =
-    fn(&mut CommandBuffer, components::Position) -> Result<(), GameError>;
+type EnemySpawnFunction = fn(&mut CommandBuffer, components::Position) -> ();

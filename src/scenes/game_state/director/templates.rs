@@ -66,6 +66,14 @@ pub(super) fn generate_templates(
             150,
             super::spawners::spawn_wizard_skeleton2,
         ),
+        // Wizard 3
+        EnemyTemplate::new(
+            sprite_pool.init_sprite("/sprites/enemies/skeleton_wizard2", Duration::ZERO)?,
+            "Necromancer",
+            "A slow enemy that ressurects additional skeletons and can damage groups of enemies to increase their speed.",
+            170,
+            super::spawners::spawn_wizard_skeleton3,
+        ),
         // Splitter
         EnemyTemplate::new(
             sprite_pool.init_sprite("/sprites/enemies/golem", Duration::ZERO)?,
