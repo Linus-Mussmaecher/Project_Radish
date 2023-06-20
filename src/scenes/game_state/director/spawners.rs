@@ -136,7 +136,7 @@ pub fn spawn_dynamite_skeleton(cmd: &mut CommandBuffer, pos: components::Positio
             actions::RemoveSource::HealthLoss,
             actions::GameAction::TakeDamage { dmg: 30 },
         )),
-        components::Enemy::new(3, 30, 8),
+        components::Enemy::new(3, 30, 7),
         components::Health::new(150),
         components::Collision::new_basic(64., 64.),
     ));
@@ -148,19 +148,51 @@ pub fn spawn_dynamite_skeleton(cmd: &mut CommandBuffer, pos: components::Positio
 /// It has lots of health and despawns after a set time, but drops lots of gold on death.
 pub fn spawn_loot_skeleton(cmd: &mut CommandBuffer, pos: components::Position) {
     cmd.push((
-        pos + ggez::glam::Vec2::new(0., 150.),
+        pos + ggez::glam::Vec2::new(0., 120.),
         components::Velocity::new(50., 0.),
         components::BoundaryCollision::new(true, false, true),
         components::Graphics::new(
             "/sprites/enemies/skeleton_loot",
             Duration::from_secs_f32(0.20),
         ),
-        components::Enemy::new(0, 100, 9),
+        components::Enemy::new(0, 100, 8),
         components::Health::new(150),
         components::LifeDuration::new(Duration::from_secs(15)),
         components::Collision::new_basic(64., 64.),
     ));
 }
+
+/// # Catapult 
+/// ## Enemy
+/// An enemy that stays put, but regularly accelerates other enemies passing over it.
+pub fn spawn_catapult(cmd: &mut CommandBuffer, pos: components::Position){
+    cmd.push((
+        pos + ggez::glam::Vec2::new(0., 180.),
+        components::Graphics::new(
+            "/sprites/enemies/skeleton_loot",
+            Duration::from_secs_f32(0.20),
+        ),
+        components::Actions::new()
+            .with_effect(actions::ActionEffect::repeat(
+                actions::ActionEffectTarget::new().with_limit(1).with_range(64.).with_affect_self(false),
+                actions::GameAction::ApplyEffect(Box::new(
+                    actions::ActionEffect::repeat(
+                        actions::ActionEffectTarget::new_only_self(),
+                        actions::GameAction::Move {
+                            delta: ggez::glam::Vec2::new(0., 5.),
+                        },
+                        Duration::from_secs_f32(0.02),
+                    )
+                    .with_duration(Duration::from_secs_f32(1.)),
+                )),
+                Duration::from_secs(1),
+            )),
+        components::Enemy::new(0, 20, 9),
+        components::Health::new(250),
+        components::Collision::new_basic(64., 64.),
+    ));
+}
+
 
 /// # Guardian
 /// ## Enemy

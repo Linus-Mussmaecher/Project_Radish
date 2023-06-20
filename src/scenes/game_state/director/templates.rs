@@ -50,6 +50,14 @@ pub(super) fn generate_templates(
             090,
             super::spawners::spawn_dynamite_skeleton,
         ),
+        // catapult
+        EnemyTemplate::new(
+            sprite_pool.init_sprite("/sprites/enemies/skeleton_sword", Duration::ZERO)?,
+            "Catapult",
+            "A stationary siege weapons that regularly grabs nearby allies and catapults them towards the city.",
+            110,
+            super::spawners::spawn_catapult,
+        ),
         // loot
         EnemyTemplate::new(
             sprite_pool.init_sprite("/sprites/enemies/skeleton_loot", Duration::ZERO)?,
@@ -58,6 +66,8 @@ pub(super) fn generate_templates(
             180,
             super::spawners::spawn_loot_skeleton,
         ),
+        // catapult
+        
         
         // Tanky skeleton
         EnemyTemplate::new(
