@@ -518,15 +518,6 @@ pub fn handle_effects(world: &mut legion::world::SubWorld, #[resource] ix: &Inte
         }
     }
 
-    // apply remembered transforms to all entities
-    for (target, transform) in transforms {
-        if let Ok(mut entry) = world.entry_mut(target) {
-            if let Ok(actions) = entry.get_component_mut::<Actions>() {
-                actions.transform(transform.as_ref());
-            }
-        }
-    }
-
     // apply remembered reactions to all entities
     for (target, reaction) in reactions {
         if let Ok(mut entry) = world.entry_mut(target) {
@@ -541,6 +532,15 @@ pub fn handle_effects(world: &mut legion::world::SubWorld, #[resource] ix: &Inte
         if let Ok(mut entry) = world.entry_mut(target) {
             if let Ok(actions) = entry.get_component_mut::<Actions>() {
                 actions.push_container(new_actions);
+            }
+        }
+    }
+
+    // apply remembered transforms to all entities
+    for (target, transform) in transforms {
+        if let Ok(mut entry) = world.entry_mut(target) {
+            if let Ok(actions) = entry.get_component_mut::<Actions>() {
+                actions.transform(transform.as_ref());
             }
         }
     }

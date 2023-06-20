@@ -472,7 +472,10 @@ fn construct_enemies_menu(
 
     let enemy_box = enemy_box
         .to_element_builder(0, ctx)
-        .with_visuals(super::BUTTON_VIS)
+        .with_visuals(ui_element::Visuals {
+            background: graphics::Color::from_rgb_u32(PALETTE[10]),
+            ..super::BUTTON_VIS
+        })
         .build();
 
     let reroll = if buildings.target[buildings::BuildingType::WATCHTOWER as usize] == 0 {

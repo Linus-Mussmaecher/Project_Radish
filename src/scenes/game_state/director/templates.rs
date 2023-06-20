@@ -36,7 +36,7 @@ pub(super) fn generate_templates(
         ),
         // Jump skeleton
         EnemyTemplate::new(
-            sprite_pool.init_sprite("/sprites/enemies/skeleton_sword", Duration::ZERO)?,
+            sprite_pool.init_sprite("/sprites/enemies/skeleton_jump", Duration::ZERO)?,
             "Bone Jumper",
             "A nimble enemy that rapidly jumps sideways when taking damage.",
             080,
@@ -44,7 +44,7 @@ pub(super) fn generate_templates(
         ),
         // Dynamite skeleton
         EnemyTemplate::new(
-            sprite_pool.init_sprite("/sprites/enemies/skeleton_sword", Duration::ZERO)?,
+            sprite_pool.init_sprite("/sprites/enemies/skeleton_dynamite", Duration::ZERO)?,
             "Dynamite Carrier",
             "A basic skeleton with extra health and a bomb strapped to its back. Deals high damage to your city, but explodes on death.",
             090,
@@ -52,7 +52,7 @@ pub(super) fn generate_templates(
         ),
         // catapult
         EnemyTemplate::new(
-            sprite_pool.init_sprite("/sprites/enemies/skeleton_sword", Duration::ZERO)?,
+            sprite_pool.init_sprite("/sprites/enemies/catapult", Duration::ZERO)?,
             "Catapult",
             "A stationary siege weapons that regularly grabs nearby allies and catapults them towards the city.",
             110,
@@ -73,7 +73,7 @@ pub(super) fn generate_templates(
         EnemyTemplate::new(
             sprite_pool.init_sprite("/sprites/enemies/skeleton_tank", Duration::ZERO)?,
             "Guardian",
-            "An enemy that walks slows, but reduces damage taken on nearby allies and heals them on death.",
+            "An enemy that walks slowly, but reduces damage taken on nearby allies and heals them on death.",
             100,
             super::spawners::spawn_tank_skeleton,
         ),
@@ -103,7 +103,7 @@ pub(super) fn generate_templates(
         ),
         // Wizard 3
         EnemyTemplate::new(
-            sprite_pool.init_sprite("/sprites/enemies/skeleton_wizard2", Duration::ZERO)?,
+            sprite_pool.init_sprite("/sprites/enemies/skeleton_wizard3", Duration::ZERO)?,
             "Necromancer",
             "A slow enemy that ressurects additional skeletons and can damage groups of enemies to increase their speed.",
             170,
@@ -127,15 +127,15 @@ pub(super) fn generate_templates(
         ),
         // distributing damage
         EnemyTemplate::new(
-            sprite_pool.init_sprite("/sprites/enemies/skeleton_sword", Duration::ZERO)?,
-            "Blood Fiend",
+            sprite_pool.init_sprite("/sprites/enemies/armor", Duration::ZERO)?,
+            "Animated Armor",
             "A high-health creature that distributes damage taken amongst nearby allies and heals them on death.",
             200,
-            super::spawners::spawn_blood_fiend,
+            super::spawners::spawn_animated_armor,
         ),
         // periodic bracing
         EnemyTemplate::new(
-            sprite_pool.init_sprite("/sprites/enemies/skeleton_tank", Duration::ZERO)?,
+            sprite_pool.init_sprite("/sprites/enemies/legionnaire", Duration::ZERO)?,
             "Legionnaire",
             "A tanky enemy that periodically braces itself, slowing down while gaining high damage reduction.",
             220,

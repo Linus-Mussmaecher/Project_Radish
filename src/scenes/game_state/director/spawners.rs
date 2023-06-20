@@ -77,7 +77,7 @@ pub fn spawn_dodge_skeleton(cmd: &mut CommandBuffer, pos: components::Position) 
     ));
 }
 
-/// #Jump Skeleton
+/// # Jump Skeleton
 /// ## Enemy
 /// A fast enemy that runs sideways when hit.
 pub fn spawn_jump_skeleton(cmd: &mut CommandBuffer, pos: components::Position) {
@@ -86,7 +86,7 @@ pub fn spawn_jump_skeleton(cmd: &mut CommandBuffer, pos: components::Position) {
         components::Velocity::new(5., 25.),
         components::BoundaryCollision::new(true, false, true),
         components::Graphics::new(
-            "/sprites/enemies/skeleton_sword",
+            "/sprites/enemies/skeleton_jump",
             Duration::from_secs_f32(0.25),
         ),
         components::Actions::new().with_effect(actions::ActionEffect::react(
@@ -98,8 +98,8 @@ pub fn spawn_jump_skeleton(cmd: &mut CommandBuffer, pos: components::Position) {
                         |action| {
                             match action {
                                 actions::GameAction::Move { delta } => {
-                                    delta.x *= 25.;
-                                    delta.y *= 0.;
+                                    delta.x *= 10.;
+                                    delta.y *= 0.5;
                                 }
                                 _ => {}
                             };
@@ -126,7 +126,7 @@ pub fn spawn_dynamite_skeleton(cmd: &mut CommandBuffer, pos: components::Positio
         pos,
         components::Velocity::new(0., 10.),
         components::Graphics::new(
-            "/sprites/enemies/skeleton_basic",
+            "/sprites/enemies/skeleton_dynamite",
             Duration::from_secs_f32(0.25),
         ),
         components::Actions::new().with_effect(actions::ActionEffect::on_death(
@@ -162,37 +162,41 @@ pub fn spawn_loot_skeleton(cmd: &mut CommandBuffer, pos: components::Position) {
     ));
 }
 
-/// # Catapult 
+/// # Catapult
 /// ## Enemy
 /// An enemy that stays put, but regularly accelerates other enemies passing over it.
-pub fn spawn_catapult(cmd: &mut CommandBuffer, pos: components::Position){
+pub fn spawn_catapult(cmd: &mut CommandBuffer, pos: components::Position) {
     cmd.push((
         pos + ggez::glam::Vec2::new(0., 180.),
-        components::Graphics::new(
-            "/sprites/enemies/skeleton_loot",
-            Duration::from_secs_f32(0.20),
-        ),
+        components::Graphics::new("/sprites/enemies/catapult", Duration::from_secs_f32(0.20)),
         components::Actions::new()
+            // catapult stuff
             .with_effect(actions::ActionEffect::repeat(
-                actions::ActionEffectTarget::new().with_limit(1).with_range(64.).with_affect_self(false),
+                actions::ActionEffectTarget::new()
+                    .with_limit(1)
+                    .with_range(64.)
+                    .with_affect_self(false)
+                    .with_enemies_only(true),
                 actions::GameAction::ApplyEffect(Box::new(
-                    actions::ActionEffect::repeat(
+                    actions::ActionEffect::transform(
                         actions::ActionEffectTarget::new_only_self(),
-                        actions::GameAction::Move {
-                            delta: ggez::glam::Vec2::new(0., 5.),
+                        |act| {
+                            match act {
+                                // speed up nearby allies by 50%
+                                actions::GameAction::Move { delta } => *delta = ggez::glam::Vec2::new(0., if delta.y == 0. {0.} else {4.} ),
+                                _ => {}
+                            };
                         },
-                        Duration::from_secs_f32(0.02),
                     )
                     .with_duration(Duration::from_secs_f32(1.)),
                 )),
                 Duration::from_secs(1),
             )),
         components::Enemy::new(0, 20, 9),
-        components::Health::new(250),
+        components::Health::new(75),
         components::Collision::new_basic(64., 64.),
     ));
 }
-
 
 /// # Guardian
 /// ## Enemy
@@ -458,11 +462,11 @@ pub fn spawn_wizard_skeleton3(cmd: &mut CommandBuffer, pos: components::Position
         pos,
         components::Velocity::new(0., 7.),
         components::Graphics::new(
-            "/sprites/enemies/skeleton_wizard2",
+            "/sprites/enemies/skeleton_wizard3",
             Duration::from_secs_f32(0.25),
         ),
-        // 'Spell' 1: Spawn a skeleton every 30 seconds.
         components::actions::Actions::new()
+            // 'Spell' 1: Spawn a skeleton every 30 seconds.
             .with_effect(actions::ActionEffect::repeat(
                 actions::ActionEffectTarget::new_only_self(),
                 actions::GameAction::spawn(|_, pos, cmd| {
@@ -470,21 +474,21 @@ pub fn spawn_wizard_skeleton3(cmd: &mut CommandBuffer, pos: components::Position
                         cmd,
                         pos + ggez::glam::Vec2 {
                             x: -16. + 32. * rand::random::<f32>(),
-                            y: -32.,
+                            y: 32.,
                         },
                     );
                 }),
-                Duration::from_secs(30),
+                Duration::from_secs(15),
             ))
             // 'Spell' 2: Damage a group of nearby allies and speed them up
             .with_effect(actions::ActionEffect::repeat(
                 actions::ActionEffectTarget::new()
                     .with_affect_self(false)
-                    .with_range(512.)
+                    .with_range(256.)
                     .with_enemies_only(true)
-                    .with_limit(5),
+                    .with_limit(3),
                 vec![
-                    actions::GameAction::TakeDamage { dmg: 25 },
+                    actions::GameAction::TakeDamage { dmg: 15 },
                     actions::GameAction::AddParticle(
                         components::graphics::Particle::new(
                             "/sprites/effects/bolt",
@@ -596,27 +600,12 @@ pub fn spawn_ghost(cmd: &mut CommandBuffer, pos: components::Position) {
 /// # Blood fiend
 /// ## Enemy
 /// A creature that distributes damage taken on nearby enemies
-pub fn spawn_blood_fiend(cmd: &mut CommandBuffer, pos: components::Position) {
+pub fn spawn_animated_armor(cmd: &mut CommandBuffer, pos: components::Position) {
     cmd.push((
         pos,
         components::Velocity::new(0., 12.),
-        components::Graphics::new(
-            "/sprites/enemies/skeleton_basic",
-            Duration::from_secs_f32(0.25),
-        ),
+        components::Graphics::new("/sprites/enemies/armor", Duration::from_secs_f32(0.25)),
         components::Actions::new()
-            // reduce damage taken by 60%
-            .with_effect(actions::ActionEffect::transform(
-                actions::ActionEffectTarget::new_only_self(),
-                |act| {
-                    match act {
-                        actions::GameAction::TakeDamage { dmg } => {
-                            *dmg = (*dmg as f32 * 0.4) as i32
-                        }
-                        _ => {}
-                    };
-                },
-            ))
             // distribute damage to nearby allies
             .with_effect(actions::ActionEffect::react(
                 actions::ActionEffectTarget::new_only_self(),
@@ -624,12 +613,26 @@ pub fn spawn_blood_fiend(cmd: &mut CommandBuffer, pos: components::Position) {
                     actions::GameAction::TakeDamage { dmg } => actions::ActionEffect::once(
                         actions::ActionEffectTarget::new()
                             .with_range(256.)
-                            .with_limit(3)
-                            .with_affect_self(false),
-                        actions::GameAction::TakeDamage { dmg: dmg / 5 },
+                            .with_limit(1)
+                            .with_affect_self(false)
+                            .with_enemies_only(true),
+                        actions::GameAction::TakeDamage { dmg: dmg / 2 },
                     )
+                    .with_duration(Duration::from_secs_f32(0.5))
                     .into(),
                     _ => actions::GameAction::None.into(),
+                },
+            ))
+            // reduce damage taken by 60%
+            .with_effect(actions::ActionEffect::transform(
+                actions::ActionEffectTarget::new_only_self(),
+                |act| {
+                    match act {
+                        actions::GameAction::TakeDamage { dmg } => {
+                            *dmg = (*dmg as f32 * 0.5) as i32
+                        }
+                        _ => {}
+                    };
                 },
             ))
             // heal on death
@@ -661,9 +664,9 @@ pub fn spawn_blood_fiend(cmd: &mut CommandBuffer, pos: components::Position) {
 pub fn spawn_legionnaire(cmd: &mut CommandBuffer, pos: components::Position) {
     cmd.push((
         pos,
-        components::Velocity::new(0., 15.),
+        components::Velocity::new(0., 30.),
         components::Graphics::new(
-            "/sprites/enemies/skeleton_tank",
+            "/sprites/enemies/legionnaire",
             Duration::from_secs_f32(0.25),
         ),
         components::Actions::new().with_effect(actions::ActionEffect::repeat(
@@ -675,11 +678,11 @@ pub fn spawn_legionnaire(cmd: &mut CommandBuffer, pos: components::Position) {
                         match action {
                             actions::GameAction::Move { delta } => {
                                 delta.x *= 0.;
-                                delta.y *= 0.3;
-                            },
+                                delta.y *= 0.2;
+                            }
                             actions::GameAction::TakeDamage { dmg } => {
                                 *dmg /= 8;
-                            },
+                            }
                             _ => {}
                         };
                     },

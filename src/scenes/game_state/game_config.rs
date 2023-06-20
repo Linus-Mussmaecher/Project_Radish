@@ -30,9 +30,9 @@ impl GameConfig {
     /// Constructs a default game config for debugging the game
     pub fn debug() -> Self {
         Self {
-            base_credits: 15.,
+            base_credits: 50.,
             wave_credits: 6.,
-            wave_enemies: [1, 2, 3, 4],
+            wave_enemies: [14, 14, 14, 14],
             base_spells: [1, 7, 13, 14],
             base_slots: 6,
             base_speed: 150.,
