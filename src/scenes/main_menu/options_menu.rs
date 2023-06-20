@@ -1,4 +1,4 @@
-use crate::scenes::options;
+use crate::options;
 use ggez::{graphics, GameError};
 use mooeye::{*};
 

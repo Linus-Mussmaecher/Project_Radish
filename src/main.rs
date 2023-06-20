@@ -1,6 +1,8 @@
 use ggez::*;
 
 mod scenes;
+mod music;
+mod options;
 
 const WIDTH: f32 = 1200.;
 const HEIGHT: f32 = 900.;

@@ -4,6 +4,7 @@ use legion::{
     component, systems::CommandBuffer, Entity, EntityStore, IntoQuery, Resources, Schedule, World,
 };
 use mooeye::*;
+use crate::{music, options};
 
 use std::time::Duration;
 
@@ -44,6 +45,8 @@ pub struct GameState {
     action_prod_schedule: Schedule,
     /// The in-game GUI.
     gui: UiElement<GameMessage>,
+    /// The player for the background music
+    music_player: music::MusicPlayer,
     // /// Listeners (such as achievements or tutorials), receiving all game messages and potentially mutating the UI.
     // listeners: Vec<Box<dyn game_message::MessageReceiver>>,
     /// The achievement set listening to achievement fulfils
@@ -130,6 +133,9 @@ impl scene_manager::Scene for GameState {
 
         if let Some(game_data) = self.resources.get::<game_data::GameData>() {
             if game_data.city_health <= 0 {
+                // stop music player
+                self.music_player.stop(ctx);
+                // create the game over menu, replacing any other attempted scene switch
                 switch = scene_manager::SceneSwitch::push(
                     crate::scenes::game_over_menu::GameOverMenu::new(ctx, game_data.get_score())?,
                 );
@@ -140,6 +146,9 @@ impl scene_manager::Scene for GameState {
     }
 
     fn draw(&mut self, ctx: &mut ggez::Context, mouse_listen: bool) -> Result<(), GameError> {
+        // Manage music
+        self.music_player.check_song(ctx);
+
         // Get canvas & set sampler
         let mut canvas =
             graphics::Canvas::from_frame(ctx, graphics::Color::from_rgb_u32(crate::PALETTE[11]));
@@ -189,9 +198,12 @@ impl GameState {
         let spell_pool = components::spell::init_spell_pool(&sprite_pool, &achievement_set);
         let game_data = game_data::GameData::new(config.starting_gold, config.starting_city_health);
         let director = director::Director::new(&sprite_pool, &config);
-        let options = super::options::OptionsConfig::from_path("./data/options.toml").unwrap_or_default();
+        let options = options::OptionsConfig::from_path("./data/options.toml").unwrap_or_default();
         let audio_pool = components::audio::AudioPool::new(options)
             .with_folder(ctx, "/audio", true);
+        let mut music_player = music::MusicPlayer::from_folder(ctx, "/audio/music");
+        music_player.poll_options();
+        music_player.next_song(ctx);
 
         Self::initalize_environment(&boundaries, &sprite_pool, &mut world)?;
 
@@ -236,6 +248,7 @@ impl GameState {
         Ok(Self {
             world,
             gui: ui::game_ui::construct_game_ui(ctx, config)?,
+            music_player,
             action_prod_schedule: Schedule::builder()
                 // director
                 .add_system(director::direct_system())

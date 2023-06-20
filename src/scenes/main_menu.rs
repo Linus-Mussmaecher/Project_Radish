@@ -9,22 +9,21 @@ use super::BUTTON_VIS;
 
 use ggez::{graphics, GameError};
 use mooeye::*;
+use crate::music;
 
 use crate::PALETTE;
 
+/// The main menu greeting the player on startup.
+/// Contains navigation buttons to multiple submenus and allows starting games.
 pub struct MainMenu {
+    /// The gui containing the buttons to the submenus
     gui: UiElement<()>,
+    /// The music player for background music. Stops when starting a game
+    music_player: music::MusicPlayer,
 }
 
 impl MainMenu {
     pub fn new(ctx: &ggez::Context) -> Result<Self, GameError> {
-        //TODO: audio
-        // ggez::audio::SoundSource::play_detached(
-        //     &mut ggez::audio::Source::new(ctx, "/audio/music/Song1.mp3")?,
-        //     ctx,
-        // )
-        //.unwrap();
-
         // title
 
         let title = graphics::Text::new(
@@ -150,7 +149,11 @@ impl MainMenu {
             .with_padding((25., 25., 25., 25.))
             .build();
 
-        Ok(Self { gui: big_box })
+        let mut music_player = music::MusicPlayer::from_folder(ctx, "/audio/music");
+        music_player.poll_options();
+        music_player.next_song(ctx);
+
+        Ok(Self { gui: big_box, music_player })
     }
 }
 
@@ -164,6 +167,7 @@ impl scene_manager::Scene for MainMenu {
         let mut res = mooeye::scene_manager::SceneSwitch::None;
 
         if messages.contains(&mooeye::UiMessage::Triggered(1)) {
+            self.music_player.stop(ctx);
             res = mooeye::scene_manager::SceneSwitch::replace(
                 game_state::GameState::new(ctx, game_state::GameConfig::default())?,
                 1,
@@ -171,6 +175,7 @@ impl scene_manager::Scene for MainMenu {
         }
 
         if messages.contains(&mooeye::UiMessage::Triggered(2)) {
+            self.music_player.stop(ctx);
             res = mooeye::scene_manager::SceneSwitch::replace(
                 game_state::GameState::new(ctx, game_state::GameConfig::debug())?,
                 1,
@@ -197,6 +202,7 @@ impl scene_manager::Scene for MainMenu {
         }
 
         if messages.contains(&mooeye::UiMessage::Triggered(7)) {
+            self.music_player.stop(ctx);
             res = mooeye::scene_manager::SceneSwitch::Pop(1);
         }
 
@@ -204,6 +210,10 @@ impl scene_manager::Scene for MainMenu {
     }
 
     fn draw(&mut self, ctx: &mut ggez::Context, mouse_listen: bool) -> Result<(), ggez::GameError> {
+        // music
+        self.music_player.check_song(ctx);
+
+        // graphics
         let mut canvas =
             graphics::Canvas::from_frame(ctx, graphics::Color::from_rgb_u32(PALETTE[5]));
         canvas.set_sampler(graphics::Sampler::nearest_clamp());
@@ -211,6 +221,7 @@ impl scene_manager::Scene for MainMenu {
         self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);
 
         canvas.finish(ctx)?;
+
         Ok(())
     }
 }

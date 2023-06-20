@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use crate::scenes::options;
+use crate::options;
 use ggez::audio::{self, SoundSource};
 use legion::system;
 

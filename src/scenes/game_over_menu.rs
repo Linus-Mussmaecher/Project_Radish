@@ -2,12 +2,15 @@ use super::game_state::achievements;
 use ggez::{graphics, GameError};
 use mooeye::{ui_element::UiContainer, *};
 
+use crate::music;
 use crate::PALETTE;
 
 /// The Menu that is shown over the game state when the game ends.
 pub struct GameOverMenu {
     /// The UI.
     ui: UiElement<()>,
+    /// The music player
+    music_player: music::MusicPlayer,
 }
 
 impl GameOverMenu {
@@ -175,7 +178,14 @@ impl GameOverMenu {
         // save highscores
         achievements::save_highscores(highscores);
 
-        Ok(Self { ui: main_box })
+        let mut music_player = music::MusicPlayer::from_folder(ctx, "/audio/music");
+        music_player.poll_options();
+        music_player.next_song(ctx);
+
+        Ok(Self {
+            ui: main_box,
+            music_player,
+        })
     }
 }
 
@@ -186,6 +196,7 @@ impl scene_manager::Scene for GameOverMenu {
         // restart the game
 
         if messages.contains(&mooeye::UiMessage::Triggered(1)) {
+            self.music_player.stop(ctx);
             return Ok(mooeye::scene_manager::SceneSwitch::replace(
                 super::game_state::GameState::new(ctx, super::game_state::GameConfig::default())?,
                 2,
@@ -195,6 +206,7 @@ impl scene_manager::Scene for GameOverMenu {
         // return to main menu
 
         if messages.contains(&mooeye::UiMessage::Triggered(2)) {
+            self.music_player.stop(ctx);
             return Ok(mooeye::scene_manager::SceneSwitch::replace(
                 super::main_menu::MainMenu::new(ctx)?,
                 2,
@@ -204,6 +216,9 @@ impl scene_manager::Scene for GameOverMenu {
     }
 
     fn draw(&mut self, ctx: &mut ggez::Context, mouse_listen: bool) -> Result<(), GameError> {
+        // music
+        self.music_player.check_song(ctx);
+        // graphics
         let mut canvas = graphics::Canvas::from_frame(ctx, None);
         canvas.set_sampler(graphics::Sampler::nearest_clamp());
 
