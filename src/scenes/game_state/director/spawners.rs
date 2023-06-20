@@ -130,18 +130,18 @@ pub fn spawn_dynamite_skeleton(cmd: &mut CommandBuffer, pos: components::Positio
             Duration::from_secs_f32(0.25),
         ),
         components::Actions::new()
-        .with_effect(actions::ActionEffect::on_death(
-            actions::ActionEffectTarget::new()
-                .with_range(128.)
-                .with_enemies_only(true),
-            actions::RemoveSource::HealthLoss,
-            actions::GameAction::TakeDamage { dmg: 30 },
-        ))
-        .with_effect(actions::ActionEffect::on_death(
-            actions::ActionEffectTarget::new_only_self(),
-            actions::RemoveSource::HealthLoss,
-            actions::GameAction::play_sound("/audio/sounds/enemies/explosion"),
-        )),
+            .with_effect(actions::ActionEffect::on_death(
+                actions::ActionEffectTarget::new()
+                    .with_range(128.)
+                    .with_enemies_only(true),
+                actions::RemoveSource::HealthLoss,
+                actions::GameAction::TakeDamage { dmg: 30 },
+            ))
+            .with_effect(actions::ActionEffect::on_death(
+                actions::ActionEffectTarget::new_only_self(),
+                actions::RemoveSource::HealthLoss,
+                actions::GameAction::play_sound("/audio/sounds/enemies/explosion"),
+            )),
         components::Enemy::new(3, 30, 7),
         components::Health::new(150),
         components::Collision::new_basic(64., 64.),
@@ -189,7 +189,12 @@ pub fn spawn_catapult(cmd: &mut CommandBuffer, pos: components::Position) {
                         |act| {
                             match act {
                                 // speed up nearby allies by 50%
-                                actions::GameAction::Move { delta } => *delta = ggez::glam::Vec2::new(0., if delta.y == 0. {0.} else {4.} ),
+                                actions::GameAction::Move { delta } => {
+                                    *delta = ggez::glam::Vec2::new(
+                                        0.,
+                                        if delta.y == 0. { 0. } else { 4. },
+                                    )
+                                }
                                 _ => {}
                             };
                         },
@@ -226,7 +231,9 @@ pub fn spawn_tank_skeleton(cmd: &mut CommandBuffer, pos: components::Position) {
                     match act {
                         // reduce dmg by 1, but if would be reduced to 0, onyl 20% chance to do so
                         actions::GameAction::TakeDamage { dmg } => {
-                            *dmg = (*dmg as f32 * 0.7) as i32;
+                            if *dmg >= 7 {
+                                *dmg = (*dmg as f32 * 0.7) as i32;
+                            }
                         }
                         _ => {}
                     }
@@ -576,7 +583,7 @@ pub fn spawn_ghost(cmd: &mut CommandBuffer, pos: components::Position) {
                 actions::GameAction::TakeDamage { dmg: _ } => {
                     vec![
                         // gain damage reduction for 2 seconds
-                    actions::GameAction::play_sound("/audio/sounds/enemies/speed"),
+                        actions::GameAction::play_sound("/audio/sounds/enemies/speed"),
                         actions::GameAction::ApplyEffect(Box::new(
                             actions::ActionEffect::transform(
                                 actions::ActionEffectTarget::new_only_self(),
@@ -624,16 +631,22 @@ pub fn spawn_animated_armor(cmd: &mut CommandBuffer, pos: components::Position) 
             .with_effect(actions::ActionEffect::react(
                 actions::ActionEffectTarget::new_only_self(),
                 |act| match act {
-                    actions::GameAction::TakeDamage { dmg } => actions::ActionEffect::once(
-                        actions::ActionEffectTarget::new()
-                            .with_range(256.)
-                            .with_limit(1)
-                            .with_affect_self(false)
-                            .with_enemies_only(true),
-                        actions::GameAction::TakeDamage { dmg: dmg / 2 },
-                    )
-                    .with_duration(Duration::from_secs_f32(0.5))
-                    .into(),
+                    actions::GameAction::TakeDamage { dmg } => {
+                        if *dmg < 5 {
+                            actions::GameAction::None.into()
+                        } else {
+                            actions::ActionEffect::once(
+                                actions::ActionEffectTarget::new()
+                                    .with_range(256.)
+                                    .with_limit(1)
+                                    .with_affect_self(false)
+                                    .with_enemies_only(true),
+                                actions::GameAction::TakeDamage { dmg: dmg / 2 },
+                            )
+                            .with_duration(Duration::from_secs_f32(0.5))
+                            .into()
+                        }
+                    }
                     _ => actions::GameAction::None.into(),
                 },
             ))
