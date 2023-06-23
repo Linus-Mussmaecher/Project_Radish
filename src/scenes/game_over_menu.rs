@@ -1,4 +1,5 @@
 use super::game_state::achievements;
+use ggez::audio::SoundSource;
 use ggez::{graphics, GameError};
 use mooeye::{ui_element::UiContainer, *};
 
@@ -17,6 +18,10 @@ impl GameOverMenu {
     /// Creates a new GameOverMenu displaying the passed score and adding it (if good enough) to the highscore list.
     /// Also displays the highscore list and marks the newly achieved score (it it shows up).
     pub fn new(ctx: &ggez::Context, score: i32) -> Result<Self, GameError> {
+        // play happy sound
+        let mut wave_done = ggez::audio::Source::new(ctx, "/audio/sounds/ui/wave_done.wav").expect("Could not load wave end sound.");
+        wave_done.play(ctx)?;
+
         // load highscores
 
         let mut highscores = achievements::load_highscores();
@@ -149,6 +154,7 @@ impl GameOverMenu {
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::R)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
+        .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
         .build();
         main_box.add(restart);
 
@@ -165,6 +171,7 @@ impl GameOverMenu {
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::M)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
+        .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
         .build();
         main_box.add(main_menu);
 

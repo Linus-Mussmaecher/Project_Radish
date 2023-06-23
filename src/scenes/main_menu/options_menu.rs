@@ -39,6 +39,7 @@ impl OptionsMenu {
         .to_element_builder(1, ctx)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
+        .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::R)
         .build();
 
@@ -72,6 +73,7 @@ impl OptionsMenu {
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::C)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
+        .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
         .build();
 
     let options = options::OptionsConfig::from_path("./data/options.toml").unwrap_or_default();
@@ -236,6 +238,7 @@ fn create_sound_adjuster(ctx: &ggez::Context, id_start: u32, value: u8) -> mooey
                 border_widths: [3., 1.5, 3., 3.], 
                 ..super::BUTTON_HOVER_VIS
             })
+            .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
             .as_shrink()
             .build(),
         )
@@ -256,6 +259,7 @@ fn create_sound_adjuster(ctx: &ggez::Context, id_start: u32, value: u8) -> mooey
                 border_widths: [3., 1.5, 3., 1.5], 
                 ..super::BUTTON_HOVER_VIS
             })
+            .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
             .as_shrink()
             .build(),
         )
@@ -272,6 +276,7 @@ fn create_sound_adjuster(ctx: &ggez::Context, id_start: u32, value: u8) -> mooey
                 border_widths: [3., 1.5, 3., 1.5], 
                 ..super::BUTTON_VIS
             })
+            .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
             .as_fill()
             .build(),
         )
@@ -293,6 +298,7 @@ fn create_sound_adjuster(ctx: &ggez::Context, id_start: u32, value: u8) -> mooey
                 border_widths: [3., 1.5, 3., 1.5], 
                 ..super::BUTTON_HOVER_VIS
             })
+            .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
             .as_shrink()
             .build(),
         )

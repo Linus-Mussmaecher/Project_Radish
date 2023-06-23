@@ -1599,7 +1599,7 @@ dependencies = [
 [[package]]
 name = "mooeye"
 version = "0.2.1"
-source = "git+https://github.com/Linus-Mussmaecher/mooeye#4de3409c0088218559113a555499368bb437bda1"
+source = "git+https://github.com/Linus-Mussmaecher/mooeye#8acab832622d4dd11e1892f90f895184c0c121a7"
 dependencies = [
  "ggez",
  "regex",
@@ -1608,9 +1608,9 @@ dependencies = [
 
 [[package]]
 name = "naga"
-version = "0.10.0"
+version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "262d2840e72dbe250e8cf2f522d080988dfca624c4112c096238a4845f591707"
+checksum = "21bb1a241901d94de4725d638a5295187b046ceb89ed8b2be368038654d9c81d"
 dependencies = [
  "bit-set",
  "bitflags",
