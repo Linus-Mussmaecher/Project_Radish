@@ -156,7 +156,7 @@ impl MainMenu {
             .with_padding((25., 25., 25., 25.))
             .build();
 
-        let mut music_player = music::MusicPlayer::from_folder(ctx, "/audio/music");
+        let mut music_player = music::MusicPlayer::from_folder(ctx, "/audio/music/main_menu");
         music_player.poll_options();
         music_player.next_song(ctx);
 

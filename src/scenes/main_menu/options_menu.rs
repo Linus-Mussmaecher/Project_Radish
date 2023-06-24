@@ -1,6 +1,6 @@
 use crate::options;
 use ggez::{graphics, GameError};
-use mooeye::{*};
+use mooeye::*;
 
 use crate::PALETTE;
 
@@ -13,9 +13,8 @@ pub struct OptionsMenu {
     gui: UiElement<()>,
     controller: super::game_state::Controller,
     options: options::OptionsConfig,
+    reload_main: bool,
 }
-
-
 
 impl OptionsMenu {
     pub fn new(ctx: &ggez::Context) -> Result<Self, GameError> {
@@ -76,7 +75,7 @@ impl OptionsMenu {
         .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
         .build();
 
-    let options = options::OptionsConfig::from_path("./data/options.toml").unwrap_or_default();
+        let options = options::OptionsConfig::from_path("./data/options.toml").unwrap_or_default();
 
         // Container
 
@@ -86,18 +85,22 @@ impl OptionsMenu {
             .with_child(sound)
             .with_child(
                 containers::StackBox::new()
-                .to_element_builder(VOLUME_CONTAINER_ID, ctx)
-                .with_child(create_sound_adjuster(ctx, VOLUME_IDS, options.volume))
-                .with_wrapper_layout(mooeye::ui_element::Layout::default())
-                .build()
+                    .to_element_builder(VOLUME_CONTAINER_ID, ctx)
+                    .with_child(create_sound_adjuster(ctx, VOLUME_IDS, options.volume))
+                    .with_wrapper_layout(mooeye::ui_element::Layout::default())
+                    .build(),
             )
             .with_child(music)
             .with_child(
                 containers::StackBox::new()
-                .to_element_builder(VOLUME_MUSIC_CONTAINER_ID, ctx)
-                .with_child(create_sound_adjuster(ctx, VOLUME_MUSIC_IDS, options.music_volume))
-                .with_wrapper_layout(mooeye::ui_element::Layout::default())
-                .build()
+                    .to_element_builder(VOLUME_MUSIC_CONTAINER_ID, ctx)
+                    .with_child(create_sound_adjuster(
+                        ctx,
+                        VOLUME_MUSIC_IDS,
+                        options.music_volume,
+                    ))
+                    .with_wrapper_layout(mooeye::ui_element::Layout::default())
+                    .build(),
             )
             .with_child(reset_bindings)
             .with_child(back)
@@ -112,6 +115,7 @@ impl OptionsMenu {
             controller: super::game_state::Controller::from_path("./data/keymap.toml")
                 .unwrap_or_default(),
             options,
+            reload_main: false,
         })
     }
 }
@@ -130,7 +134,7 @@ impl scene_manager::Scene for OptionsMenu {
         if messages.contains(&mooeye::UiMessage::Triggered(VOLUME_IDS + 1)) {
             // adjust sound
             self.options.volume = self.options.volume.saturating_sub(10);
-            // set marker 
+            // set marker
             rebuild_meter = true;
         }
 
@@ -153,9 +157,13 @@ impl scene_manager::Scene for OptionsMenu {
             // remove old element
             self.gui.remove_elements(VOLUME_IDS);
             // add element with new value
-            self.gui.add_element(VOLUME_CONTAINER_ID, create_sound_adjuster(ctx, VOLUME_IDS, self.options.volume));
+            self.gui.add_element(
+                VOLUME_CONTAINER_ID,
+                create_sound_adjuster(ctx, VOLUME_IDS, self.options.volume),
+            );
             // reset marker
             rebuild_meter = false;
+            self.reload_main = true;
         }
 
         // Adjust music volume
@@ -180,13 +188,16 @@ impl scene_manager::Scene for OptionsMenu {
             rebuild_meter = true;
         }
 
-        if rebuild_meter{
+        if rebuild_meter {
             self.gui.remove_elements(VOLUME_MUSIC_IDS);
-            self.gui.add_element(VOLUME_MUSIC_CONTAINER_ID, create_sound_adjuster(ctx, VOLUME_MUSIC_IDS, self.options.music_volume));
+            self.gui.add_element(
+                VOLUME_MUSIC_CONTAINER_ID,
+                create_sound_adjuster(ctx, VOLUME_MUSIC_IDS, self.options.music_volume),
+            );
+            self.reload_main = true;
         }
 
         // Reset keybinginds
-
 
         if messages.contains(&mooeye::UiMessage::Triggered(1)) {
             self.controller = super::game_state::Controller::default();
@@ -201,7 +212,14 @@ impl scene_manager::Scene for OptionsMenu {
             if self.options.save_to_file("./data/options.toml").is_err() {
                 println!("[WARNING] Could not save options.")
             }
-            Ok(mooeye::scene_manager::SceneSwitch::Pop(1))
+            if self.reload_main {
+                Ok(mooeye::scene_manager::SceneSwitch::replace(
+                    super::MainMenu::new(ctx)?,
+                    2,
+                ))
+            } else {
+                Ok(mooeye::scene_manager::SceneSwitch::Pop(1))
+            }
         } else {
             Ok(mooeye::scene_manager::SceneSwitch::None)
         }
@@ -228,17 +246,20 @@ fn create_sound_adjuster(ctx: &ggez::Context, id_start: u32, value: u8) -> mooey
             .set_font("Retro")
             .set_scale(28.)
             .to_owned()
-            .to_element_builder(id_start + 1, ctx).with_visuals(ui_element::Visuals{
+            .to_element_builder(id_start + 1, ctx)
+            .with_visuals(ui_element::Visuals {
                 corner_radii: [0., 0., 3., 3.],
-                border_widths: [3., 1.5, 3., 3.], 
+                border_widths: [3., 1.5, 3., 3.],
                 ..super::BUTTON_VIS
             })
-            .with_hover_visuals(ui_element::Visuals{
+            .with_hover_visuals(ui_element::Visuals {
                 corner_radii: [0., 0., 3., 3.],
-                border_widths: [3., 1.5, 3., 3.], 
+                border_widths: [3., 1.5, 3., 3.],
                 ..super::BUTTON_HOVER_VIS
             })
-            .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
+            .with_trigger_sound(
+                ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok(),
+            )
             .as_shrink()
             .build(),
         )
@@ -249,17 +270,20 @@ fn create_sound_adjuster(ctx: &ggez::Context, id_start: u32, value: u8) -> mooey
             .set_font("Retro")
             .set_scale(28.)
             .to_owned()
-            .to_element_builder(id_start + 2, ctx).with_visuals(ui_element::Visuals{
+            .to_element_builder(id_start + 2, ctx)
+            .with_visuals(ui_element::Visuals {
                 corner_radii: [0.; 4],
-                border_widths: [3., 1.5, 3., 1.5], 
+                border_widths: [3., 1.5, 3., 1.5],
                 ..super::BUTTON_VIS
             })
-            .with_hover_visuals(ui_element::Visuals{
+            .with_hover_visuals(ui_element::Visuals {
                 corner_radii: [0.; 4],
-                border_widths: [3., 1.5, 3., 1.5], 
+                border_widths: [3., 1.5, 3., 1.5],
                 ..super::BUTTON_HOVER_VIS
             })
-            .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
+            .with_trigger_sound(
+                ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok(),
+            )
             .as_shrink()
             .build(),
         )
@@ -271,12 +295,15 @@ fn create_sound_adjuster(ctx: &ggez::Context, id_start: u32, value: u8) -> mooey
             .set_font("Retro")
             .set_scale(24.)
             .to_owned()
-            .to_element_builder(0, ctx).with_visuals(ui_element::Visuals{
+            .to_element_builder(0, ctx)
+            .with_visuals(ui_element::Visuals {
                 corner_radii: [0.; 4],
-                border_widths: [3., 1.5, 3., 1.5], 
+                border_widths: [3., 1.5, 3., 1.5],
                 ..super::BUTTON_VIS
             })
-            .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
+            .with_trigger_sound(
+                ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok(),
+            )
             .as_fill()
             .build(),
         )
@@ -288,17 +315,19 @@ fn create_sound_adjuster(ctx: &ggez::Context, id_start: u32, value: u8) -> mooey
             .set_scale(28.)
             .to_owned()
             .to_element_builder(id_start + 3, ctx)
-            .with_visuals(ui_element::Visuals{
+            .with_visuals(ui_element::Visuals {
                 corner_radii: [0.; 4],
-                border_widths: [3., 1.5, 3., 1.5], 
+                border_widths: [3., 1.5, 3., 1.5],
                 ..super::BUTTON_VIS
             })
-            .with_hover_visuals(ui_element::Visuals{
+            .with_hover_visuals(ui_element::Visuals {
                 corner_radii: [0.; 4],
-                border_widths: [3., 1.5, 3., 1.5], 
+                border_widths: [3., 1.5, 3., 1.5],
                 ..super::BUTTON_HOVER_VIS
             })
-            .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
+            .with_trigger_sound(
+                ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok(),
+            )
             .as_shrink()
             .build(),
         )
@@ -310,14 +339,14 @@ fn create_sound_adjuster(ctx: &ggez::Context, id_start: u32, value: u8) -> mooey
             .set_scale(28.)
             .to_owned()
             .to_element_builder(id_start + 4, ctx)
-            .with_visuals(ui_element::Visuals{
+            .with_visuals(ui_element::Visuals {
                 corner_radii: [3., 3., 0., 0.],
-                border_widths: [3., 3., 3., 1.5], 
+                border_widths: [3., 3., 3., 1.5],
                 ..super::BUTTON_VIS
             })
-            .with_hover_visuals(ui_element::Visuals{
+            .with_hover_visuals(ui_element::Visuals {
                 corner_radii: [3., 3., 0., 0.],
-                border_widths: [3., 3., 3., 1.5], 
+                border_widths: [3., 3., 3., 1.5],
                 ..super::BUTTON_HOVER_VIS
             })
             .as_shrink()

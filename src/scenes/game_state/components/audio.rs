@@ -3,6 +3,8 @@ use crate::options;
 use ggez::audio::{self, SoundSource};
 use legion::system;
 
+const SOUNDS_PER_FRAME: usize = 10;
+
 #[system(for_each)]
 pub fn audio_enqueue(actions: &super::Actions, #[resource] audio_pool: &mut AudioPool) {
     for action in actions.get_actions() {
@@ -22,7 +24,7 @@ pub fn audio_play_system(
         .get_mut::<AudioPool>()
         .ok_or_else(|| ggez::GameError::CustomError("Could not unpack audio pool.".to_owned()))?;
 
-    for sound in audio_pool.sound_queue.iter() {
+    for sound in audio_pool.sound_queue.iter().take(SOUNDS_PER_FRAME) {
         // play the sound
         match audio_pool.sources.get_mut(sound) {
             Some(sound) => {

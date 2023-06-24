@@ -201,7 +201,7 @@ impl GameState {
         let options = options::OptionsConfig::from_path("./data/options.toml").unwrap_or_default();
         let audio_pool = components::audio::AudioPool::new(options)
             .with_folder(ctx, "/audio", true);
-        let mut music_player = music::MusicPlayer::from_folder(ctx, "/audio/music");
+        let mut music_player = music::MusicPlayer::from_folder(ctx, "/audio/music/in_game");
         music_player.poll_options();
         music_player.next_song(ctx);
 

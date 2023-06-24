@@ -202,6 +202,10 @@ fn construct_wave_menu(
     ctx: &ggez::Context,
     wave_survived: u32,
 ) -> UiElement<game_state::GameMessage> {
+    // play happy sound
+    let mut wave_done = ggez::audio::Source::new(ctx, "/audio/sounds/ui/wave_done.wav").expect("Could not load wave end sound.");
+    ggez::audio::SoundSource::play(&mut wave_done, ctx).expect("[ERROR] Could not find wave_done.wav.");
+
     let enemies = graphics::Image::from_path(ctx, "/sprites/ui/enemies.png")
         .expect("[ERROR] Missing enemies menu sprite.")
         .to_element_builder(ID_ENEMIES, ctx)

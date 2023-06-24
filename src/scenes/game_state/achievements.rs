@@ -224,20 +224,20 @@ impl AchievementSet {
 
         list.push(Achievement::new(
             "One kick, a thousand times",
-            "Reach level 10, 10 times.",
+            "Reach level 8, 8 times.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a07_16_16.png").ok(),
-            10,
+            8,
             
-            (GameMessage::NextWave(10), GameMessageFilter::Equality),
+            (GameMessage::NextWave(8), GameMessageFilter::Equality),
         ));
 
         list.push(Achievement::new(
             "Supreme",
-            "Reach level 50.",
+            "Reach level 24.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a08_16_16.png").ok(),
             1,
             
-            (GameMessage::NextWave(50), GameMessageFilter::Equality),
+            (GameMessage::NextWave(24), GameMessageFilter::Equality),
         ));
 
         list.push(Achievement::new(
