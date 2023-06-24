@@ -196,7 +196,7 @@ pub(super) fn construct_lightning_orb(sprite_pool: &SpritePool) -> Spell {
                                         .with_enemies_only(true)
                                         .with_affect_self(true)
                                         .with_range(128.),
-                                    GameAction::TakeDamage { dmg: 13 },
+                                    GameAction::TakeDamage { dmg: 20 },
                                 )
                                 .into(),
                             ),
