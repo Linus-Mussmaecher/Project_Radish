@@ -1,17 +1,17 @@
+use crate::{music, options};
 use ggez::{glam::Vec2, graphics, GameError};
 use if_chain::if_chain;
 use legion::{
     component, systems::CommandBuffer, Entity, EntityStore, IntoQuery, Resources, Schedule, World,
 };
 use mooeye::*;
-use crate::{music, options};
 
 use std::time::Duration;
 
 mod game_message;
 pub use game_message::GameMessage;
-pub use game_message::MessageSet;
 pub use game_message::MessageReceiver;
+pub use game_message::MessageSet;
 
 mod game_data;
 
@@ -155,8 +155,15 @@ impl scene_manager::Scene for GameState {
         canvas.set_sampler(graphics::Sampler::nearest_clamp());
 
         // Draw background
-
-        self.draw_background(ctx, &mut canvas);
+        Self::draw_background(
+            &self
+                .resources
+                .get::<graphics::Rect>()
+                .map(|r| *r)
+                .unwrap_or_default(),
+            ctx,
+            &mut canvas,
+        );
 
         // Draw world
 
@@ -199,8 +206,8 @@ impl GameState {
         let game_data = game_data::GameData::new(config.starting_gold, config.starting_city_health);
         let director = director::Director::new(&sprite_pool, &config);
         let options = options::OptionsConfig::from_path("./data/options.toml").unwrap_or_default();
-        let audio_pool = components::audio::AudioPool::new(options)
-            .with_folder(ctx, "/audio", true);
+        let audio_pool =
+            components::audio::AudioPool::new(options).with_folder(ctx, "/audio", true);
         let mut music_player = music::MusicPlayer::from_folder(ctx, "/audio/music/in_game");
         music_player.poll_options();
         music_player.next_song(ctx);
@@ -370,14 +377,11 @@ impl GameState {
     }
 
     /// A helper function that draw the background street.
-    fn draw_background(&self, ctx: &ggez::Context, canvas: &mut ggez::graphics::Canvas) {
-        // Draw street
-        let boundaries = self
-            .resources
-            .get::<graphics::Rect>()
-            .map(|r| *r)
-            .unwrap_or_default();
-
+    pub fn draw_background(
+        boundaries: &graphics::Rect,
+        ctx: &ggez::Context,
+        canvas: &mut ggez::graphics::Canvas,
+    ) {
         let (screen_w, screen_h) = ctx.gfx.drawable_size();
         canvas.draw(
             &graphics::Quad,

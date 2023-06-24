@@ -7,6 +7,7 @@ use super::game_state;
 use super::BUTTON_HOVER_VIS;
 use super::BUTTON_VIS;
 
+use ggez::glam::Vec2;
 use ggez::{graphics, GameError};
 use mooeye::*;
 use crate::music;
@@ -20,6 +21,14 @@ pub struct MainMenu {
     gui: UiElement<()>,
     /// The music player for background music. Stops when starting a game
     music_player: music::MusicPlayer,
+    /// sprites
+    background_sprites: Vec<MainMenuSprite>,
+}
+
+struct MainMenuSprite{
+    sprite: mooeye::sprite::Sprite,
+    pos: Vec2,
+    vel: Vec2,
 }
 
 impl MainMenu {
@@ -160,7 +169,16 @@ impl MainMenu {
         music_player.poll_options();
         music_player.next_song(ctx);
 
-        Ok(Self { gui: big_box, music_player })
+        let mut background_sprites = Vec::new();
+        for i in 0..10{
+            background_sprites.push(MainMenuSprite{
+                sprite: todo!(),
+                pos: todo!(),
+                vel: todo!(),
+            })
+        }
+
+        Ok(Self { gui: big_box, music_player, background_sprites: vec![]})
     }
 }
 
@@ -220,10 +238,22 @@ impl scene_manager::Scene for MainMenu {
         // music
         self.music_player.check_song(ctx);
 
+
+
         // graphics
         let mut canvas =
             graphics::Canvas::from_frame(ctx, graphics::Color::from_rgb_u32(PALETTE[5]));
         canvas.set_sampler(graphics::Sampler::nearest_clamp());
+
+        // draw environment & background sprites
+        game_state::GameState::draw_background(&ggez::graphics::Rect::new(0., 0., 600., 900.), ctx, &mut canvas);
+        for b_sprite in self.background_sprites.iter_mut(){
+            b_sprite.pos += b_sprite.vel;
+            if b_sprite.pos.y > 1000.{
+                b_sprite.pos.y = -50.;
+            }
+            b_sprite.sprite.draw_sprite(ctx, &mut canvas, ggez::graphics::DrawParam::new().offset(b_sprite.pos));
+        }
 
         self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);
 

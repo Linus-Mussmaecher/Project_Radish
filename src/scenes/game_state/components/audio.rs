@@ -3,7 +3,7 @@ use crate::options;
 use ggez::audio::{self, SoundSource};
 use legion::system;
 
-const SOUNDS_PER_FRAME: usize = 10;
+const SOUNDS_PER_FRAME: usize = 4;
 
 #[system(for_each)]
 pub fn audio_enqueue(actions: &super::Actions, #[resource] audio_pool: &mut AudioPool) {
