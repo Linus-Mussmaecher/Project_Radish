@@ -49,7 +49,7 @@ type MainMenuTransition = Option<(Duration, game_state::GameConfig)>;
 impl MainMenu {
     pub fn new(ctx: &ggez::Context) -> Result<Self, GameError> {
         // title
-        let title = mooeye::sprite::Sprite::from_path("/sprites/ui/logo.png", ctx, 108, 60, Duration::ZERO)?
+        let title = graphics::Image::from_path(ctx, "/sprites/ui/logo1.png")?
             .to_element_builder(0, ctx).scaled(4., 4.).build();
 
         // play
