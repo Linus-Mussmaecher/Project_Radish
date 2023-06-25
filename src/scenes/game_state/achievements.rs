@@ -261,7 +261,7 @@ impl AchievementSet {
             "Kill 50 bannermen.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a11_16_16.png").ok(),
             50,
-            (GameMessage::EnemyKilled(5), GameMessageFilter::Equality),
+            (GameMessage::EnemyKilled(11), GameMessageFilter::Equality),
         ));
 
         list.push(Achievement::new(
@@ -269,7 +269,7 @@ impl AchievementSet {
             "Kill 15 ghosts.",
             graphics::Image::from_path(ctx, "/sprites/achievements/a12_16_16.png").ok(),
             15,
-            (GameMessage::EnemyKilled(9), GameMessageFilter::Equality),
+            (GameMessage::EnemyKilled(16), GameMessageFilter::Equality),
         ));
 
         list.push(Achievement::new(
