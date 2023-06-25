@@ -50,7 +50,6 @@ impl MusicPlayer {
     pub fn check_song(&mut self, ctx: &Context) {
         if let Some(song) = &mut self.current_song {
             if song.volume() != self.volume {
-                // TODO: Check if this works.
                 song.set_volume(self.volume);
             }
             if song.stopped() {

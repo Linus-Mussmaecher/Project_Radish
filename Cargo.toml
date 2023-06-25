@@ -14,7 +14,7 @@ mooeye = {git = "https://github.com/Linus-Mussmaecher/mooeye"}
 legion = "^0.4"
 # Serialization
 serde = "^1.0"
-toml = "^0.4"
+toml = "^0.7"
 # Random
 rand = "^0.8"
 # other
