@@ -167,7 +167,7 @@ pub fn construct_game_ui(
             ..super::BUTTON_VIS
         })
         .with_alignment(ui_element::Alignment::Min, ui_element::Alignment::Min)
-        .with_offset(16., None)
+        .with_offset(32., None)
         .build();
 
     let spell_box = containers::StackBox::new()
@@ -179,7 +179,7 @@ pub fn construct_game_ui(
         })
         .with_padding((5., 5., 0., 5.))
         .with_alignment(ui_element::Alignment::Min, ui_element::Alignment::Max)
-        .with_offset(64., None)
+        .with_offset(32., None)
         .build();
 
     let message_box = containers::VerticalBox::new()

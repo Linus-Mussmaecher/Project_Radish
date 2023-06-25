@@ -24,6 +24,8 @@ pub struct GameConfig {
     pub tutorial: bool,
 
     pub achievements_unlocked: super::achievements::AchievementProgressSource,
+
+    pub initial_camera_offset: f32,
 }
 
 impl GameConfig {
@@ -40,6 +42,7 @@ impl GameConfig {
             starting_city_health: 10,
             tutorial: true,
             achievements_unlocked: super::achievements::AchievementProgressSource::Percentage(1.),
+            initial_camera_offset: 0.,
         }
     }
 }
@@ -59,6 +62,7 @@ impl Default for GameConfig {
             achievements_unlocked: super::achievements::AchievementProgressSource::File(
                 "./data/achievements.toml".to_owned(),
             ),
+            initial_camera_offset: 1500.,
         }
     }
 }

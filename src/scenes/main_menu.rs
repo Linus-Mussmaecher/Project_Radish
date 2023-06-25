@@ -3,16 +3,21 @@ pub mod credits_menu;
 pub mod highscore_menu;
 pub mod options_menu;
 
+use std::time::Duration;
+
 use super::game_state;
 use super::BUTTON_HOVER_VIS;
 use super::BUTTON_VIS;
 
+use crate::music;
 use ggez::glam::Vec2;
 use ggez::{graphics, GameError};
 use mooeye::*;
-use crate::music;
 
 use crate::PALETTE;
+
+const CAMERA_SPEED: f32 = -60.;
+const REL_TROOP_SPEED: f32 = 14.;
 
 /// The main menu greeting the player on startup.
 /// Contains navigation buttons to multiple submenus and allows starting games.
@@ -21,15 +26,25 @@ pub struct MainMenu {
     gui: UiElement<()>,
     /// The music player for background music. Stops when starting a game
     music_player: music::MusicPlayer,
+
     /// sprites
     background_sprites: Vec<MainMenuSprite>,
+    /// The current state
+    state: MainMenuTransition,
 }
 
-struct MainMenuSprite{
+/// A background sprite in the main menu
+struct MainMenuSprite {
+    /// The sprite
     sprite: mooeye::sprite::Sprite,
+    /// Its position on the screen
     pos: Vec2,
+    /// The velocity its moving with
     vel: Vec2,
 }
+
+///Different states of the main menu
+type MainMenuTransition = Option<(Duration, game_state::GameConfig)>;
 
 impl MainMenu {
     pub fn new(ctx: &ggez::Context) -> Result<Self, GameError> {
@@ -126,7 +141,9 @@ impl MainMenu {
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::C)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
-        .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").unwrap())
+        .with_trigger_sound(
+            ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").unwrap(),
+        )
         .build();
 
         let quit = graphics::Text::new(
@@ -168,17 +185,101 @@ impl MainMenu {
         let mut music_player = music::MusicPlayer::from_folder(ctx, "/audio/music/main_menu");
         music_player.poll_options();
         music_player.next_song(ctx);
+        let sprite_pool = sprite::SpritePool::new().with_folder(ctx, "/sprites", true);
+
+        // -----------------------------------
+        // Create backgorund sprites
+        // -----------------------------------
 
         let mut background_sprites = Vec::new();
-        for i in 0..10{
-            background_sprites.push(MainMenuSprite{
-                sprite: todo!(),
-                pos: todo!(),
-                vel: todo!(),
-            })
+        let b_boundaries = graphics::Rect {
+            h: game_state::BOUNDARIES.h + 512.,
+            ..game_state::BOUNDARIES
+        };
+
+        // step 1: cobbles
+        for _i in 0..48 {
+            background_sprites.push(MainMenuSprite {
+                sprite: {
+                    let mut cobble =
+                        sprite_pool.init_sprite("/sprites/environment/cobble", Duration::ZERO)?;
+                    cobble.set_variant(rand::random::<u32>());
+                    cobble
+                },
+                pos: Vec2::new(
+                    b_boundaries.w * rand::random::<f32>(),
+                    b_boundaries.h * rand::random::<f32>(),
+                ),
+                vel: Vec2::new(0., CAMERA_SPEED),
+            });
         }
 
-        Ok(Self { gui: big_box, music_player, background_sprites: vec![]})
+        // step 2: brush
+        for _i in 0..36 {
+            let rand_x = (rand::random::<f32>() * 2. - 1.) * 32. * 4. * 4.;
+            background_sprites.push(MainMenuSprite {
+                sprite: {
+                    let mut tree =
+                        sprite_pool.init_sprite("/sprites/environment/tree", Duration::ZERO)?;
+                    tree.set_variant(rand::random::<u32>());
+                    tree
+                },
+                pos: Vec2::new(
+                    (rand_x) + if rand_x > 0. { b_boundaries.w } else { 0. },
+                    rand::random::<f32>() * b_boundaries.h,
+                ),
+                vel: Vec2::new(0., CAMERA_SPEED),
+            });
+        }
+
+        // step 4: sorting
+        background_sprites.sort_by(|p1, p2| {
+            p1.pos
+                .y
+                .partial_cmp(&p2.pos.y)
+                .expect("[ERROR] Ordering of y-coordinates in main menu sprites.")
+        });
+
+        // step 3: troops
+        let troop_paths = vec![
+            "armor",
+            "legionnaire",
+            "skeleton_basic",
+            "skeleton_tank",
+            "skeleton_wizard",
+            "skeleton_sword",
+            "skeleton_jump",
+        ];
+
+        for i in 0..12 {
+            let count = rand::random::<u32>() % 4 + 3;
+            let sprite_path = format!(
+                "/sprites/enemies/{}",
+                troop_paths[rand::random::<usize>() % troop_paths.len()]
+            );
+            for j in 0..count {
+                background_sprites.push(MainMenuSprite {
+                    sprite: sprite_pool.init_sprite(
+                        &sprite_path,
+                        Duration::from_secs_f32(rand::random::<f32>() * 0.2 + 0.3),
+                    )?,
+                    pos: Vec2::new(
+                        b_boundaries.w / 2. - count as f32 * 32. + 64. * j as f32,
+                        b_boundaries.h / 12. * i as f32,
+                    ),
+                    vel: Vec2::new(0., CAMERA_SPEED + REL_TROOP_SPEED),
+                })
+            }
+        }
+
+        // step 5: title
+
+        Ok(Self {
+            gui: big_box,
+            music_player,
+            background_sprites,
+            state: None,
+        })
     }
 }
 
@@ -191,44 +292,64 @@ impl scene_manager::Scene for MainMenu {
 
         let mut res = mooeye::scene_manager::SceneSwitch::None;
 
-        if messages.contains(&mooeye::UiMessage::Triggered(1)) {
-            self.music_player.stop(ctx);
-            res = mooeye::scene_manager::SceneSwitch::replace(
-                game_state::GameState::new(ctx, game_state::GameConfig::default())?,
-                1,
-            );
-        }
+        match self.state.take() {
+            None => {
+                if messages.contains(&mooeye::UiMessage::Triggered(1)) {
+                    for sprite in &mut self.background_sprites {
+                        sprite.vel.y -= 128.;
+                    }
+                    self.state = Some((Duration::from_secs(4), game_state::GameConfig::default()));
+                }
 
-        if messages.contains(&mooeye::UiMessage::Triggered(2)) {
-            self.music_player.stop(ctx);
-            res = mooeye::scene_manager::SceneSwitch::replace(
-                game_state::GameState::new(ctx, game_state::GameConfig::debug())?,
-                1,
-            );
-        }
+                if messages.contains(&mooeye::UiMessage::Triggered(2)) {
+                    self.state = Some((Duration::ZERO, game_state::GameConfig::debug()));
+                }
 
-        if messages.contains(&mooeye::UiMessage::Triggered(3)) {
-            res =
-                mooeye::scene_manager::SceneSwitch::push(highscore_menu::HighscoreMenu::new(ctx)?);
-        }
+                if messages.contains(&mooeye::UiMessage::Triggered(3)) {
+                    res = mooeye::scene_manager::SceneSwitch::push(
+                        highscore_menu::HighscoreMenu::new(ctx)?,
+                    );
+                }
 
-        if messages.contains(&mooeye::UiMessage::Triggered(4)) {
-            res = mooeye::scene_manager::SceneSwitch::push(achievement_menu::AchievementMenu::new(
-                ctx,
-            )?);
-        }
+                if messages.contains(&mooeye::UiMessage::Triggered(4)) {
+                    res = mooeye::scene_manager::SceneSwitch::push(
+                        achievement_menu::AchievementMenu::new(ctx)?,
+                    );
+                }
 
-        if messages.contains(&mooeye::UiMessage::Triggered(5)) {
-            res = mooeye::scene_manager::SceneSwitch::push(options_menu::OptionsMenu::new(ctx)?);
-        }
+                if messages.contains(&mooeye::UiMessage::Triggered(5)) {
+                    res = mooeye::scene_manager::SceneSwitch::push(options_menu::OptionsMenu::new(
+                        ctx,
+                    )?);
+                }
 
-        if messages.contains(&mooeye::UiMessage::Triggered(6)) {
-            res = mooeye::scene_manager::SceneSwitch::push(credits_menu::CreditsMenu::new(ctx)?);
-        }
+                if messages.contains(&mooeye::UiMessage::Triggered(6)) {
+                    res = mooeye::scene_manager::SceneSwitch::push(credits_menu::CreditsMenu::new(
+                        ctx,
+                    )?);
+                }
 
-        if messages.contains(&mooeye::UiMessage::Triggered(7)) {
-            self.music_player.stop(ctx);
-            res = mooeye::scene_manager::SceneSwitch::Pop(1);
+                if messages.contains(&mooeye::UiMessage::Triggered(7)) {
+                    self.music_player.stop(ctx);
+                    res = mooeye::scene_manager::SceneSwitch::Pop(1);
+                }
+            }
+            Some((dur, config)) => {
+                // continuously speed up camera
+                for sprite in &mut self.background_sprites {
+                    sprite.vel.y -= ctx.time.delta().as_secs_f32() * 96.;
+                }
+                // if in a transitioning state: reduce duration and, if its has lapsed, switch the scene
+                if dur.is_zero() {
+                    self.music_player.stop(ctx);
+                    res = mooeye::scene_manager::SceneSwitch::replace(
+                        game_state::GameState::new(ctx, config)?,
+                        1,
+                    );
+                } else {
+                    self.state = Some((dur.saturating_sub(ctx.time.delta()), config));
+                }
+            }
         }
 
         Ok(res)
@@ -238,24 +359,64 @@ impl scene_manager::Scene for MainMenu {
         // music
         self.music_player.check_song(ctx);
 
-
-
         // graphics
         let mut canvas =
-            graphics::Canvas::from_frame(ctx, graphics::Color::from_rgb_u32(PALETTE[5]));
+            graphics::Canvas::from_frame(ctx, graphics::Color::from_rgb_u32(PALETTE[11]));
         canvas.set_sampler(graphics::Sampler::nearest_clamp());
+        let (screen_w, screen_h) = ctx.gfx.drawable_size();
+
+        // move sprites
+        for sprite in self.background_sprites.iter_mut() {
+            sprite.pos += sprite.vel * ctx.time.delta().as_secs_f32();
+            if self.state.is_none() {
+                // reset sprites that have left the screen
+                if sprite.pos.y < game_state::BOUNDARIES.y - 256. {
+                    sprite.pos.y = game_state::BOUNDARIES.y + game_state::BOUNDARIES.h + 256.;
+                }
+            }
+        }
 
         // draw environment & background sprites
-        game_state::GameState::draw_background(&ggez::graphics::Rect::new(0., 0., 600., 900.), ctx, &mut canvas);
-        for b_sprite in self.background_sprites.iter_mut(){
-            b_sprite.pos += b_sprite.vel;
-            if b_sprite.pos.y > 1000.{
-                b_sprite.pos.y = -50.;
-            }
-            b_sprite.sprite.draw_sprite(ctx, &mut canvas, ggez::graphics::DrawParam::new().offset(b_sprite.pos));
+        game_state::GameState::draw_background(
+            &ggez::graphics::Rect::new(0., 0., 600., 900.),
+            ctx,
+            &mut canvas,
+        );
+
+        for b_sprite in self.background_sprites.iter_mut() {
+            b_sprite.sprite.draw_sprite(
+                ctx,
+                &mut canvas,
+                ggez::graphics::DrawParam::new()
+                    .dest(Vec2::new(
+                        (b_sprite.pos.x + (screen_w - game_state::BOUNDARIES.w) / 2.).floor(),
+                        (b_sprite.pos.y + (screen_h - game_state::BOUNDARIES.h) / 2.).floor(),
+                    ))
+                    .scale(Vec2::new(4., 4.)),
+            );
         }
 
         self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);
+
+        // draw occlusion
+        if let Some((dur, _)) = self.state {
+            let ratio = 1. - dur.as_secs_f32() / 4.;
+            canvas.draw(
+                &graphics::Quad,
+                graphics::DrawParam::new()
+                    .color(graphics::Color::new(0., 0., 0., ratio))
+                    .scale(Vec2::new(screen_w, screen_h)),
+            );
+            canvas.draw(
+                &graphics::Text::new(
+                    graphics::TextFragment::new("Loading...")
+                        .color(graphics::Color::from_rgb_u32(PALETTE[8]))
+                        .font("Retro")
+                        .scale(28.),
+                ),
+                graphics::DrawParam::new().dest(Vec2::new(16., screen_h - 16. - 28.)),
+            );
+        }
 
         canvas.finish(ctx)?;
 

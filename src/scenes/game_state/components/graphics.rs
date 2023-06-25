@@ -28,14 +28,11 @@ pub struct Graphics {
 impl Graphics {
     pub fn new(path: impl AsRef<std::path::Path>, frame_time: Duration) -> Self {
         Self {
-            sprite: SpriteWrapper::PreInit(
-                path.as_ref().to_string_lossy().to_string(),
-                {
-                    let mut sprite = sprite::Sprite::default();
-                    sprite.set_frame_time(frame_time);
-                    sprite
-                },
-            ),
+            sprite: SpriteWrapper::PreInit(path.as_ref().to_string_lossy().to_string(), {
+                let mut sprite = sprite::Sprite::default();
+                sprite.set_frame_time(frame_time);
+                sprite
+            }),
             particles: TinyVec::new(),
         }
     }
@@ -127,12 +124,16 @@ pub fn draw_sprites(
     ctx: &Context,
     canvas: &mut Canvas,
     animate: bool,
+    camera_offset: &mut (f32, f32),
 ) -> Result<(), ggez::GameError> {
     // get boundaries for relative moving
     let boundaries = *resources
         .get::<Rect>()
         .ok_or_else(|| ggez::GameError::CustomError("Could not unpack boundaries.".to_owned()))?;
     let (screen_w, screen_h) = ctx.gfx.drawable_size();
+
+    
+    camera_offset.0 = 0_f32.max(camera_offset.0 - 256. * ctx.time.delta().as_secs_f32());
 
     // get sprite pool for inits
     let mut sprite_pool = resources
@@ -160,7 +161,7 @@ pub fn draw_sprites(
             // move as the world is positioned on screen
             + Vec2::new(
                 ((screen_w - boundaries.w)/2.).floor(),
-                ((screen_h - boundaries.h)/2.).floor(),
+                ((screen_h - boundaries.h)/2. + camera_offset.0).floor(),
             )
             // move to draw to correct position based on flip
             + Vec2::new(
@@ -288,14 +289,11 @@ impl Particle {
     /// Creates a new particle with the passed sprite, infinite duration and no velocity or offset.
     pub fn new(path: impl AsRef<std::path::Path>, frame_time: Duration) -> Self {
         Self {
-            sprite: SpriteWrapper::PreInit(
-                path.as_ref().to_string_lossy().to_string(),
-                {
-                    let mut sprite = sprite::Sprite::default();
-                    sprite.set_frame_time(frame_time);
-                    sprite
-                },
-            ),
+            sprite: SpriteWrapper::PreInit(path.as_ref().to_string_lossy().to_string(), {
+                let mut sprite = sprite::Sprite::default();
+                sprite.set_frame_time(frame_time);
+                sprite
+            }),
             rel_pos: Vec2::ZERO,
             vel: Vec2::ZERO,
             duration: None,

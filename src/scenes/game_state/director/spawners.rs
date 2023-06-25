@@ -98,7 +98,7 @@ pub fn spawn_jump_skeleton(cmd: &mut CommandBuffer, pos: components::Position) {
                         |action| {
                             match action {
                                 actions::GameAction::Move { delta } => {
-                                    delta.x = 2.;
+                                    delta.x = 2. * delta.x.signum();
                                     delta.y *= 0.5;
                                 }
                                 _ => {}

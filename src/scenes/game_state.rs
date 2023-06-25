@@ -32,6 +32,8 @@ pub use game_config::GameConfig;
 
 mod ui;
 
+pub const BOUNDARIES: graphics::Rect = graphics::Rect::new(0., 0., 600., 900.);
+
 /// The main struct representing the current game state.
 /// This is the core scene rendering & updating gameplay.
 pub struct GameState {
@@ -51,142 +53,8 @@ pub struct GameState {
     // listeners: Vec<Box<dyn game_message::MessageReceiver>>,
     /// The achievement set listening to achievement fulfils
     achievements: achievements::AchievementSet,
-}
-
-impl scene_manager::Scene for GameState {
-    fn update(&mut self, ctx: &mut ggez::Context) -> Result<scene_manager::SceneSwitch, GameError> {
-        // +-------------------------------------------------------+
-        // |                     Preparation                       |
-        // +-------------------------------------------------------+
-
-        // create interaction struct and insert as resource
-        self.resources.insert(self.controller.get_interactions(ctx));
-
-        // make sure all entities have all default components
-        self.ensure_default_components();
-
-        // +-------------------------------------------------------+
-        // |                   Action Handling                     |
-        // +-------------------------------------------------------+
-
-        self.action_prod_schedule
-            .execute(&mut self.world, &mut self.resources);
-
-        // +-------------------------------------------------------+
-        // |                  Message Handling                     |
-        // +-------------------------------------------------------+
-
-        let mut switch = scene_manager::SceneSwitch::None;
-
-        // acquire resources
-        if_chain! {
-            if let Some(mut message_set) = self.resources.get_mut::<MessageSet>();
-            if let Some(mut director) = self.resources.get_mut::<director::Director>();
-            if let Some(mut data) = self.resources.get_mut::<game_data::GameData>();
-            if let Some(player_ent) = self.resources.get::<Entity>();
-            if let Ok(mut player) = self.world.entry_mut(*player_ent);
-            if let Ok(caster) = player.get_component_mut::<components::SpellCaster>();
-            if let Some(mut spell_pool) = self.resources.get_mut::<components::spell::SpellPool>();
-            then{
-
-                let mut buildings = self.resources.get_mut::<components::buildings::Buildings>().unwrap();
-
-                // communicate with UI: Insert Game Messages and retrieve UI messages
-                let internal = self.gui.update(ctx, message_set.clone());
-                message_set.extend(&internal);
-
-                // handle wave menu
-                ui::wave_menu::handle_wave_menu(
-                    &message_set,
-                    &mut self.gui,
-                    ctx,
-                    &mut *director,
-                    &mut *data,
-                    caster,
-                    &mut *spell_pool,
-                    &mut *buildings,
-                );
-
-                // handle listeners
-                for message in message_set.iter() {
-                    // for listener in self.listeners.iter_mut() {
-                    //     listener.receive(message, &mut self.gui, ctx);
-                    // }
-                    self.achievements.receive(message, &mut self.gui, ctx);
-                }
-
-                // Escape menu
-                if message_set.contains(&UiMessage::Triggered(1)) {
-                    self.achievements.save();
-                    switch =
-                        scene_manager::SceneSwitch::push(ui::in_game_menu::InGameMenu::new(ctx)?);
-                }
-
-                // clear game messages for next round
-                message_set.clear();
-            }
-        }
-
-        // +-------------------------------------------------------+
-        // |                   Game Over Check                     |
-        // +-------------------------------------------------------+
-
-        if let Some(game_data) = self.resources.get::<game_data::GameData>() {
-            if game_data.city_health <= 0 {
-                // stop music player
-                self.music_player.stop(ctx);
-                // create the game over menu, replacing any other attempted scene switch
-                switch = scene_manager::SceneSwitch::push(
-                    crate::scenes::game_over_menu::GameOverMenu::new(ctx, game_data.get_score())?,
-                );
-            }
-        }
-
-        Ok(switch)
-    }
-
-    fn draw(&mut self, ctx: &mut ggez::Context, mouse_listen: bool) -> Result<(), GameError> {
-        // Manage music
-        self.music_player.check_song(ctx);
-
-        // Get canvas & set sampler
-        let mut canvas =
-            graphics::Canvas::from_frame(ctx, graphics::Color::from_rgb_u32(crate::PALETTE[11]));
-        canvas.set_sampler(graphics::Sampler::nearest_clamp());
-
-        // Draw background
-        Self::draw_background(
-            &self
-                .resources
-                .get::<graphics::Rect>()
-                .map(|r| *r)
-                .unwrap_or_default(),
-            ctx,
-            &mut canvas,
-        );
-
-        // Draw world
-
-        components::graphics::draw_sprites(
-            &mut self.world,
-            &mut self.resources,
-            ctx,
-            &mut canvas,
-            mouse_listen,
-        )?;
-
-        // Draw GUI
-        self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);
-
-        // Finish
-        canvas.finish(ctx)?;
-
-        // Sounds
-
-        components::audio::audio_play_system(ctx, &mut self.resources)?;
-
-        Ok(())
-    }
+    /// The offset of the initial camera during the fly-in
+    camera_offset: (f32, f32),
 }
 
 impl GameState {
@@ -198,7 +66,7 @@ impl GameState {
         let mut world = World::default();
 
         // --- RESOURCE INITIALIZATION ---
-        let boundaries = graphics::Rect::new(0., 0., 600., 900.);
+        let boundaries = BOUNDARIES;
         let sprite_pool = sprite::SpritePool::new().with_folder(ctx, "/sprites", true);
         let achievement_set =
             achievements::AchievementSet::load(ctx, config.achievements_unlocked.clone());
@@ -254,6 +122,7 @@ impl GameState {
         // --- SYSTEM REGISTRY / UI CONSTRUCTION / CONTROLLER INITIALIZATION ---
         Ok(Self {
             world,
+            camera_offset: (config.initial_camera_offset, config.initial_camera_offset),
             gui: ui::game_ui::construct_game_ui(ctx, config)?,
             music_player,
             action_prod_schedule: Schedule::builder()
@@ -421,5 +290,154 @@ impl GameState {
         }
 
         buffer.flush(&mut self.world, &mut self.resources);
+    }
+}
+
+impl scene_manager::Scene for GameState {
+    fn update(&mut self, ctx: &mut ggez::Context) -> Result<scene_manager::SceneSwitch, GameError> {
+        // +-------------------------------------------------------+
+        // |                     Preparation                       |
+        // +-------------------------------------------------------+
+
+        // create interaction struct and insert as resource
+        self.resources.insert(self.controller.get_interactions(ctx));
+
+        // make sure all entities have all default components
+        self.ensure_default_components();
+
+        // +-------------------------------------------------------+
+        // |                   Action Handling                     |
+        // +-------------------------------------------------------+
+
+        self.action_prod_schedule
+            .execute(&mut self.world, &mut self.resources);
+
+        // +-------------------------------------------------------+
+        // |                  Message Handling                     |
+        // +-------------------------------------------------------+
+
+        let mut switch = scene_manager::SceneSwitch::None;
+
+        // acquire resources
+        if_chain! {
+            if let Some(mut message_set) = self.resources.get_mut::<MessageSet>();
+            if let Some(mut director) = self.resources.get_mut::<director::Director>();
+            if let Some(mut data) = self.resources.get_mut::<game_data::GameData>();
+            if let Some(player_ent) = self.resources.get::<Entity>();
+            if let Ok(mut player) = self.world.entry_mut(*player_ent);
+            if let Ok(caster) = player.get_component_mut::<components::SpellCaster>();
+            if let Some(mut spell_pool) = self.resources.get_mut::<components::spell::SpellPool>();
+            then{
+
+                let mut buildings = self.resources.get_mut::<components::buildings::Buildings>().unwrap();
+
+                // communicate with UI: Insert Game Messages and retrieve UI messages
+                let internal = self.gui.update(ctx, message_set.clone());
+                message_set.extend(&internal);
+
+                // handle wave menu
+                ui::wave_menu::handle_wave_menu(
+                    &message_set,
+                    &mut self.gui,
+                    ctx,
+                    &mut *director,
+                    &mut *data,
+                    caster,
+                    &mut *spell_pool,
+                    &mut *buildings,
+                );
+
+                // handle listeners
+                for message in message_set.iter() {
+                    // for listener in self.listeners.iter_mut() {
+                    //     listener.receive(message, &mut self.gui, ctx);
+                    // }
+                    self.achievements.receive(message, &mut self.gui, ctx);
+                }
+
+                // Escape menu
+                if message_set.contains(&UiMessage::Triggered(1)) {
+                    self.achievements.save();
+                    switch =
+                        scene_manager::SceneSwitch::push(ui::in_game_menu::InGameMenu::new(ctx)?);
+                }
+
+                // clear game messages for next round
+                message_set.clear();
+            }
+        }
+
+        // +-------------------------------------------------------+
+        // |                   Game Over Check                     |
+        // +-------------------------------------------------------+
+
+        if let Some(game_data) = self.resources.get::<game_data::GameData>() {
+            if game_data.city_health <= 0 {
+                // stop music player
+                self.music_player.stop(ctx);
+                // create the game over menu, replacing any other attempted scene switch
+                switch = scene_manager::SceneSwitch::push(
+                    crate::scenes::game_over_menu::GameOverMenu::new(ctx, game_data.get_score())?,
+                );
+            }
+        }
+
+        Ok(switch)
+    }
+
+    fn draw(&mut self, ctx: &mut ggez::Context, mouse_listen: bool) -> Result<(), GameError> {
+        // Manage music
+        self.music_player.check_song(ctx);
+
+        // Get canvas & set sampler
+        let mut canvas =
+            graphics::Canvas::from_frame(ctx, graphics::Color::from_rgb_u32(crate::PALETTE[11]));
+        canvas.set_sampler(graphics::Sampler::nearest_clamp());
+        let (screen_w, screen_h) = ctx.gfx.drawable_size();
+
+        // Draw background
+        Self::draw_background(
+            &self
+                .resources
+                .get::<graphics::Rect>()
+                .map(|r| *r)
+                .unwrap_or_default(),
+            ctx,
+            &mut canvas,
+        );
+
+        // Draw world
+
+        components::graphics::draw_sprites(
+            &mut self.world,
+            &mut self.resources,
+            ctx,
+            &mut canvas,
+            mouse_listen,
+            &mut self.camera_offset,
+        )?;
+
+        // Draw GUI
+        self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);
+
+        // draw occlusion
+        if self.camera_offset.0 > 0. {
+            let ratio = self.camera_offset.0 / self.camera_offset.1;
+            canvas.draw(
+                &graphics::Quad,
+                graphics::DrawParam::new()
+                    .color(graphics::Color::new(0., 0., 0., ratio))
+                    .scale(Vec2::new(screen_w, screen_h)),
+            );
+        }
+
+        // Finish
+        canvas.finish(ctx)?;
+
+        // Sounds
+
+        components::audio::audio_play_system(ctx, &mut self.resources)?;
+
+        Ok(())
     }
 }
