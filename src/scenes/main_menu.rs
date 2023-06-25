@@ -49,15 +49,8 @@ type MainMenuTransition = Option<(Duration, game_state::GameConfig)>;
 impl MainMenu {
     pub fn new(ctx: &ggez::Context) -> Result<Self, GameError> {
         // title
-
-        let title = graphics::Text::new(
-            graphics::TextFragment::new("Spellstruck")
-                .color(graphics::Color::from_rgb_u32(PALETTE[14])),
-        )
-        .set_font("Retro")
-        .set_scale(48.)
-        .to_owned()
-        .to_element(1, ctx);
+        let title = mooeye::sprite::Sprite::from_path("/sprites/ui/logo.png", ctx, 108, 60, Duration::ZERO)?
+            .to_element_builder(0, ctx).scaled(4., 4.).build();
 
         // play
         let play = graphics::Text::new(
@@ -178,7 +171,7 @@ impl MainMenu {
             .to_element_builder(0, ctx)
             .with_child(title)
             .with_child(menu_box)
-            .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Min)
+            .with_alignment(ui_element::Alignment::Min, ui_element::Alignment::Min)
             .with_padding((25., 25., 25., 25.))
             .build();
 
@@ -271,8 +264,6 @@ impl MainMenu {
                 })
             }
         }
-
-        // step 5: title
 
         Ok(Self {
             gui: big_box,
@@ -369,10 +360,10 @@ impl scene_manager::Scene for MainMenu {
         for sprite in self.background_sprites.iter_mut() {
             sprite.pos += sprite.vel * ctx.time.delta().as_secs_f32();
             //if self.state.is_none() {
-                // reset sprites that have left the screen
-                if sprite.pos.y < game_state::BOUNDARIES.y - 256. {
-                    sprite.pos.y = game_state::BOUNDARIES.y + game_state::BOUNDARIES.h + 256.;
-                }
+            // reset sprites that have left the screen
+            if sprite.pos.y < game_state::BOUNDARIES.y - 256. {
+                sprite.pos.y = game_state::BOUNDARIES.y + game_state::BOUNDARIES.h + 256.;
+            }
             //}
         }
 

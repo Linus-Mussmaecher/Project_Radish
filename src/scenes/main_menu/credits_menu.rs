@@ -76,8 +76,8 @@ impl CreditsMenu {
         let credits_box = credits_box
             .to_element_builder(0, ctx)
             .with_visuals(super::BUTTON_VIS)
-            .with_alignment(ui_element::Alignment::Min, ui_element::Alignment::Min)
-            .with_offset(25., 25.)
+            .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Center)
+            .with_offset(-25., 25.)
             .with_padding((25., 25., 25., 25.))
             .build();
 
