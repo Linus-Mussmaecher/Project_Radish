@@ -30,6 +30,7 @@ pub fn construct_game_ui(
         .to_element_builder(1, ctx)
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::F10)
         .with_visuals(super::BUTTON_VIS)
+        .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Max)
         .scaled(2., 2.)
         .with_offset(-10., -10.)

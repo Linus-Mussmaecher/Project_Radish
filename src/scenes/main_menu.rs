@@ -368,12 +368,12 @@ impl scene_manager::Scene for MainMenu {
         // move sprites
         for sprite in self.background_sprites.iter_mut() {
             sprite.pos += sprite.vel * ctx.time.delta().as_secs_f32();
-            if self.state.is_none() {
+            //if self.state.is_none() {
                 // reset sprites that have left the screen
                 if sprite.pos.y < game_state::BOUNDARIES.y - 256. {
                     sprite.pos.y = game_state::BOUNDARIES.y + game_state::BOUNDARIES.h + 256.;
                 }
-            }
+            //}
         }
 
         // draw environment & background sprites
