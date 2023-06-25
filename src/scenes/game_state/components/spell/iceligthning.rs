@@ -106,7 +106,7 @@ pub(super) fn construct_shard(sprite_pool: &SpritePool) -> Spell {
                                         components::Graphics::new(
                                             "/sprites/spells/icebomb",
                                             Duration::ZERO,
-                                        ).with_sprite_variant(2),
+                                        ).with_sprite_variant(if i == 0 {0} else {2}),
                                         components::Collision::new(32., 32., |e1, e2| vec![
                                                 (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                                                 (e1, GameAction::play_sound("/audio/sounds/spells/shard_hit")),
