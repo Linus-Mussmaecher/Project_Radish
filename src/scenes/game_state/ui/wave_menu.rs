@@ -642,6 +642,11 @@ fn construct_buildings_menu(
         "/sprites/ui/potion.png",
         "/sprites/ui/mana_add.png",
     ];
+    let keycodes = [
+        ("B", ggez::winit::event::VirtualKeyCode::B),
+        ("N", ggez::winit::event::VirtualKeyCode::N),
+        ("M", ggez::winit::event::VirtualKeyCode::M),
+    ];
 
     for i in 0..buildings::BUILDING_TYPES {
         let info = buildings::get_building_info(i);
@@ -653,12 +658,13 @@ fn construct_buildings_menu(
             .with_padding((10., 10., 10., 10.))
             .with_visuals(super::BUTTON_VIS)
             .with_hover_visuals(super::BUTTON_HOVER_VIS)
+            .with_trigger_key(keycodes[i].1)
             .with_tooltip(
                 graphics::Text::new(
                     graphics::TextFragment::new(
                         if buildings.target[i] < buildings::BUILDING_MAX_LEVEL as u8 {
                             format!(
-                                "{} the {}.\nCurrent level: {}\n{}\nCost: {}g",
+                                "{} the {}.\nCurrent level: {}\n[{}]\n{}\nCost: {}g",
                                 if buildings.target[i] == 0 {
                                     "Construct"
                                 } else {
@@ -666,6 +672,7 @@ fn construct_buildings_menu(
                                 },
                                 info.name,
                                 buildings.target[i],
+                                keycodes[i].0,
                                 info.description,
                                 info.level_costs[buildings.target[i] as usize],
                             )

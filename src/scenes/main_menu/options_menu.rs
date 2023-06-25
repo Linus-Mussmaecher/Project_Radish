@@ -106,7 +106,7 @@ impl OptionsMenu {
             .with_child(back)
             .with_visuals(super::BUTTON_VIS)
             .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Center)
-            .with_offset(-25., 25.)
+            .with_offset(-25., 0.)
             .with_padding((25., 25., 25., 25.))
             .build();
 

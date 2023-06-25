@@ -87,7 +87,7 @@ impl HighscoreMenu {
             .to_element_builder(0, ctx)
             .with_visuals(super::BUTTON_VIS)
             .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Center)
-            .with_offset(-25., 25.)
+            .with_offset(-25., 0.)
             .with_padding((25., 25., 25., 25.))
             .build();
 
