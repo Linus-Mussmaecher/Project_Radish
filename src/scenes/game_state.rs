@@ -55,6 +55,8 @@ pub struct GameState {
     // listeners: Vec<Box<dyn game_message::MessageReceiver>>,
     /// The achievement set listening to achievement fulfils
     achievements: achievements::AchievementSet,
+    /// The tutorial manager that shows tutorial messages when appropriate
+    tutorial: tutorial::TutorialManager,
     /// The offset of the initial camera during the fly-in
     camera_offset: (f32, f32),
 }
@@ -159,6 +161,7 @@ impl GameState {
                 .add_system(components::actions::clear_system())
                 .build(),
             achievements: achievement_set,
+            tutorial: tutorial::TutorialManager::new(),
             resources,
             controller: Controller::from_path("./data/keymap.toml").unwrap_or_default(),
         })
@@ -351,6 +354,7 @@ impl scene_manager::Scene for GameState {
                     //     listener.receive(message, &mut self.gui, ctx);
                     // }
                     self.achievements.receive(message, &mut self.gui, ctx);
+                    self.tutorial.receive(message, &mut self.gui, ctx);
                 }
 
                 // Escape menu
@@ -358,6 +362,10 @@ impl scene_manager::Scene for GameState {
                     self.achievements.save();
                     switch =
                         scene_manager::SceneSwitch::push(ui::in_game_menu::InGameMenu::new(ctx)?);
+                }
+
+                if message_set.contains(&UiMessage::Triggered(tutorial::TUTORIAL_CLOSE)){
+                    self.gui.remove_elements(tutorial::TUTORIAL_INNER);
                 }
 
                 // clear game messages for next round

@@ -6,6 +6,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::PALETTE;
 
+pub const ACHIEVEMENT_BOX: u32 = 100;
+
 use super::{
     game_message::{GameMessageFilter, MessageReceiver},
     GameMessage,
@@ -354,7 +356,7 @@ impl MessageReceiver for AchievementSet {
             for ach in self.list.iter_mut() {
                 if ach.listen(gm) {
                     gui.add_element(
-                        100,
+                        ACHIEVEMENT_BOX,
                         containers::DurationBox::new(
                             std::time::Duration::from_secs(15),
                             ach.info_element_large(ctx),

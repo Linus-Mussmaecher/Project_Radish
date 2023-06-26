@@ -183,8 +183,8 @@ pub fn construct_game_ui(
         .with_offset(32., None)
         .build();
 
-    let message_box = containers::VerticalBox::new()
-        .to_element_builder(100, ctx)
+    let achievement_box = containers::VerticalBox::new()
+        .to_element_builder(super::super::achievements::ACHIEVEMENT_BOX, ctx)
         .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Max)
         .with_offset(0., -25.)
         .with_size(
@@ -193,9 +193,20 @@ pub fn construct_game_ui(
         )
         .build();
 
+    let tutorial_box = containers::VerticalBox::new()
+        .to_element_builder(super::super::tutorial::TUTORIAL_BOX, ctx)
+        .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Center)
+        .with_offset(-25., None)
+        .with_size(
+            ui_element::Size::Shrink(0., f32::INFINITY),
+            ui_element::Size::Fill(0., f32::INFINITY),
+        )
+        .build();
+
     Ok(containers::StackBox::new()
         .to_element_builder(0, ctx)
-        .with_child(message_box)
+        .with_child(achievement_box)
+        .with_child(tutorial_box)
         .with_child(data_box)
         .with_child(slot_box)
         .with_child(spell_box)

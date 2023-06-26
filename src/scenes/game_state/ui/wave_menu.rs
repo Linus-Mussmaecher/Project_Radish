@@ -10,9 +10,9 @@ const ID_WAVE_MENU: u32 = 200;
 const ID_WAVE_SUBMENU_CONT: u32 = 210;
 const ID_WAVE_SUBMENU: u32 = 220;
 
-const ID_SPELLS: u32 = 201;
-const ID_ENEMIES: u32 = 202;
-const ID_HOUSE: u32 = 203;
+pub const ID_SPELLS: u32 = 201;
+pub const ID_ENEMIES: u32 = 202;
+pub const ID_HOUSE: u32 = 203;
 pub const ID_NEXT_WAVE: u32 = 204;
 
 const ID_REROLL: u32 = 221;

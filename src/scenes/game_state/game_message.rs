@@ -1,4 +1,4 @@
-use mooeye::UiElement;
+use mooeye::{UiElement, UiMessage};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, std::hash::Hash)]
 pub enum GameMessage {
@@ -33,11 +33,12 @@ impl PartialOrd for GameMessage {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub enum GameMessageFilter {
     Equality,
     Max,
     Min,
+    #[default]
     Type,
 }
 
@@ -48,6 +49,24 @@ impl GameMessageFilter {
             GameMessageFilter::Max => model >= to_check,
             GameMessageFilter::Min => model <= to_check,
             GameMessageFilter::Type => model <= to_check || model >= to_check,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum UiMessageFilter {
+    Ui(UiMessage<GameMessage>),
+    Ext(GameMessage, GameMessageFilter),
+}
+
+impl UiMessageFilter {
+    pub fn check(&self, to_check: &UiMessage<GameMessage>) -> bool {
+        match self {
+            UiMessageFilter::Ui(model) => model == to_check,
+            UiMessageFilter::Ext(model, filter) => match to_check {
+                UiMessage::Extern(content) => filter.check(model, content),
+                _ => false,
+            },
         }
     }
 }
