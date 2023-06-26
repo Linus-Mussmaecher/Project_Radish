@@ -53,7 +53,7 @@ impl HighscoreMenu {
                 .color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
-        .set_scale(24.)
+        .set_scale(28.)
         .to_owned()
         .to_element_builder(1, ctx)
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::R)

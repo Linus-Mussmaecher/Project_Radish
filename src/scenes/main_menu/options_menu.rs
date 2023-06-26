@@ -33,7 +33,7 @@ impl OptionsMenu {
                 .color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
-        .set_scale(24.)
+        .set_scale(28.)
         .to_owned()
         .to_element_builder(1, ctx)
         .with_visuals(super::BUTTON_VIS)
@@ -47,7 +47,7 @@ impl OptionsMenu {
                 .color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
-        .set_scale(24.)
+        .set_scale(28.)
         .to_owned()
         .to_element_builder(0, ctx)
         .build();
@@ -57,7 +57,7 @@ impl OptionsMenu {
                 .color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
-        .set_scale(24.)
+        .set_scale(28.)
         .to_owned()
         .to_element_builder(0, ctx)
         .build();
@@ -82,7 +82,7 @@ impl OptionsMenu {
                 .color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
-        .set_scale(24.)
+        .set_scale(28.)
         .to_owned()
         .to_element_builder(2, ctx)
         .with_visuals(super::BUTTON_VIS)
@@ -93,7 +93,7 @@ impl OptionsMenu {
 
         // Container
 
-        let options_box = mooeye::containers::VerticalBox::new_spaced(25.)
+        let options_box = mooeye::containers::VerticalBox::new()
             .to_element_builder(0, ctx)
             .with_child(title)
             .with_child(sound)
@@ -102,6 +102,11 @@ impl OptionsMenu {
                     .to_element_builder(VOLUME_CONTAINER_ID, ctx)
                     .with_child(create_sound_adjuster(ctx, VOLUME_IDS, options.volume))
                     .with_wrapper_layout(mooeye::ui_element::Layout::default())
+                    .build(),
+            )
+            .with_child(
+                ().to_element_builder(0, ctx)
+                    .with_size(None, ui_element::Size::Fixed(20.))
                     .build(),
             )
             .with_child(music)
@@ -116,8 +121,23 @@ impl OptionsMenu {
                     .with_wrapper_layout(mooeye::ui_element::Layout::default())
                     .build(),
             )
+            .with_child(
+                ().to_element_builder(0, ctx)
+                    .with_size(None, ui_element::Size::Fixed(20.))
+                    .build(),
+            )
             .with_child(reset_bindings)
+            .with_child(
+                ().to_element_builder(0, ctx)
+                    .with_size(None, ui_element::Size::Fixed(20.))
+                    .build(),
+            )
             .with_child(tutorial)
+            .with_child(
+                ().to_element_builder(0, ctx)
+                    .with_size(None, ui_element::Size::Fixed(20.))
+                    .build(),
+            )
             .with_child(back)
             .with_visuals(super::BUTTON_VIS)
             .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Center)

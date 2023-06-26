@@ -40,7 +40,7 @@ impl AchievementMenu {
                 .color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
-        .set_scale(32.)
+        .set_scale(28.)
         .to_owned()
         .to_element_builder(2, ctx)
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::R)

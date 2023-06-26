@@ -19,35 +19,78 @@ impl CreditsMenu {
         .to_owned()
         .to_element(0, ctx);
 
+        let title_size = 28.;
+        let credit_size = 24.;
+
         let text = graphics::Text::new(
             graphics::TextFragment::new("Programming:\n")
                 .color(graphics::Color::from_rgb_u32(PALETTE[7]))
-                .scale(36.),
+                .scale(title_size),
         )
         .add(
             graphics::TextFragment::new("  Linus Mußmächer\n")
                 .color(graphics::Color::from_rgb_u32(PALETTE[6]))
-                .scale(28.),
+                .scale(credit_size),
         )
         .add(
-            graphics::TextFragment::new("Retro Font:\n")
-                .color(graphics::Color::from_rgb_u32(PALETTE[7]))
-                .scale(36.),
-        )
-        .add(
-            graphics::TextFragment::new("  Daymarius\n")
+            graphics::TextFragment::new("  github.com/Linus-Mussmaecher\n")
                 .color(graphics::Color::from_rgb_u32(PALETTE[6]))
-                .scale(28.),
+                .scale(credit_size),
+        )
+        .add(
+            graphics::TextFragment::new("Pixel Art:\n")
+                .color(graphics::Color::from_rgb_u32(PALETTE[7]))
+                .scale(title_size),
+        )
+        .add(
+            graphics::TextFragment::new("  Linus Mußmächer\n")
+                .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                .scale(credit_size),
         )
         .add(
             graphics::TextFragment::new("Color Palette:\n")
                 .color(graphics::Color::from_rgb_u32(PALETTE[7]))
-                .scale(36.),
+                .scale(title_size),
         )
         .add(
-            graphics::TextFragment::new("  Elefella")
+            graphics::TextFragment::new("  Elefella\n")
                 .color(graphics::Color::from_rgb_u32(PALETTE[6]))
-                .scale(28.),
+                .scale(credit_size),
+        )
+        .add(
+            graphics::TextFragment::new("Retro Font:\n")
+                .color(graphics::Color::from_rgb_u32(PALETTE[7]))
+                .scale(title_size),
+        )
+        .add(
+            graphics::TextFragment::new("  Daymarius\n")
+                .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                .scale(credit_size),
+        )
+        .add(
+            graphics::TextFragment::new("Music:\n")
+                .color(graphics::Color::from_rgb_u32(PALETTE[7]))
+                .scale(title_size),
+        )
+        .add(
+            graphics::TextFragment::new("  Abundant Music by Per Nyblom\n")
+                .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                .scale(credit_size),
+        )
+        .add(
+            graphics::TextFragment::new("Sounds:\n")
+                .color(graphics::Color::from_rgb_u32(PALETTE[7]))
+                .scale(title_size),
+        )
+        .add(
+            graphics::TextFragment::new("  Various Artists\n")
+                .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                .scale(credit_size),
+        )
+        .add(
+            graphics::TextFragment::new("\nFor full sources & links, see\n/resources folder.")
+                .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                .scale(credit_size),
         )
         .set_font("Retro")
         .to_owned()
