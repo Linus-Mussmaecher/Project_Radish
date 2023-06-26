@@ -64,7 +64,7 @@ impl GameAction {
     }
 
     /// Helper function to create a [GameAction::PlaySound] with a string slice
-    pub fn play_sound(path: &str) -> Self{
+    pub fn play_sound(path: &str) -> Self {
         Self::PlaySound(path.to_owned())
     }
 }
@@ -87,7 +87,7 @@ pub enum RemoveSource {
     /// An enemy reaching the bottom of the screen.
     EnemyReachedBottom,
     /// An entity collides with a building, destroying itself and the building.
-    BuildingCollision
+    BuildingCollision,
 }
 
 #[derive(Debug, Clone)]
@@ -432,11 +432,8 @@ pub fn resolve_executive_actions(
     cmd: &mut CommandBuffer,
 ) {
     for action in actions.get_actions() {
-        match action {
-            GameAction::Spawn(spawner) => {
-                (spawner.spawner)(*ent, pos.map(|p| *p).unwrap_or_default(), cmd)
-            }
-            _ => {}
+        if let GameAction::Spawn(spawner) = action {
+            (spawner.spawner)(*ent, pos.copied().unwrap_or_default(), cmd);
         }
     }
 }

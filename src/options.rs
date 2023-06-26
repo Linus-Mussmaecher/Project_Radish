@@ -1,20 +1,17 @@
-use std::{path::Path, fs};
+use std::{fs, path::Path};
 
-use serde::{Serialize, Deserialize};
-
-
-
+use serde::{Deserialize, Serialize};
 
 /// A struct that represents the game options.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub struct OptionsConfig{
+pub struct OptionsConfig {
     /// The volume of sound effects played by the game.
     pub volume: u8,
     /// The volume of the in-game music.
     pub music_volume: u8,
 }
 
-impl OptionsConfig{
+impl OptionsConfig {
     /// Loads a keymap from the given path and constructs a controller.
     pub fn from_path(path: impl AsRef<Path>) -> Result<Self, Box<dyn std::error::Error>> {
         let string = fs::read_to_string(
@@ -37,8 +34,11 @@ impl OptionsConfig{
     }
 }
 
-impl Default for OptionsConfig{
+impl Default for OptionsConfig {
     fn default() -> Self {
-        Self { volume: 50, music_volume: 50 }
+        Self {
+            volume: 50,
+            music_volume: 50,
+        }
     }
 }

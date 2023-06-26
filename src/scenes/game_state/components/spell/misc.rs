@@ -1,16 +1,12 @@
 use std::{f32::consts::PI, time::Duration, vec};
 
-use legion::{IntoQuery};
+use legion::IntoQuery;
 use mooeye::sprite::SpritePool;
 use tinyvec::tiny_vec;
 
-use crate::scenes::game_state::components::{
-    self, actions::*, spell::MAX_SPELL_SLOTS,
-};
+use crate::scenes::game_state::components::{self, actions::*, spell::MAX_SPELL_SLOTS};
 
 use super::Spell;
-
-
 
 pub(super) fn construct_gale_force(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
@@ -105,8 +101,6 @@ pub(super) fn construct_airburst(sprite_pool: &SpritePool) -> Spell {
     )
 }
 
-
-
 pub(super) fn construct_blackhole(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Blackhole",
@@ -163,7 +157,7 @@ pub(super) fn construct_blackhole(sprite_pool: &SpritePool) -> Spell {
                                         ))
                                         .with_effect(ActionEffect::on_death(
                                             ActionEffectTarget::new_only_self(),
-                                            RemoveSource::TimedOut, 
+                                            RemoveSource::TimedOut,
                                             GameAction::play_sound("/audio/sounds/spells/blackhole_explosion"),
                                         )),
                                 ));

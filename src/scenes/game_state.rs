@@ -27,6 +27,8 @@ pub use controller::Interactions;
 pub mod achievements;
 pub use achievements::Achievement;
 
+pub mod tutorial;
+
 mod game_config;
 pub use game_config::GameConfig;
 
@@ -117,7 +119,6 @@ impl GameState {
         resources.insert(spell_pool);
         resources.insert(sprite_pool);
         resources.insert(audio_pool);
-        resources.insert(components::buildings::Buildings::new());
 
         // --- SYSTEM REGISTRY / UI CONSTRUCTION / CONTROLLER INITIALIZATION ---
         Ok(Self {
@@ -329,8 +330,6 @@ impl scene_manager::Scene for GameState {
             if let Some(mut spell_pool) = self.resources.get_mut::<components::spell::SpellPool>();
             then{
 
-                let mut buildings = self.resources.get_mut::<components::buildings::Buildings>().unwrap();
-
                 // communicate with UI: Insert Game Messages and retrieve UI messages
                 let internal = self.gui.update(ctx, message_set.clone());
                 message_set.extend(&internal);
@@ -340,11 +339,10 @@ impl scene_manager::Scene for GameState {
                     &message_set,
                     &mut self.gui,
                     ctx,
-                    &mut *director,
-                    &mut *data,
+                    &mut director,
+                    &mut data,
                     caster,
-                    &mut *spell_pool,
-                    &mut *buildings,
+                    &mut spell_pool,
                 );
 
                 // handle listeners

@@ -223,7 +223,7 @@ impl EnemyTemplate {
         spawner: EnemySpawnFunction,
     ) -> Self {
         Self {
-            icon: icon,
+            icon,
             name: name.to_owned(),
             description: description.to_owned(),
             cost,

@@ -20,11 +20,13 @@ impl PartialOrd for GameMessage {
             (Self::UpdateSpellSlots(_, a), Self::UpdateSpellSlots(_, b)) => Some(a.cmp(b)),
             (Self::NextWave(a), Self::NextWave(b)) => Some(a.cmp(b)),
             (Self::EnemyKilled(a), Self::EnemyKilled(b)) => Some(a.cmp(b)),
-            (Self::BuildingUp(a, lvl_a), Self::BuildingUp(b, lvl_b)) => if *a == *b {
-                Some(lvl_a.cmp(lvl_b))
-            } else {
-                None
-            },
+            (Self::BuildingUp(a, lvl_a), Self::BuildingUp(b, lvl_b)) => {
+                if *a == *b {
+                    Some(lvl_a.cmp(lvl_b))
+                } else {
+                    None
+                }
+            }
             (Self::BuildingDown(a, _), Self::BuildingDown(b, _)) => Some(a.cmp(b)),
             (_, _) => None,
         }

@@ -15,7 +15,7 @@ pub(super) fn generate_templates(
             sprite_pool.init_sprite("/sprites/enemies/skeleton_basic", Duration::ZERO)?,
             "Skeleton",
             "A basic enemy. Neither strong nor fast, but expect a lot of them.",
-            040,
+            40,
             super::spawners::spawn_basic_skeleton,
         ),
         // Fast skeleton
@@ -23,7 +23,7 @@ pub(super) fn generate_templates(
             sprite_pool.init_sprite("/sprites/enemies/skeleton_sword", Duration::ZERO)?,
             "Runner",
             "A nimble enemy that walks faster and also sideways, but has less health than the basic skeleton.",
-            070,
+            70,
             super::spawners::spawn_fast_skeleton,
         ),
         // Dodge skeleton
@@ -31,7 +31,7 @@ pub(super) fn generate_templates(
             sprite_pool.init_sprite("/sprites/enemies/skeleton_sword", Duration::ZERO)?,
             "Dodger",
             "A nimble enemy that walks faster and slightly sideways, but has less health than the basic skeleton. It also does a short sprint from time to time.",
-            080,
+            80,
             super::spawners::spawn_dodge_skeleton,
         ),
         // Jump skeleton
@@ -39,7 +39,7 @@ pub(super) fn generate_templates(
             sprite_pool.init_sprite("/sprites/enemies/skeleton_jump", Duration::ZERO)?,
             "Bone Jumper",
             "A nimble enemy that rapidly jumps sideways when taking damage.",
-            080,
+            80,
             super::spawners::spawn_jump_skeleton,
         ),
         // Dynamite skeleton
@@ -47,7 +47,7 @@ pub(super) fn generate_templates(
             sprite_pool.init_sprite("/sprites/enemies/skeleton_dynamite", Duration::ZERO)?,
             "Dynamite Carrier",
             "A basic skeleton with extra health and a bomb strapped to its back. Deals high damage to your city, but explodes on death.",
-            090,
+            90,
             super::spawners::spawn_dynamite_skeleton,
         ),
         // catapult
@@ -66,9 +66,6 @@ pub(super) fn generate_templates(
             180,
             super::spawners::spawn_loot_skeleton,
         ),
-        // catapult
-        
-        
         // Tanky skeleton
         EnemyTemplate::new(
             sprite_pool.init_sprite("/sprites/enemies/skeleton_tank", Duration::ZERO)?,

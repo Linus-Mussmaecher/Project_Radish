@@ -1,11 +1,11 @@
-use std::{time::Duration};
+use std::time::Duration;
 
 use legion::{system, systems::CommandBuffer};
 
-pub enum BuildingType{
-    WATCHTOWER = 0,
-    MAGEGUILD = 1,
-    MANAWELL = 2,
+pub enum BuildingType {
+    Watchtower = 0,
+    Mageguild = 1,
+    Manawell = 2,
 }
 
 pub const BUILDING_MAX_LEVEL: usize = 4;
@@ -31,7 +31,7 @@ impl Buildings {
 }
 
 #[derive(Debug, Clone)]
-pub struct BuildingInfo{
+pub struct BuildingInfo {
     pub level_costs: [u32; BUILDING_MAX_LEVEL],
     pub name: &'static str,
     pub description: &'static str,
@@ -39,19 +39,19 @@ pub struct BuildingInfo{
 }
 
 const BUILDING_INFO_LIST: [BuildingInfo; BUILDING_TYPES] = [
-    BuildingInfo{
+    BuildingInfo {
         level_costs: [100, 150, 200, 200],
         name: "Watchtower",
         description: "Allows you to reroll approaching enemies.",
         sprite: "/sprites/environment/watchtower",
     },
-    BuildingInfo{
+    BuildingInfo {
         level_costs: [100, 150, 200, 200],
         name: "Mage's Guild",
         description: "Allows you to purchase higher level spells.",
         sprite: "/sprites/environment/mageguild",
     },
-    BuildingInfo{
+    BuildingInfo {
         level_costs: [250, 300, 350, 400],
         name: "Mana Well",
         description: "Adds an additional spell slot per level.",
@@ -59,14 +59,14 @@ const BUILDING_INFO_LIST: [BuildingInfo; BUILDING_TYPES] = [
     },
 ];
 
-const NO_BUILDING: BuildingInfo = BuildingInfo{
+const NO_BUILDING: BuildingInfo = BuildingInfo {
     level_costs: [0; BUILDING_MAX_LEVEL],
     name: "No Building",
     description: "Does nothing. Should not exist",
     sprite: "",
 };
 
-pub fn get_building_info(building: usize) -> &'static BuildingInfo{
+pub fn get_building_info(building: usize) -> &'static BuildingInfo {
     BUILDING_INFO_LIST.get(building).unwrap_or(&NO_BUILDING)
 }
 
@@ -80,50 +80,54 @@ pub fn create_buildings(
 ) {
     // if 'target' is not 'current', spawn the appropriate building and send a message
 
-    for i in 0..BUILDING_TYPES {
-        if buildings.target[i] > buildings.current[i] {
-            // if building not yet built => spawn it
-            if buildings.current[i] == 0 {
-                cmd.push((
-                    super::Position::new(
-                        boundaries.w / buildings.target.len() as f32 / 2.
-                            + boundaries.w * i as f32 / buildings.target.len() as f32,
-                        boundaries.h + 32. + 8.,
-                    ),
-                    Building { building_type: i },
-                    super::Collision::new(4. * 32., 2. * 32., |e1, e2| {
-                        vec![
-                            (
-                                e1,
-                                super::actions::GameAction::Remove(
-                                    super::actions::RemoveSource::BuildingCollision,
+    for (i, info) in BUILDING_INFO_LIST.iter().enumerate() {
+        match buildings.target[i].cmp(&buildings.current[i]) {
+            std::cmp::Ordering::Greater => {
+                // if building not yet built => spawn it
+                if buildings.current[i] == 0 {
+                    cmd.push((
+                        super::Position::new(
+                            boundaries.w / buildings.target.len() as f32 / 2.
+                                + boundaries.w * i as f32 / buildings.target.len() as f32,
+                            boundaries.h + 32. + 8.,
+                        ),
+                        Building { building_type: i },
+                        super::Collision::new(4. * 32., 2. * 32., |e1, e2| {
+                            vec![
+                                (
+                                    e1,
+                                    super::actions::GameAction::Remove(
+                                        super::actions::RemoveSource::BuildingCollision,
+                                    ),
                                 ),
-                            ),
-                            (
-                                e2,
-                                super::actions::GameAction::Remove(
-                                    super::actions::RemoveSource::EnemyReachedBottom,
+                                (
+                                    e2,
+                                    super::actions::GameAction::Remove(
+                                        super::actions::RemoveSource::EnemyReachedBottom,
+                                    ),
                                 ),
-                            ),
-                        ]
-                    }),
-                    super::Graphics::new(BUILDING_INFO_LIST[i].sprite, Duration::from_secs_f32(0.3))
-                        .with_sprite_variant(2),
+                            ]
+                        }),
+                        super::Graphics::new(info.sprite, Duration::from_secs_f32(0.3))
+                            .with_sprite_variant(2),
+                    ));
+                }
+                // inform everyone
+                message_set.insert(mooeye::UiMessage::Extern(
+                    super::super::game_message::GameMessage::BuildingUp(i, buildings.target[i]),
                 ));
+                // update current
+                buildings.current[i] = buildings.target[i];
             }
-            // inform everyone
-            message_set.insert(mooeye::UiMessage::Extern(
-                super::super::game_message::GameMessage::BuildingUp(i, buildings.target[i]),
-            ));
-            // update current
-            buildings.current[i] = buildings.target[i];
-        } else if buildings.target[i] < buildings.current[i] {
-            // inform everyone of downlevel
-            message_set.insert(mooeye::UiMessage::Extern(
-                super::super::game_message::GameMessage::BuildingDown(i, buildings.target[i]),
-            ));
-            // update
-            buildings.current[i] = buildings.target[i];
+            std::cmp::Ordering::Less => {
+                // inform everyone of downlevel
+                message_set.insert(mooeye::UiMessage::Extern(
+                    super::super::game_message::GameMessage::BuildingDown(i, buildings.target[i]),
+                ));
+                // update
+                buildings.current[i] = buildings.target[i];
+            }
+            _ => {}
         }
     }
 }

@@ -48,22 +48,20 @@ pub fn init_spell_pool(
                 .guild_condition(2)
                 .achievement_condition(achievements.list.get(9), sprite_pool),
             SpellTemplate::new(iceligthning::construct_lightning_orb(sprite_pool), 90),
-            SpellTemplate::new(iceligthning::construct_overload(sprite_pool), 120).guild_condition(1),
+            SpellTemplate::new(iceligthning::construct_overload(sprite_pool), 120)
+                .guild_condition(1),
             SpellTemplate::new(iceligthning::construct_lightning_ball(sprite_pool), 145)
                 .guild_condition(2)
                 .achievement_condition(achievements.list.get(1), sprite_pool),
-            SpellTemplate::new(misc::construct_gale_force(sprite_pool), 120)
-                .guild_condition(3),
+            SpellTemplate::new(misc::construct_gale_force(sprite_pool), 120).guild_condition(3),
             SpellTemplate::new(misc::construct_airburst(sprite_pool), 170)
                 .guild_condition(4)
                 .achievement_condition(achievements.list.get(10), sprite_pool),
-            SpellTemplate::new(misc::construct_mind_wipe(sprite_pool), 200)
-                .guild_condition(3),
+            SpellTemplate::new(misc::construct_mind_wipe(sprite_pool), 200).guild_condition(3),
             SpellTemplate::new(misc::construct_blackhole(sprite_pool), 200)
                 .guild_condition(4)
                 .achievement_condition(achievements.list.get(11), sprite_pool),
-            SpellTemplate::new(misc::construct_arcane_blast(sprite_pool), 140)
-                .guild_condition(3),
+            SpellTemplate::new(misc::construct_arcane_blast(sprite_pool), 140).guild_condition(3),
             SpellTemplate::new(misc::construct_arcane_missiles(sprite_pool), 150)
                 .guild_condition(4)
                 .achievement_condition(achievements.list.get(14), sprite_pool),
@@ -174,11 +172,14 @@ impl SpellCaster {
                 }
                 return if let Some(sound) = &spell.sound {
                     match spell.spell_.clone() {
-                        ActionContainer::ApplySingle(a) =>   ActionContainer::ApplyMultiple(vec![a, GameAction::PlaySound(sound.clone())]),
+                        ActionContainer::ApplySingle(a) => ActionContainer::ApplyMultiple(vec![
+                            a,
+                            GameAction::PlaySound(sound.clone()),
+                        ]),
                         ActionContainer::ApplyMultiple(mut vec) => {
                             vec.push(GameAction::PlaySound(sound.clone()));
                             ActionContainer::ApplyMultiple(vec)
-                        },
+                        }
                     }
                 } else {
                     spell.spell_.clone()
@@ -448,7 +449,7 @@ impl Spell {
                         .scale(20.),
                 )
                 .add(
-                    graphics::TextFragment::new(if self.spell_slots.len() > 0 {
+                    graphics::TextFragment::new(if !self.spell_slots.is_empty() {
                         "\nCasting slots:"
                     } else {
                         ""

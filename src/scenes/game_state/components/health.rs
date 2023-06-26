@@ -48,13 +48,13 @@ pub struct Enemy {
     /// The bounty this enemy grants on kill.
     bounty: i32,
     /// An identifier to check for certain enemy kills.
-    id: u8
+    id: u8,
 }
 
 impl Enemy {
     /// Creates a new enemy component.
     pub fn new(damage: i32, bounty: i32, id: u8) -> Self {
-        Self { damage, bounty , id}
+        Self { damage, bounty, id }
     }
 }
 

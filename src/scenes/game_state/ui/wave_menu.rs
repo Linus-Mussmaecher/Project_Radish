@@ -30,7 +30,6 @@ pub fn handle_wave_menu(
     data: &mut game_state::game_data::GameData,
     caster: &mut game_state::components::SpellCaster,
     spell_pool: &mut game_state::components::spell::SpellPool,
-    buildings: &mut game_state::components::buildings::Buildings,
 ) {
     // if neccessary: Spawn wave menu
     if messages.iter().any(|message| {
@@ -41,7 +40,7 @@ pub fn handle_wave_menu(
     }) {
         gui.add_element(0, construct_wave_menu(ctx, director.get_wave()));
         // sync spellslots in case a building got destroyed
-        sync_spellslots(ctx, gui, caster, buildings);
+        sync_spellslots(ctx, gui, caster, &mut data.buildings);
     }
 
     // enemies submenu
@@ -49,7 +48,7 @@ pub fn handle_wave_menu(
         gui.remove_elements(ID_WAVE_SUBMENU);
         gui.add_element(
             ID_WAVE_SUBMENU_CONT,
-            construct_enemies_menu(ctx, &director, buildings),
+            construct_enemies_menu(ctx, director, &mut data.buildings),
         );
     }
 
@@ -58,7 +57,7 @@ pub fn handle_wave_menu(
         gui.remove_elements(ID_WAVE_SUBMENU);
         gui.add_element(
             ID_WAVE_SUBMENU_CONT,
-            construct_spell_menu(ctx, caster, spell_pool, buildings),
+            construct_spell_menu(ctx, caster, spell_pool, &data.buildings),
         );
     }
 
@@ -67,7 +66,7 @@ pub fn handle_wave_menu(
         gui.remove_elements(ID_WAVE_SUBMENU);
         gui.add_element(
             ID_WAVE_SUBMENU_CONT,
-            construct_buildings_menu(ctx, buildings),
+            construct_buildings_menu(ctx, &mut data.buildings),
         );
     }
 
@@ -77,9 +76,9 @@ pub fn handle_wave_menu(
         let mut triggered = false;
         match message {
             // check for clicks if a spell in the shop index-range
-            &UiMessage::Triggered(id)
-                if id >= ID_SPELL_AVAIL_START
-                    && id < ID_SPELL_AVAIL_START + spell_pool.1.len() as u32 =>
+            UiMessage::Triggered(id)
+                if *id >= ID_SPELL_AVAIL_START
+                    && *id < ID_SPELL_AVAIL_START + spell_pool.1.len() as u32 =>
             {
                 let mut purchased = false;
                 // calculate index
@@ -88,7 +87,7 @@ pub fn handle_wave_menu(
                 if let Some(template) = spell_pool.1.get_mut(index) {
                     // if spell was not yet purchased, attempt to purchase it
                     if template.level == 0
-                        && buildings.target[buildings::BuildingType::MAGEGUILD as usize]
+                        && data.buildings.target[buildings::BuildingType::Mageguild as usize]
                             >= template.guild_condition
                         && data.spend(template.cost)
                     {
@@ -112,8 +111,8 @@ pub fn handle_wave_menu(
             }
 
             // check for clicks if a spell in the equipped spell index-range
-            &UiMessage::Triggered(id)
-                if id >= ID_SPELL_EQUIP_START && id < ID_SPELL_EQUIP_START + 4 =>
+            UiMessage::Triggered(id)
+                if *id >= ID_SPELL_EQUIP_START && *id < ID_SPELL_EQUIP_START + 4 =>
             {
                 // calculate index
                 let index = (id - ID_SPELL_EQUIP_START) as usize;
@@ -131,7 +130,7 @@ pub fn handle_wave_menu(
             gui.remove_elements(ID_WAVE_SUBMENU);
             gui.add_element(
                 ID_WAVE_SUBMENU_CONT,
-                construct_spell_menu(ctx, caster, spell_pool, buildings),
+                construct_spell_menu(ctx, caster, spell_pool, &data.buildings),
             );
         }
     }
@@ -139,19 +138,19 @@ pub fn handle_wave_menu(
     // reroll
     if messages.contains(&UiMessage::Triggered(ID_REROLL))
         && data.spend(director.get_reroll_cost())
-        && buildings.target[buildings::BuildingType::WATCHTOWER as usize] > 0
+        && data.buildings.target[buildings::BuildingType::Watchtower as usize] > 0
     {
         director.reroll_wave_enemies();
         gui.remove_elements(ID_WAVE_SUBMENU);
         gui.add_element(
             ID_WAVE_SUBMENU_CONT,
-            construct_enemies_menu(ctx, &director, buildings),
+            construct_enemies_menu(ctx, director, &mut data.buildings),
         );
     }
 
     // buildings
     for i in 0..buildings::BUILDING_TYPES {
-        let index = buildings.target[i] as usize;
+        let index = data.buildings.target[i] as usize;
         if messages.contains(&UiMessage::Triggered(ID_BUILDINGS_START + i as u32))
             && index < buildings::BUILDING_MAX_LEVEL
             && data.spend(
@@ -159,16 +158,16 @@ pub fn handle_wave_menu(
                     as i32,
             )
         {
-            buildings.target[i] += 1;
+            data.buildings.target[i] += 1;
             // if it is the mana well, sync spell slots
             if i == 2 && caster.can_add() {
-                sync_spellslots(ctx, gui, caster, buildings);
+                sync_spellslots(ctx, gui, caster, &mut data.buildings);
             }
             // rebuild menu
             gui.remove_elements(ID_WAVE_SUBMENU);
             gui.add_element(
                 ID_WAVE_SUBMENU_CONT,
-                construct_buildings_menu(ctx, buildings),
+                construct_buildings_menu(ctx, &mut data.buildings),
             );
         }
     }
@@ -203,8 +202,10 @@ fn construct_wave_menu(
     wave_survived: u32,
 ) -> UiElement<game_state::GameMessage> {
     // play happy sound
-    let mut wave_done = ggez::audio::Source::new(ctx, "/audio/sounds/ui/wave_done.wav").expect("Could not load wave end sound.");
-    ggez::audio::SoundSource::play(&mut wave_done, ctx).expect("[ERROR] Could not find wave_done.wav.");
+    let mut wave_done = ggez::audio::Source::new(ctx, "/audio/sounds/ui/wave_done.wav")
+        .expect("Could not load wave end sound.");
+    ggez::audio::SoundSource::play(&mut wave_done, ctx)
+        .expect("[ERROR] Could not find wave_done.wav.");
 
     let enemies = graphics::Image::from_path(ctx, "/sprites/ui/enemies.png")
         .expect("[ERROR] Missing enemies menu sprite.")
@@ -482,7 +483,7 @@ fn construct_enemies_menu(
         })
         .build();
 
-    let reroll = if buildings.target[buildings::BuildingType::WATCHTOWER as usize] == 0 {
+    let reroll = if buildings.target[buildings::BuildingType::Watchtower as usize] == 0 {
         ().to_element(0, ctx)
     } else {
         graphics::Image::from_path(ctx, "/sprites/ui/reroll.png")
@@ -769,7 +770,7 @@ fn sync_spellslots(
     buildings: &mut game_state::components::buildings::Buildings,
 ) {
     // game sync
-    caster.set_extra_slots(buildings.target[buildings::BuildingType::MANAWELL as usize] as usize);
+    caster.set_extra_slots(buildings.target[buildings::BuildingType::Manawell as usize] as usize);
     // ui sync
     gui.remove_elements(super::game_ui::ID_MANA_SLOT);
     for i in 0..caster.get_slots() {

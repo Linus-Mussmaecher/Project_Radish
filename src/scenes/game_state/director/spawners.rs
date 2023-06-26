@@ -57,13 +57,10 @@ pub fn spawn_dodge_skeleton(cmd: &mut CommandBuffer, pos: components::Position) 
                 actions::ActionEffect::transform(
                     actions::ActionEffectTarget::new_only_self(),
                     |action| {
-                        match action {
-                            actions::GameAction::Move { delta } => {
-                                delta.x *= 10.;
-                                delta.y *= 2.;
-                            }
-                            _ => {}
-                        };
+                        if let actions::GameAction::Move { delta } = action {
+                            delta.x *= 10.;
+                            delta.y *= 2.;
+                        }
                     },
                 )
                 .with_duration(Duration::from_secs(2))
@@ -96,13 +93,10 @@ pub fn spawn_jump_skeleton(cmd: &mut CommandBuffer, pos: components::Position) {
                     actions::ActionEffect::transform(
                         actions::ActionEffectTarget::new_only_self(),
                         |action| {
-                            match action {
-                                actions::GameAction::Move { delta } => {
-                                    delta.x = 2. * delta.x.signum();
-                                    delta.y *= 0.5;
-                                }
-                                _ => {}
-                            };
+                            if let actions::GameAction::Move { delta } = action {
+                                delta.x = 2. * delta.x.signum();
+                                delta.y *= 0.5;
+                            }
                         },
                     )
                     .with_duration(Duration::from_secs(2))
@@ -186,17 +180,12 @@ pub fn spawn_catapult(cmd: &mut CommandBuffer, pos: components::Position) {
                 actions::GameAction::ApplyEffect(Box::new(
                     actions::ActionEffect::transform(
                         actions::ActionEffectTarget::new_only_self(),
-                        |act| {
-                            match act {
-                                // speed up nearby allies by 50%
-                                actions::GameAction::Move { delta } => {
-                                    *delta = ggez::glam::Vec2::new(
-                                        0.,
-                                        if delta.y == 0. { 0. } else { 4. },
-                                    )
-                                }
-                                _ => {}
-                            };
+                        |action| {
+                            //  speed up nearby allies by 50%
+                            if let actions::GameAction::Move { delta } = action {
+                                *delta =
+                                    ggez::glam::Vec2::new(0., if delta.y == 0. { 0. } else { 4. })
+                            }
                         },
                     )
                     .with_duration(Duration::from_secs_f32(1.)),
@@ -227,15 +216,12 @@ pub fn spawn_tank_skeleton(cmd: &mut CommandBuffer, pos: components::Position) {
                     .with_range(196.)
                     .with_enemies_only(true)
                     .with_affect_self(true),
-                |act| {
-                    match act {
-                        // reduce dmg by 1, but if would be reduced to 0, onyl 20% chance to do so
-                        actions::GameAction::TakeDamage { dmg } => {
-                            if *dmg >= 7 {
-                                *dmg = (*dmg as f32 * 0.7) as i32;
-                            }
+                |action| {
+                    // reduce dmg by 1, but if would be reduced to 0, onyl 20% chance to do so
+                    if let actions::GameAction::TakeDamage { dmg } = action {
+                        if *dmg >= 7 {
+                            *dmg = (*dmg as f32 * 0.7) as i32;
                         }
-                        _ => {}
                     }
                 },
             ))
@@ -283,12 +269,11 @@ pub fn spawn_charge_skeleton(cmd: &mut CommandBuffer, pos: components::Position)
                 actions::ActionEffectTarget::new()
                     .with_affect_self(true)
                     .with_range(256.),
-                |act| {
-                    match act {
-                        // speed up nearby allies by 50%
-                        actions::GameAction::Move { delta } => *delta *= 1.5,
-                        _ => {}
-                    };
+                |action| {
+                    // speed up nearby allies by 50%
+                    if let actions::GameAction::Move { delta } = action {
+                        *delta *= 1.5;
+                    }
                 },
             ))
             // on death: speed up nearby allies for a time
@@ -311,12 +296,11 @@ pub fn spawn_charge_skeleton(cmd: &mut CommandBuffer, pos: components::Position)
                     ),
                     actions::ActionEffect::transform(
                         actions::ActionEffectTarget::new_only_self(),
-                        |act| {
-                            match act {
-                                // speed up nearby allies by 150%
-                                actions::GameAction::Move { delta } => *delta *= 2.5,
-                                _ => {}
-                            };
+                        |action| {
+                            // speed up nearby allies by 150%
+                            if let actions::GameAction::Move { delta } = action {
+                                *delta *= 2.5;
+                            }
                         },
                     )
                     .with_duration(Duration::from_secs(5))
@@ -361,12 +345,11 @@ pub fn spawn_wizard_skeleton(cmd: &mut CommandBuffer, pos: components::Position)
                     ),
                     actions::ActionEffect::transform(
                         actions::ActionEffectTarget::new_only_self(),
-                        |act| {
-                            match act {
-                                // speed up an ally by 250%
-                                actions::GameAction::Move { delta } => *delta *= 3.5,
-                                _ => {}
-                            };
+                        |action| {
+                            // speed up an ally by 250%
+                            if let actions::GameAction::Move { delta } = action {
+                                *delta *= 3.5;
+                            }
                         },
                     )
                     .with_duration(Duration::from_secs(3))
@@ -432,12 +415,11 @@ pub fn spawn_wizard_skeleton2(cmd: &mut CommandBuffer, pos: components::Position
                     ),
                     actions::ActionEffect::transform(
                         actions::ActionEffectTarget::new_only_self(),
-                        |act| {
-                            match act {
-                                // speed up an ally by 250%
-                                actions::GameAction::TakeDamage { dmg } => *dmg /= 3,
-                                _ => {}
-                            };
+                        |action| {
+                            // speed up an ally by 250%
+                            if let actions::GameAction::TakeDamage { dmg } = action {
+                                *dmg /= 3;
+                            }
                         },
                     )
                     .with_duration(Duration::from_secs(3))
@@ -521,11 +503,10 @@ pub fn spawn_wizard_skeleton3(cmd: &mut CommandBuffer, pos: components::Position
                     actions::ActionEffect::transform(
                         actions::ActionEffectTarget::new_only_self(),
                         |act| {
-                            match act {
-                                // speed up an ally by 150%
-                                actions::GameAction::Move { delta } => *delta *= 2.5,
-                                _ => {}
-                            };
+                            // speed up an ally by 150%
+                            if let actions::GameAction::Move { delta } = act {
+                                *delta *= 2.5;
+                            }
                         },
                     )
                     .with_duration(Duration::from_secs(3))
@@ -587,11 +568,10 @@ pub fn spawn_ghost(cmd: &mut CommandBuffer, pos: components::Position) {
                         actions::GameAction::ApplyEffect(Box::new(
                             actions::ActionEffect::transform(
                                 actions::ActionEffectTarget::new_only_self(),
-                                |act| match act {
-                                    actions::GameAction::TakeDamage { dmg } => {
+                                |action| {
+                                    if let actions::GameAction::TakeDamage { dmg } = action {
                                         *dmg /= 5;
                                     }
-                                    _ => {}
                                 },
                             )
                             .with_duration(Duration::from_secs(2)),
@@ -600,9 +580,10 @@ pub fn spawn_ghost(cmd: &mut CommandBuffer, pos: components::Position) {
                         actions::GameAction::ApplyEffect(Box::new(
                             actions::ActionEffect::transform(
                                 actions::ActionEffectTarget::new_only_self(),
-                                |act| match act {
-                                    actions::GameAction::Move { delta } => *delta *= 1.3,
-                                    _ => {}
+                                |action| {
+                                    if let actions::GameAction::Move { delta } = action {
+                                        *delta *= 1.3;
+                                    }
                                 },
                             ),
                         )),
@@ -653,13 +634,10 @@ pub fn spawn_animated_armor(cmd: &mut CommandBuffer, pos: components::Position) 
             // reduce damage taken by 60%
             .with_effect(actions::ActionEffect::transform(
                 actions::ActionEffectTarget::new_only_self(),
-                |act| {
-                    match act {
-                        actions::GameAction::TakeDamage { dmg } => {
-                            *dmg = (*dmg as f32 * 0.5) as i32
-                        }
-                        _ => {}
-                    };
+                |action| {
+                    if let actions::GameAction::TakeDamage { dmg } = action {
+                        *dmg = (*dmg as f32 * 0.5) as i32;
+                    }
                 },
             ))
             // heal on death

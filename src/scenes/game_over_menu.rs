@@ -17,35 +17,33 @@ impl GameOverMenu {
     /// Creates a new GameOverMenu displaying the passed score and adding it (if good enough) to the highscore list.
     /// Also displays the highscore list and marks the newly achieved score (it it shows up).
     pub fn new(ctx: &ggez::Context, score: i32) -> Result<Self, GameError> {
-
         // load highscores
 
         let mut highscores = achievements::load_highscores();
 
         // if only a small amount of scores is recorded or the worst result from the list was beaten, insert the new result
-        let own_index = if highscores.len() < 25
-            || score >= highscores.last().map(|&s| s).unwrap_or_default()
-        {
-            // set default index: at the end of the list
-            let mut index = highscores.len();
-            // see if there is an appropriate earlier index
-            for (i, &value) in highscores.iter().enumerate() {
-                if score >= value {
-                    index = i;
-                    break;
+        let own_index =
+            if highscores.len() < 25 || score >= highscores.last().copied().unwrap_or_default() {
+                // set default index: at the end of the list
+                let mut index = highscores.len();
+                // see if there is an appropriate earlier index
+                for (i, &value) in highscores.iter().enumerate() {
+                    if score >= value {
+                        index = i;
+                        break;
+                    }
                 }
-            }
-            // insert at appropriate index
-            highscores.insert(index, score);
-            // if list has grown too much, cut last element
-            if highscores.len() > 25 {
-                highscores.pop();
-            }
-            // return selected index
-            Some(index)
-        } else {
-            None
-        };
+                // insert at appropriate index
+                highscores.insert(index, score);
+                // if list has grown too much, cut last element
+                if highscores.len() > 25 {
+                    highscores.pop();
+                }
+                // return selected index
+                Some(index)
+            } else {
+                None
+            };
 
         // create UI
 

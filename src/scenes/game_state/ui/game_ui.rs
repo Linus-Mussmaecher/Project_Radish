@@ -223,7 +223,7 @@ pub fn create_spellslot(ctx: &ggez::Context, i: usize) -> UiElement<game_state::
                     value,
                 )) = message
                 {
-                    if *index == i as usize {
+                    if *index == i {
                         transitions.push_back(
                             ui_element::Transition::new(Duration::ZERO)
                                 .with_new_content(Covering::new(col, *value as f32 / 32.)),

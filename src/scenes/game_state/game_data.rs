@@ -1,5 +1,5 @@
 use super::{
-    components::actions::GameAction,
+    components::{actions::GameAction, buildings::Buildings},
     game_message::{GameMessage, MessageSet},
 };
 use legion::*;
@@ -14,6 +14,8 @@ pub struct GameData {
     last_gold: i32,
     /// The health the city has left. Public to allow easy access.
     pub city_health: i32,
+    /// The current state of buildings
+    pub buildings: Buildings,
 }
 
 impl GameData {
@@ -24,6 +26,7 @@ impl GameData {
             gold,
             last_gold: 0,
             city_health,
+            buildings: Buildings::new(),
         }
     }
 
@@ -65,7 +68,7 @@ pub fn resolve_gama_data(
                 game_data.add_gold(*amount);
             }
             GameAction::TakeCityDamage { dmg } => {
-                game_data.city_health -= *dmg as i32;
+                game_data.city_health -= *dmg;
                 change_city = true;
             }
             _ => {}

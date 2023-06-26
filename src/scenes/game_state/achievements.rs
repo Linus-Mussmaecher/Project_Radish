@@ -150,12 +150,10 @@ impl Achievement {
             );
         }
 
-        let ach_box = ach_box
+        ach_box
             .to_element_builder(0, ctx)
             .with_visuals(super::super::BUTTON_VIS)
-            .build();
-
-        ach_box
+            .build()
     }
 }
 
@@ -166,152 +164,126 @@ pub struct AchievementSet {
 
 impl AchievementSet {
     pub fn load(ctx: &ggez::Context, source: AchievementProgressSource) -> Self {
-        let mut list = Vec::with_capacity(8);
-
         // 3x kill counts (1, 50, 1000) + 1x kill basic 1000
         // 2x elite kills (1, 50)
         // 4x waves reached (2, 5, 50, 10x10)
         // 2x special kills (ghost, guardian)
         // 3x upgrades // 1x lose building
 
-        list.push(Achievement::new(
-            "First Blood",
-            "Kill an enemy.",
-            graphics::Image::from_path(ctx, "/sprites/achievements/a01_16_16.png").ok(),
-            1,
-            (GameMessage::EnemyKilled(0), GameMessageFilter::Type),
-        ));
-
-        list.push(Achievement::new(
-            "To Dust",
-            "Kill 50 enemies.",
-            graphics::Image::from_path(ctx, "/sprites/achievements/a02_16_16.png").ok(),
-            50,
-            (GameMessage::EnemyKilled(0), GameMessageFilter::Type),
-        ));
-
-        list.push(Achievement::new(
-            "They were legion",
-            "Kill 1000 enemies.",
-            graphics::Image::from_path(ctx, "/sprites/achievements/a03_16_16.png").ok(),
-            1000,
-            (GameMessage::EnemyKilled(0), GameMessageFilter::Type),
-        ));
-
-        list.push(Achievement::new(
-            "Puttin' on the broom",
-            "Kill 1000 non-elite enemies.",
-            graphics::Image::from_path(ctx, "/sprites/achievements/a04_16_16.png").ok(),
-            1000,
-            (GameMessage::EnemyKilled(19), GameMessageFilter::Max),
-        ));
-
-        list.push(Achievement::new(
-            "Survivor",
-            "Reach wave 2.",
-            graphics::Image::from_path(ctx, "/sprites/achievements/a05_16_16.png").ok(),
-            1,
-            (GameMessage::NextWave(2), GameMessageFilter::Equality),
-        ));
-
-        list.push(Achievement::new(
-            "Can't touch this",
-            "Reach wave 5.",
-            graphics::Image::from_path(ctx, "/sprites/achievements/a06_16_16.png").ok(),
-            1,
-            (GameMessage::NextWave(5), GameMessageFilter::Equality),
-        ));
-
-        list.push(Achievement::new(
-            "One kick, a thousand times",
-            "Reach level 8, 8 times.",
-            graphics::Image::from_path(ctx, "/sprites/achievements/a07_16_16.png").ok(),
-            8,
-            
-            (GameMessage::NextWave(8), GameMessageFilter::Equality),
-        ));
-
-        list.push(Achievement::new(
-            "Supreme",
-            "Reach level 24.",
-            graphics::Image::from_path(ctx, "/sprites/achievements/a08_16_16.png").ok(),
-            1,
-            
-            (GameMessage::NextWave(24), GameMessageFilter::Equality),
-        ));
-
-        list.push(Achievement::new(
-            "Royal Blood",
-            "Kill an elite enemy.",
-            graphics::Image::from_path(ctx, "/sprites/achievements/a09_16_16.png").ok(),
-            1,
-            (GameMessage::EnemyKilled(10), GameMessageFilter::Min),
-        ));
-
-        list.push(Achievement::new(
-            "Party like it's 1789",
-            "Kill 50 elite enemies.",
-            graphics::Image::from_path(ctx, "/sprites/achievements/a10_16_16.png").ok(),
-            50,
-            (GameMessage::EnemyKilled(10), GameMessageFilter::Min),
-        ));
-
-        list.push(Achievement::new(
-            "Speed limit",
-            "Kill 50 bannermen.",
-            graphics::Image::from_path(ctx, "/sprites/achievements/a11_16_16.png").ok(),
-            50,
-            (GameMessage::EnemyKilled(11), GameMessageFilter::Equality),
-        ));
-
-        list.push(Achievement::new(
-            "Who you gonna call?",
-            "Kill 15 ghosts.",
-            graphics::Image::from_path(ctx, "/sprites/achievements/a12_16_16.png").ok(),
-            15,
-            (GameMessage::EnemyKilled(16), GameMessageFilter::Equality),
-        ));
-
-        list.push(Achievement::new(
-            "The Lives of Others",
-            "Upgrade your watchtower five times.",
-            graphics::Image::from_path(ctx, "/sprites/achievements/a13_16_16.png").ok(),
-            5,
-            (
-                GameMessage::BuildingUp(0, 1),
-                GameMessageFilter::Min,
+        let mut list = vec![
+            Achievement::new(
+                "First Blood",
+                "Kill an enemy.",
+                graphics::Image::from_path(ctx, "/sprites/achievements/a01_16_16.png").ok(),
+                1,
+                (GameMessage::EnemyKilled(0), GameMessageFilter::Type),
             ),
-        ));
-
-        list.push(Achievement::new(
-            "Union fees",
-            "Upgrade your mage's guild five times.",
-            graphics::Image::from_path(ctx, "/sprites/achievements/a14_16_16.png").ok(),
-            5,
-            (
-                GameMessage::BuildingUp(1, 1),
-                GameMessageFilter::Min,
+            Achievement::new(
+                "To Dust",
+                "Kill 50 enemies.",
+                graphics::Image::from_path(ctx, "/sprites/achievements/a02_16_16.png").ok(),
+                50,
+                (GameMessage::EnemyKilled(0), GameMessageFilter::Type),
             ),
-        ));
-
-        list.push(Achievement::new(
-            "Power Overwhelming!",
-            "Upgrade you mana well five times.",
-            graphics::Image::from_path(ctx, "/sprites/achievements/a15_16_16.png").ok(),
-            5,
-            (
-                GameMessage::BuildingUp(2, 1),
-                GameMessageFilter::Min,
+            Achievement::new(
+                "They were legion",
+                "Kill 1000 enemies.",
+                graphics::Image::from_path(ctx, "/sprites/achievements/a03_16_16.png").ok(),
+                1000,
+                (GameMessage::EnemyKilled(0), GameMessageFilter::Type),
             ),
-        ));
-
-        list.push(Achievement::new(
-            "Oops",
-            "Lose ten buildings.",
-            graphics::Image::from_path(ctx, "/sprites/achievements/a16_16_16.png").ok(),
-            10,
-            (GameMessage::BuildingDown(0, 0), GameMessageFilter::Type),
-        ));
+            Achievement::new(
+                "Puttin' on the broom",
+                "Kill 1000 non-elite enemies.",
+                graphics::Image::from_path(ctx, "/sprites/achievements/a04_16_16.png").ok(),
+                1000,
+                (GameMessage::EnemyKilled(19), GameMessageFilter::Max),
+            ),
+            Achievement::new(
+                "Survivor",
+                "Reach wave 2.",
+                graphics::Image::from_path(ctx, "/sprites/achievements/a05_16_16.png").ok(),
+                1,
+                (GameMessage::NextWave(2), GameMessageFilter::Equality),
+            ),
+            Achievement::new(
+                "Can't touch this",
+                "Reach wave 5.",
+                graphics::Image::from_path(ctx, "/sprites/achievements/a06_16_16.png").ok(),
+                1,
+                (GameMessage::NextWave(5), GameMessageFilter::Equality),
+            ),
+            Achievement::new(
+                "One kick, a thousand times",
+                "Reach level 8, 8 times.",
+                graphics::Image::from_path(ctx, "/sprites/achievements/a07_16_16.png").ok(),
+                8,
+                (GameMessage::NextWave(8), GameMessageFilter::Equality),
+            ),
+            Achievement::new(
+                "Supreme",
+                "Reach level 24.",
+                graphics::Image::from_path(ctx, "/sprites/achievements/a08_16_16.png").ok(),
+                1,
+                (GameMessage::NextWave(24), GameMessageFilter::Equality),
+            ),
+            Achievement::new(
+                "Royal Blood",
+                "Kill an elite enemy.",
+                graphics::Image::from_path(ctx, "/sprites/achievements/a09_16_16.png").ok(),
+                1,
+                (GameMessage::EnemyKilled(10), GameMessageFilter::Min),
+            ),
+            Achievement::new(
+                "Party like it's 1789",
+                "Kill 50 elite enemies.",
+                graphics::Image::from_path(ctx, "/sprites/achievements/a10_16_16.png").ok(),
+                50,
+                (GameMessage::EnemyKilled(10), GameMessageFilter::Min),
+            ),
+            Achievement::new(
+                "Speed limit",
+                "Kill 50 bannermen.",
+                graphics::Image::from_path(ctx, "/sprites/achievements/a11_16_16.png").ok(),
+                50,
+                (GameMessage::EnemyKilled(11), GameMessageFilter::Equality),
+            ),
+            Achievement::new(
+                "Who you gonna call?",
+                "Kill 15 ghosts.",
+                graphics::Image::from_path(ctx, "/sprites/achievements/a12_16_16.png").ok(),
+                15,
+                (GameMessage::EnemyKilled(16), GameMessageFilter::Equality),
+            ),
+            Achievement::new(
+                "The Lives of Others",
+                "Upgrade your watchtower five times.",
+                graphics::Image::from_path(ctx, "/sprites/achievements/a13_16_16.png").ok(),
+                5,
+                (GameMessage::BuildingUp(0, 1), GameMessageFilter::Min),
+            ),
+            Achievement::new(
+                "Union fees",
+                "Upgrade your mage's guild five times.",
+                graphics::Image::from_path(ctx, "/sprites/achievements/a14_16_16.png").ok(),
+                5,
+                (GameMessage::BuildingUp(1, 1), GameMessageFilter::Min),
+            ),
+            Achievement::new(
+                "Power Overwhelming!",
+                "Upgrade you mana well five times.",
+                graphics::Image::from_path(ctx, "/sprites/achievements/a15_16_16.png").ok(),
+                5,
+                (GameMessage::BuildingUp(2, 1), GameMessageFilter::Min),
+            ),
+            Achievement::new(
+                "Oops",
+                "Lose ten buildings.",
+                graphics::Image::from_path(ctx, "/sprites/achievements/a16_16_16.png").ok(),
+                10,
+                (GameMessage::BuildingDown(0, 0), GameMessageFilter::Type),
+            ),
+        ];
 
         // load progress
 
@@ -416,7 +388,7 @@ pub fn load_highscores() -> Vec<i32> {
 
 pub fn save_highscores(scores: Vec<i32>) {
     if let Ok(toml_string) = toml::to_string(&ScoreList { scores }) {
-        if std::fs::write("./data/highscores.toml", &toml_string).is_err() {
+        if std::fs::write("./data/highscores.toml", toml_string).is_err() {
             println!("[ERROR] Could not save highscores.")
         };
     }

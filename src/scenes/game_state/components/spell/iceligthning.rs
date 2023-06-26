@@ -9,7 +9,6 @@ use crate::scenes::game_state::components::{
 
 use super::Spell;
 
-
 pub(super) fn construct_ice_bomb(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Ice Bomb",
@@ -51,14 +50,11 @@ pub(super) fn construct_ice_bomb(sprite_pool: &SpritePool) -> Spell {
                                             ActionEffectTarget::new()
                                                 .with_enemies_only(true)
                                                 .with_range(128.),
-                                            |action| match action {
-                                                GameAction::Move { delta } => *delta *= 0.35,
-                                                _ => {}
-                                            },
+                                            |action| if let GameAction::Move { delta } = action{*delta *= 0.35;}
                                         ))
                                         .with_effect(ActionEffect::on_death(
                                             ActionEffectTarget::new_only_self(),
-                                            RemoveSource::TimedOut, 
+                                            RemoveSource::TimedOut,
                                             GameAction::play_sound("/audio/sounds/spells/icebomb_explosion"),
                                         )),
                                 ));
@@ -70,8 +66,6 @@ pub(super) fn construct_ice_bomb(sprite_pool: &SpritePool) -> Spell {
         tiny_vec!([f32; MAX_SPELL_SLOTS] => 1.5, 5.),
     )
 }
-
-
 
 pub(super) fn construct_shard(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
@@ -93,10 +87,7 @@ pub(super) fn construct_shard(sprite_pool: &SpritePool) -> Spell {
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                             (e1, GameAction::play_sound("/audio/sounds/spells/shard_hit")),
                             (e2, GameAction::TakeDamage { dmg: 20 }),
-                            (e2, ActionEffect::transform(ActionEffectTarget::new_only_self(), |action| match action {
-                                GameAction::Move { delta } => *delta *= 0.9,
-                                _ => {}
-                            }).with_duration(Duration::from_secs(3)).into()),
+                            (e2, ActionEffect::transform(ActionEffectTarget::new_only_self(), |action| if let GameAction::Move { delta } = action{*delta *= 0.9;}).with_duration(Duration::from_secs(3)).into()),
                             (e2, GameAction::spawn(|enemy, pos, cmd| {
                                 for i in -1..2{
                                     cmd.push((
@@ -111,10 +102,7 @@ pub(super) fn construct_shard(sprite_pool: &SpritePool) -> Spell {
                                                 (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                                                 (e1, GameAction::play_sound("/audio/sounds/spells/shard_hit")),
                                                 (e2, GameAction::TakeDamage { dmg: 8 }),
-                                                (e2, ActionEffect::transform(ActionEffectTarget::new_only_self(), |action| match action {
-                                                    GameAction::Move { delta } => *delta *= 0.7,
-                                                    _ => {}
-                                                }).with_duration(Duration::from_secs(3)).into()),
+                                                (e2, ActionEffect::transform(ActionEffectTarget::new_only_self(), |action| if let GameAction::Move { delta } = action {*delta *= 0.7;}).with_duration(Duration::from_secs(3)).into()),
                                             ]).with_immunity(enemy),
                                     ));
                                 }
@@ -124,7 +112,6 @@ pub(super) fn construct_shard(sprite_pool: &SpritePool) -> Spell {
         }),
         tiny_vec!([f32; MAX_SPELL_SLOTS] => 3.))
 }
-
 
 pub(super) fn construct_ice_lance(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
@@ -152,12 +139,11 @@ pub(super) fn construct_ice_lance(sprite_pool: &SpritePool) -> Spell {
                             ),
                             (
                                 e2,
-                                ActionEffect::transform(ActionEffectTarget::new_only_self(), |act|{
-                                    match act {
-                                        GameAction::TakeDamage{dmg} => {*dmg = (*dmg as f32 * 1.5) as i32;},
-                                        _ => {}
+                                ActionEffect::transform(ActionEffectTarget::new_only_self(), |act|
+                                    if let GameAction::TakeDamage{dmg} = act{
+                                        *dmg = (*dmg as f32 * 1.5) as i32;
                                     }
-                                }).into()
+                                ).into()
                             ),
                         ],),
                     ));
@@ -168,7 +154,6 @@ pub(super) fn construct_ice_lance(sprite_pool: &SpritePool) -> Spell {
             .with_duration(Duration::from_secs_f32(0.7)),
         tiny_vec!([f32; MAX_SPELL_SLOTS] => 2., 2., 2.))
 }
-
 
 pub(super) fn construct_lightning_orb(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
@@ -206,7 +191,6 @@ pub(super) fn construct_lightning_orb(sprite_pool: &SpritePool) -> Spell {
         tiny_vec!([f32; MAX_SPELL_SLOTS] => 1.5, 1.5, 20.)
     )
 }
-
 
 pub(super) fn construct_overload(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
@@ -247,8 +231,6 @@ pub(super) fn construct_overload(sprite_pool: &SpritePool) -> Spell {
         tiny_vec!([f32; MAX_SPELL_SLOTS] => 3., 5.))
 }
 
-
-
 pub(super) fn construct_lightning_ball(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Lightning Ball",
@@ -272,9 +254,8 @@ pub(super) fn construct_lightning_ball(sprite_pool: &SpritePool) -> Spell {
                         ActionEffect::transform(
                             ActionEffectTarget::new_only_self(),
                             |act| {
-                                match act {
-                                    GameAction::Move { delta } => {*delta = ggez::glam::Vec2::ZERO},
-                                    _ => {},
+                                if let GameAction::Move { delta } = act {
+                                    *delta = ggez::glam::Vec2::ZERO;
                                 }
                             }
                         )
@@ -306,9 +287,8 @@ pub(super) fn construct_lightning_ball(sprite_pool: &SpritePool) -> Spell {
                     .with_effect(ActionEffect::transform(
                         ActionEffectTarget::new().with_range(128.).with_enemies_only(true),
                         |act| {
-                            match act {
-                                GameAction::TakeHealing { heal } => {*heal /= 10},
-                                _ => {}
+                            if let GameAction::TakeHealing { heal } = act {
+                                *heal /= 10;
                             }
                         }
                     ))

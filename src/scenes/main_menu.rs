@@ -50,7 +50,9 @@ impl MainMenu {
     pub fn new(ctx: &ggez::Context) -> Result<Self, GameError> {
         // title
         let title = graphics::Image::from_path(ctx, "/sprites/ui/logo1.png")?
-            .to_element_builder(0, ctx).scaled(4., 4.).build();
+            .to_element_builder(0, ctx)
+            .scaled(4., 4.)
+            .build();
 
         // play
         let play = graphics::Text::new(

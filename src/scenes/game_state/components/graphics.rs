@@ -132,7 +132,6 @@ pub fn draw_sprites(
         .ok_or_else(|| ggez::GameError::CustomError("Could not unpack boundaries.".to_owned()))?;
     let (screen_w, screen_h) = ctx.gfx.drawable_size();
 
-    
     camera_offset.0 = 0_f32.max(camera_offset.0 - 256. * ctx.time.delta().as_secs_f32());
 
     // get sprite pool for inits
@@ -144,7 +143,7 @@ pub fn draw_sprites(
         <(&Position, &mut Graphics, Option<&Velocity>, Option<&Health>)>::query().iter_mut(world)
     {
         // get sprite
-        let sprite = gfx.sprite.init(ctx, &mut *sprite_pool)?;
+        let sprite = gfx.sprite.init(ctx, &mut sprite_pool)?;
 
         // get factors/position for image mirrogin
         let factor = if match vel {
@@ -251,7 +250,7 @@ pub fn draw_sprites(
         // draw the sprites particles
 
         for part in gfx.particles.iter_mut() {
-            let part_sprite = part.sprite.init(ctx, &mut *sprite_pool)?;
+            let part_sprite = part.sprite.init(ctx, &mut sprite_pool)?;
             part_sprite.draw_sprite(
                 ctx,
                 canvas,
