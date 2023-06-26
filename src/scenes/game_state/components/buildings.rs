@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use crate::scenes::game_state::game_data;
 use legion::{system, systems::CommandBuffer};
 
 pub enum BuildingType {
@@ -73,7 +74,7 @@ pub fn get_building_info(building: usize) -> &'static BuildingInfo {
 /// A system that check wether the target for a building level fits the current level and spawns buildings and sends messages as needed.
 #[system]
 pub fn create_buildings(
-    #[resource] buildings: &mut Buildings,
+    #[resource] data: &mut game_data::GameData,
     #[resource] message_set: &mut super::super::game_message::MessageSet,
     #[resource] boundaries: &ggez::graphics::Rect,
     cmd: &mut CommandBuffer,
@@ -81,14 +82,14 @@ pub fn create_buildings(
     // if 'target' is not 'current', spawn the appropriate building and send a message
 
     for (i, info) in BUILDING_INFO_LIST.iter().enumerate() {
-        match buildings.target[i].cmp(&buildings.current[i]) {
+        match data.buildings.target[i].cmp(&data.buildings.current[i]) {
             std::cmp::Ordering::Greater => {
                 // if building not yet built => spawn it
-                if buildings.current[i] == 0 {
+                if data.buildings.current[i] == 0 {
                     cmd.push((
                         super::Position::new(
-                            boundaries.w / buildings.target.len() as f32 / 2.
-                                + boundaries.w * i as f32 / buildings.target.len() as f32,
+                            boundaries.w / data.buildings.target.len() as f32 / 2.
+                                + boundaries.w * i as f32 / data.buildings.target.len() as f32,
                             boundaries.h + 32. + 8.,
                         ),
                         Building { building_type: i },
@@ -114,18 +115,24 @@ pub fn create_buildings(
                 }
                 // inform everyone
                 message_set.insert(mooeye::UiMessage::Extern(
-                    super::super::game_message::GameMessage::BuildingUp(i, buildings.target[i]),
+                    super::super::game_message::GameMessage::BuildingUp(
+                        i,
+                        data.buildings.target[i],
+                    ),
                 ));
                 // update current
-                buildings.current[i] = buildings.target[i];
+                data.buildings.current[i] = data.buildings.target[i];
             }
             std::cmp::Ordering::Less => {
                 // inform everyone of downlevel
                 message_set.insert(mooeye::UiMessage::Extern(
-                    super::super::game_message::GameMessage::BuildingDown(i, buildings.target[i]),
+                    super::super::game_message::GameMessage::BuildingDown(
+                        i,
+                        data.buildings.target[i],
+                    ),
                 ));
                 // update
-                buildings.current[i] = buildings.target[i];
+                data.buildings.current[i] = data.buildings.target[i];
             }
             _ => {}
         }
@@ -134,7 +141,7 @@ pub fn create_buildings(
 
 #[system(for_each)]
 pub fn destroy_buildings(
-    #[resource] buildings: &mut Buildings,
+    #[resource] data: &mut game_data::GameData,
     building: &mut Building,
     actions: &super::Actions,
 ) {
@@ -144,6 +151,6 @@ pub fn destroy_buildings(
             super::actions::GameAction::Remove(super::actions::RemoveSource::BuildingCollision)
         )
     }) {
-        buildings.target[building.building_type] = 0;
+        data.buildings.target[building.building_type] = 0;
     }
 }
