@@ -1,3 +1,8 @@
+#![cfg_attr(
+    all(target_os = "windows", not(debug_assertions),),
+    windows_subsystem = "windows"
+)]
+
 use ggez::*;
 
 mod music;
@@ -17,7 +22,6 @@ fn main() -> GameResult {
     //std::env::set_var("RUST_BACKTRACE", "1");
 
     //generate game context (window etc.)
-
     let (mut ctx, event_loop): (ggez::context::Context, ggez::event::EventLoop<()>) =
         ContextBuilder::new("radish", "Linus Mußmächer")
             .add_resource_path("./resources")

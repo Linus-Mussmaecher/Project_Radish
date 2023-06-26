@@ -157,17 +157,22 @@ impl MainMenu {
         // Container
         let menu_box = mooeye::containers::VerticalBox::new_spaced(25.)
             .to_element_builder(0, ctx)
-            .with_child(play)
-            .with_child(debug)
-            .with_child(highscores)
-            .with_child(achievements)
-            .with_child(options)
-            .with_child(credits)
-            .with_child(quit)
-            .with_visuals(super::BUTTON_VIS)
-            .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Min)
-            .with_padding((25., 25., 25., 25.))
-            .build();
+            .with_child(play);
+
+        let menu_box = if cfg!(debug_assertions) {
+            menu_box.with_child(debug)
+        } else {
+            menu_box
+        }
+        .with_child(highscores)
+        .with_child(achievements)
+        .with_child(options)
+        .with_child(credits)
+        .with_child(quit)
+        .with_visuals(super::BUTTON_VIS)
+        .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Min)
+        .with_padding((25., 25., 25., 25.))
+        .build();
 
         let big_box = mooeye::containers::VerticalBox::new()
             .to_element_builder(0, ctx)
