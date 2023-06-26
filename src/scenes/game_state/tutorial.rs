@@ -90,6 +90,14 @@ impl TutorialManager {
                         super::ui::wave_menu::ID_ENEMIES,
                     )),
                 ),
+                TutorialMessage::new(
+                    "Great Job!",
+                    "You killed that skeleton.",
+                    game_message::UiMessageFilter::Ext(
+                        game_message::GameMessage::EnemyKilled(0),
+                        game_message::GameMessageFilter::Type,
+                    ),
+                ),
             ],
         }
     }
