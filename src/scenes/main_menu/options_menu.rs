@@ -68,7 +68,7 @@ impl OptionsMenu {
         .set_font("Retro")
         .set_scale(32.)
         .to_owned()
-        .to_element_builder(2, ctx)
+        .to_element_builder(3, ctx)
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::C)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
@@ -76,6 +76,20 @@ impl OptionsMenu {
         .build();
 
         let options = options::OptionsConfig::from_path("./data/options.toml").unwrap_or_default();
+
+        let tutorial = graphics::Text::new(
+            graphics::TextFragment::new("Re-enable Tutorial Hints")
+                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+        )
+        .set_font("Retro")
+        .set_scale(24.)
+        .to_owned()
+        .to_element_builder(2, ctx)
+        .with_visuals(super::BUTTON_VIS)
+        .with_hover_visuals(super::BUTTON_HOVER_VIS)
+        .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::R)
+        .build();
 
         // Container
 
@@ -103,6 +117,7 @@ impl OptionsMenu {
                     .build(),
             )
             .with_child(reset_bindings)
+            .with_child(tutorial)
             .with_child(back)
             .with_visuals(super::BUTTON_VIS)
             .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Center)
@@ -202,10 +217,13 @@ impl scene_manager::Scene for OptionsMenu {
         if messages.contains(&mooeye::UiMessage::Triggered(1)) {
             self.controller = super::game_state::Controller::default();
         }
+        if messages.contains(&mooeye::UiMessage::Triggered(2)) {
+            self.options.tutorial = true;
+        }
 
         // Exit options
 
-        if messages.contains(&mooeye::UiMessage::Triggered(2)) {
+        if messages.contains(&mooeye::UiMessage::Triggered(3)) {
             if self.controller.save_to_file("./data/keymap.toml").is_err() {
                 println!("[WARNING] Could not save keybindings.")
             }

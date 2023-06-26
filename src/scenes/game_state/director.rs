@@ -95,6 +95,11 @@ impl Director {
     pub fn get_reroll_cost(&self) -> i32 {
         self.reroll_cost
     }
+
+    /// Returns wether the director is currently between waves
+    pub fn is_between_waves(&self) -> bool {
+        self.state == DirectorState::WaitingForMenu
+    }
 }
 
 /// A system that handles the directors interaction with the game world.

@@ -70,16 +70,34 @@ impl GameState {
         let mut world = World::default();
 
         // --- RESOURCE INITIALIZATION ---
-        let boundaries = BOUNDARIES;
-        let sprite_pool = sprite::SpritePool::new().with_folder(ctx, "/sprites", true);
+
+        let options = options::OptionsConfig::from_path("./data/options.toml").unwrap_or_default();
+        let tutorial = if options.tutorial {
+            tutorial::TutorialManager::new()
+        } else {
+            tutorial::TutorialManager::new_empty()
+        };
+        if options.tutorial {
+            let new_options = options::OptionsConfig {
+                tutorial: false,
+                ..options
+            };
+            new_options
+                .save_to_file("./data/options.toml")
+                .expect("[ERROR] Could not save updated options.");
+        }
+
         let achievement_set =
             achievements::AchievementSet::load(ctx, config.achievements_unlocked.clone());
+        let sprite_pool = sprite::SpritePool::new().with_folder(ctx, "/sprites", true);
+        let audio_pool =
+            components::audio::AudioPool::new(options).with_folder(ctx, "/audio", true);
+
+        let boundaries = BOUNDARIES;
         let spell_pool = components::spell::init_spell_pool(&sprite_pool, &achievement_set);
         let game_data = game_data::GameData::new(config.starting_gold, config.starting_city_health);
         let director = director::Director::new(&sprite_pool, &config);
-        let options = options::OptionsConfig::from_path("./data/options.toml").unwrap_or_default();
-        let audio_pool =
-            components::audio::AudioPool::new(options).with_folder(ctx, "/audio", true);
+
         let mut music_player = music::MusicPlayer::from_folder(ctx, "/audio/music/in_game");
         music_player.poll_options();
         music_player.next_song(ctx);
@@ -161,7 +179,7 @@ impl GameState {
                 .add_system(components::actions::clear_system())
                 .build(),
             achievements: achievement_set,
-            tutorial: tutorial::TutorialManager::new(),
+            tutorial,
             resources,
             controller: Controller::from_path("./data/keymap.toml").unwrap_or_default(),
         })
@@ -313,8 +331,16 @@ impl scene_manager::Scene for GameState {
         // |                   Action Handling                     |
         // +-------------------------------------------------------+
 
-        self.action_prod_schedule
-            .execute(&mut self.world, &mut self.resources);
+        // if a tutorial message is being displayed and we are not in the wave menu, pause the game
+        let act = if let Some(director) = self.resources.get_mut::<director::Director>() {
+            !self.tutorial.is_active() || director.is_between_waves()
+        } else {
+            false
+        };
+        if act {
+            self.action_prod_schedule
+                .execute(&mut self.world, &mut self.resources);
+        }
 
         // +-------------------------------------------------------+
         // |                  Message Handling                     |
@@ -419,7 +445,7 @@ impl scene_manager::Scene for GameState {
             &mut self.resources,
             ctx,
             &mut canvas,
-            mouse_listen,
+            mouse_listen && !self.tutorial.is_active(),
             &mut self.camera_offset,
         )?;
 

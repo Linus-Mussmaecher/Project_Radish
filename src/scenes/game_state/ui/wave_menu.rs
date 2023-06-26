@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use ggez::graphics;
+use ggez::graphics::{self, TextFragment};
 use mooeye::{ui_element::UiContainer, *};
 
 use super::game_state;
@@ -305,7 +305,7 @@ fn construct_wave_menu(
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .with_tooltip(
             graphics::Text::new(
-                graphics::TextFragment::new("Purchase an additional town building.\n[O]")
+                graphics::TextFragment::new("Construct town buildings.\n[O]")
                     .color(graphics::Color::from_rgb_u32(PALETTE[6])),
             )
             .set_scale(24.)
@@ -660,36 +660,73 @@ fn construct_buildings_menu(
             .with_visuals(super::BUTTON_VIS)
             .with_hover_visuals(super::BUTTON_HOVER_VIS)
             .with_trigger_key(keycodes[i].1)
-            .with_tooltip(
-                graphics::Text::new(
+            .with_tooltip({
+                let mut text = graphics::Text::new(
                     graphics::TextFragment::new(
                         if buildings.target[i] < buildings::BUILDING_MAX_LEVEL as u8 {
                             format!(
-                                "{} the {}.\nCurrent level: {}\n[{}]\n{}\nCost: {}g",
+                                "{} the {}.",
                                 if buildings.target[i] == 0 {
                                     "Construct"
                                 } else {
                                     "Upgrade"
                                 },
                                 info.name,
-                                buildings.target[i],
-                                keycodes[i].0,
-                                info.description,
-                                info.level_costs[buildings.target[i] as usize],
                             )
                         } else {
                             format!("{} is fully upgraded.", info.name,)
                         },
                     )
-                    .color(graphics::Color::from_rgb_u32(PALETTE[6])),
-                )
-                .set_scale(24.)
-                .set_font("Retro")
-                .to_owned()
-                .to_element_builder(0, ctx)
-                .with_visuals(super::BUTTON_VIS)
-                .build(),
-            )
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                    .scale(24.),
+                );
+
+                text.add(
+                    TextFragment::new(info.description)
+                        .scale(20.)
+                        .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                );
+
+                text.add(
+                    TextFragment::new("Current level:")
+                        .scale(20.)
+                        .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                );
+
+                text.add(
+                    TextFragment::new(format!("{}\n", buildings.target[i]))
+                        .scale(20.)
+                        .color(graphics::Color::from_rgb_u32(PALETTE[7])),
+                );
+
+                if buildings.target[i] < buildings::BUILDING_MAX_LEVEL as u8 {
+                    text.add(
+                        TextFragment::new("Cost:")
+                            .scale(20.)
+                            .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                    );
+
+                    text.add(
+                        TextFragment::new(format!(
+                            "{}g\n",
+                            info.level_costs[buildings.target[i] as usize]
+                        ))
+                        .scale(20.)
+                        .color(graphics::Color::from_rgb_u32(PALETTE[7])),
+                    );
+
+                    text.add(
+                        TextFragment::new(format!("[{}]\n", keycodes[i].0))
+                            .scale(20.)
+                            .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                    );
+                }
+
+                text.set_font("Retro");
+                text.to_element_builder(0, ctx)
+                    .with_visuals(super::BUTTON_VIS)
+                    .build()
+            })
             .build();
 
         let level = graphics::Text::new(

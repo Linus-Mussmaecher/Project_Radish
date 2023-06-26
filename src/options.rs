@@ -9,6 +9,8 @@ pub struct OptionsConfig {
     pub volume: u8,
     /// The volume of the in-game music.
     pub music_volume: u8,
+    /// Wether or not to display tutorial hints
+    pub tutorial: bool,
 }
 
 impl OptionsConfig {
@@ -39,6 +41,7 @@ impl Default for OptionsConfig {
         Self {
             volume: 50,
             music_volume: 50,
+            tutorial: true,
         }
     }
 }

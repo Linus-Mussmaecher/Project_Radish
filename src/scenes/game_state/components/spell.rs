@@ -450,11 +450,11 @@ impl Spell {
                 )
                 .add(
                     graphics::TextFragment::new(if !self.spell_slots.is_empty() {
-                        "\nCasting slots:"
+                        "\nSpell slots:"
                     } else {
                         ""
                     })
-                    .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                    .color(graphics::Color::from_rgb_u32(PALETTE[3]))
                     .scale(20.),
                 )
                 .add(

@@ -107,7 +107,7 @@ pub fn construct_game_ui(
     .to_element_builder(0, ctx)
     .with_tooltip(
         graphics::Text::new(
-            graphics::TextFragment::new("The health your city currently has left.")
+            graphics::TextFragment::new("The health your town currently has left.")
                 .color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
         .set_scale(24.)
@@ -196,10 +196,10 @@ pub fn construct_game_ui(
     let tutorial_box = containers::VerticalBox::new()
         .to_element_builder(super::super::tutorial::TUTORIAL_BOX, ctx)
         .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Center)
-        .with_offset(-25., None)
+        .with_offset(-8., None)
         .with_size(
             ui_element::Size::Shrink(0., f32::INFINITY),
-            ui_element::Size::Fill(0., f32::INFINITY),
+            ui_element::Size::Shrink(0., f32::INFINITY),
         )
         .build();
 
