@@ -3,7 +3,7 @@
 ![image](/resources/sprites/ui/logo.png)
 
 [![Docs Status](https://docs.rs/mooeye/badge.svg)](https://docs.rs/mooeye)
-[![license](https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png)](https://github.com/Linus-Mussmaecher/Project_Radish/LICENSE)
+[![license](https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png)](LICENSE)
 
 
 A small wave defense game written in 100% pure rust. Kill skeletons, save the town and get the highest score possible!
