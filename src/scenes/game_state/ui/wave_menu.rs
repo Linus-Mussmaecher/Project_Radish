@@ -665,7 +665,7 @@ fn construct_buildings_menu(
                     graphics::TextFragment::new(
                         if buildings.target[i] < buildings::BUILDING_MAX_LEVEL as u8 {
                             format!(
-                                "{} the {}.",
+                                "{} the {}.\n",
                                 if buildings.target[i] == 0 {
                                     "Construct"
                                 } else {
@@ -674,7 +674,7 @@ fn construct_buildings_menu(
                                 info.name,
                             )
                         } else {
-                            format!("{} is fully upgraded.", info.name,)
+                            format!("{} is fully upgraded.\n", info.name,)
                         },
                     )
                     .color(graphics::Color::from_rgb_u32(PALETTE[6]))
@@ -688,7 +688,7 @@ fn construct_buildings_menu(
                 );
 
                 text.add(
-                    TextFragment::new("Current level:")
+                    TextFragment::new("\nCurrent level: ")
                         .scale(20.)
                         .color(graphics::Color::from_rgb_u32(PALETTE[6])),
                 );
@@ -701,7 +701,7 @@ fn construct_buildings_menu(
 
                 if buildings.target[i] < buildings::BUILDING_MAX_LEVEL as u8 {
                     text.add(
-                        TextFragment::new("Cost:")
+                        TextFragment::new("Cost: ")
                             .scale(20.)
                             .color(graphics::Color::from_rgb_u32(PALETTE[6])),
                     );

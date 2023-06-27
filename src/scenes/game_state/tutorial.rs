@@ -127,14 +127,14 @@ impl TutorialManager {
                 TutorialMessage::new(
                     "Brief Respite",
                     "You survived the first wave! Take some time to look around town.\n\n\
-                    Click the three left icons (or use the hotkey [U], [I], [O]) to look at your available options.\n\n\
-                    When you are done, use the right icon [P] to start the next wave.",
+                    Click the three left icons to look at your available options.\n\n\
+                    When you are done, use the right arrow icon to start the next wave.",
                     game_message::UiMessageFilter::Ext(game_message::GameMessage::NextWave(2),game_message::GameMessageFilter::Equality),
                 ),
                 TutorialMessage::new(
                     "Lookout",
                     "Here you can view what enemies you will face in the next wave.\n\n\
-                    After upgrading your lookout in the buildings menu, you can reroll this selection [M].\n\n\
+                    After upgrading your lookout in the construction menu, you can reroll this selection.\n\n\
                     Rerolling gets more expensive every time.",
                     game_message::UiMessageFilter::Ui(UiMessage::Triggered(
                         super::ui::wave_menu::ID_ENEMIES,
@@ -143,7 +143,9 @@ impl TutorialManager {
                 TutorialMessage::new(
                     "Spell Book",
                     "Here you can view your equipped and available spells.\n\n\
-                    Purchase spells for gold by clicking them. Purchasing some spells requires you to upgrade your mage guild in the buildings menu first.\n\n\
+                    Purchase spells for gold by clicking them. \
+                    Purchasing some spells requires you to upgrade your mage guild in the buildings menu first. \
+                    Purchasing a spell also makes further spells more expensive.\n\n\
                     To equip a spell for the next wave, click it and then click the slot you want it in.",
                     game_message::UiMessageFilter::Ui(UiMessage::Triggered(
                         super::ui::wave_menu::ID_SPELLS,
@@ -152,9 +154,9 @@ impl TutorialManager {
                 TutorialMessage::new(
                     "Construction",
                     "Here you can construct and upgrade your town's buildings for gold.\n\n\
-                    Construct the watchtower to reroll approaching enemies [B].\n\n\
-                    Construct and upgrade the Mage's Guild to allow the purchase of more powerful spells [N].\n\n\
-                    Construct and upgrade the mana well to increase the amount of spell slots available in combat. [M]",
+                    Construct the watchtower to reroll approaching enemies.\n\n\
+                    Construct and upgrade the Mage's Guild to allow the purchase of more powerful spells.\n\n\
+                    Construct and upgrade the mana well to increase the amount of spell slots available in combat.",
                     game_message::UiMessageFilter::Ui(UiMessage::Triggered(
                         super::ui::wave_menu::ID_HOUSE,
                     )),
