@@ -6,4 +6,6 @@ fn main() {
     println!("cargo:rerun-if-changed=res/*");
     copy_to_output("resources", &env::var("PROFILE").unwrap()).expect("Could not copy");
     copy_to_output("data", &env::var("PROFILE").unwrap()).expect("Could not copy");
+    copy_to_output("LICENSE", &env::var("PROFILE").unwrap()).expect("Could not copy");
+    copy_to_output("README.md", &env::var("PROFILE").unwrap()).expect("Could not copy");
 }
