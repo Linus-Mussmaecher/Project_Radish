@@ -43,7 +43,8 @@ const BUILDING_INFO_LIST: [BuildingInfo; BUILDING_TYPES] = [
     BuildingInfo {
         level_costs: [100, 150, 200, 200],
         name: "Watchtower",
-        description: "Allows you to reroll approaching enemies.",
+        description:
+            "Increases your movement speed. First level instead allows rerolling approaching enemies.",
         sprite: "/sprites/environment/watchtower",
     },
     BuildingInfo {

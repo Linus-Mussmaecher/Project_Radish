@@ -7,12 +7,17 @@ use super::Actions;
 /// A component that allows an entity to be controlled by a player.
 pub struct Control {
     /// The speed at which movement orders move this entity.
-    move_speed: f32,
+    pub move_speed: f32,
+    /// The basic speed without any upgrades
+    pub base_speed: f32,
 }
 impl Control {
     /// Creates a new control component.
     pub fn new(move_speed: f32) -> Self {
-        Self { move_speed }
+        Self {
+            move_speed,
+            base_speed: move_speed,
+        }
     }
 }
 
