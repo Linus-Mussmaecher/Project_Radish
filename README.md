@@ -9,11 +9,15 @@
 A small wave defense game written in 100% pure rust. Kill skeletons, save the town and get the highest score possible!
 Complete with achievement system, meta progression, (local) highscore board and a full tutorial.
 
-# Technology
+## Latest Download
+
+[Download the game](https://github.com/Linus-Mussmaecher/Project_Radish/releases/download/v1.1.0/release.zip)
+
+## Technology
 
 SpellStruck is written in 100% pure rust and based on the [ggez game library](https://github.com/ggez/ggez) as well as my own [mooeye UI library](https://github.com/Linus-Mussmaecher/mooeye).
 The main game loop is implemented using [legion ECS](https://github.com/amethyst/legion).
 
-# License
+## License
 
 This work is licensed under a [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-nc-sa/4.0/).
