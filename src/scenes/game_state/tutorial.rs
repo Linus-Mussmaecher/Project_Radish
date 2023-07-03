@@ -154,7 +154,7 @@ impl TutorialManager {
                 TutorialMessage::new(
                     "Construction",
                     "Here you can construct and upgrade your town's buildings for gold.\n\n\
-                    Construct the watchtower to reroll approaching enemies.\n\n\
+                    Construct the watchtower to reroll approaching enemies and later increase your movement speed.\n\n\
                     Construct and upgrade the Mage's Guild to allow the purchase of more powerful spells.\n\n\
                     Construct and upgrade the mana well to increase the amount of spell slots available in combat.",
                     game_message::UiMessageFilter::Ui(UiMessage::Triggered(

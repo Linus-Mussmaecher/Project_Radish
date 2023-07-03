@@ -199,7 +199,7 @@ impl AchievementSet {
                 "Kill 1000 non-elite enemies.",
                 graphics::Image::from_path(ctx, "/sprites/achievements/a04_16_16.png").ok(),
                 1000,
-                (GameMessage::EnemyKilled(19), GameMessageFilter::Max),
+                (GameMessage::EnemyKilled(10), GameMessageFilter::Max),
             ),
             Achievement::new(
                 "Survivor",

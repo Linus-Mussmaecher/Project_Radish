@@ -1,9 +1,6 @@
 use crate::{music, options};
 use ggez::{glam::Vec2, graphics, GameError};
-use if_chain::if_chain;
-use legion::{
-    component, systems::CommandBuffer, Entity, EntityStore, IntoQuery, Resources, Schedule, World,
-};
+use legion::{component, systems::CommandBuffer, Entity, IntoQuery, Resources, Schedule, World};
 use mooeye::*;
 
 use std::time::Duration;
@@ -348,55 +345,46 @@ impl scene_manager::Scene for GameState {
 
         let mut switch = scene_manager::SceneSwitch::None;
 
-        // acquire resources
-        if_chain! {
-            if let Some(mut message_set) = self.resources.get_mut::<MessageSet>();
-            if let Some(mut director) = self.resources.get_mut::<director::Director>();
-            if let Some(mut data) = self.resources.get_mut::<game_data::GameData>();
-            if let Some(player_ent) = self.resources.get::<Entity>();
-            if let Ok(mut player) = self.world.entry_mut(*player_ent);
-            if let Ok(caster) = player.get_component_mut::<components::SpellCaster>();
-            if let Some(mut spell_pool) = self.resources.get_mut::<components::spell::SpellPool>();
-            then{
+        // acquire messages
+        let total_messages = self.gui.update(
+            ctx,
+            if let Some(mut message_set) = self.resources.get_mut::<MessageSet>() {
+                // if message set can be retrieved, drain it
+                message_set
+                    .drain()
+                    .collect::<std::collections::HashSet<UiMessage<GameMessage>>>()
+            } else {
+                // otherwise, just put no messages
+                std::collections::HashSet::new()
+            },
+        );
 
-                // communicate with UI: Insert Game Messages and retrieve UI messages
-                let internal = self.gui.update(ctx, message_set.clone());
-                message_set.extend(&internal);
+        // handle wave menu
+        ui::wave_menu::handle_wave_menu(
+            &total_messages,
+            &mut self.gui,
+            ctx,
+            &mut self.world,
+            &mut self.resources,
+        );
 
-                // handle wave menu
-                ui::wave_menu::handle_wave_menu(
-                    &message_set,
-                    &mut self.gui,
-                    ctx,
-                    &mut director,
-                    &mut data,
-                    caster,
-                    &mut spell_pool,
-                );
+        // handle listeners
+        for message in total_messages.iter() {
+            // for listener in self.listeners.iter_mut() {
+            //     listener.receive(message, &mut self.gui, ctx);
+            // }
+            self.achievements.receive(message, &mut self.gui, ctx);
+            self.tutorial.receive(message, &mut self.gui, ctx);
+        }
 
-                // handle listeners
-                for message in message_set.iter() {
-                    // for listener in self.listeners.iter_mut() {
-                    //     listener.receive(message, &mut self.gui, ctx);
-                    // }
-                    self.achievements.receive(message, &mut self.gui, ctx);
-                    self.tutorial.receive(message, &mut self.gui, ctx);
-                }
+        // Escape menu
+        if total_messages.contains(&UiMessage::Triggered(1)) {
+            self.achievements.save();
+            switch = scene_manager::SceneSwitch::push(ui::in_game_menu::InGameMenu::new(ctx)?);
+        }
 
-                // Escape menu
-                if message_set.contains(&UiMessage::Triggered(1)) {
-                    self.achievements.save();
-                    switch =
-                        scene_manager::SceneSwitch::push(ui::in_game_menu::InGameMenu::new(ctx)?);
-                }
-
-                if message_set.contains(&UiMessage::Triggered(tutorial::TUTORIAL_CLOSE)){
-                    self.gui.remove_elements(tutorial::TUTORIAL_INNER);
-                }
-
-                // clear game messages for next round
-                message_set.clear();
-            }
+        if total_messages.contains(&UiMessage::Triggered(tutorial::TUTORIAL_CLOSE)) {
+            self.gui.remove_elements(tutorial::TUTORIAL_INNER);
         }
 
         // +-------------------------------------------------------+
