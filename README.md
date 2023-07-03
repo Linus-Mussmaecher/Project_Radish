@@ -11,7 +11,7 @@ Complete with achievement system, meta progression, (local) highscore board and 
 
 ## Latest Download
 
-[Download the game](https://github.com/Linus-Mussmaecher/Project_Radish/releases/download/v1.1.0/release.zip)
+The latest version of SpellStruck is available at [itch.io](https://linusm.itch.io/spellstruck).
 
 ## Technology
 
