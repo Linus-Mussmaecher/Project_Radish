@@ -181,7 +181,7 @@ pub fn spawn_catapult(cmd: &mut CommandBuffer, pos: components::Position) {
                     actions::ActionEffect::transform(
                         actions::ActionEffectTarget::new_only_self(),
                         |action| {
-                            //  speed up nearby allies by 50%
+                            //  set allies x-speed to 0
                             if let actions::GameAction::Move { delta } = action {
                                 *delta =
                                     ggez::glam::Vec2::new(0., if delta.y == 0. { 0. } else { 4. })

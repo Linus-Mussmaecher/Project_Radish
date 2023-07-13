@@ -48,8 +48,6 @@ pub struct GameState {
     gui: UiElement<GameMessage>,
     /// The player for the background music
     music_player: music::MusicPlayer,
-    // /// Listeners (such as achievements or tutorials), receiving all game messages and potentially mutating the UI.
-    // listeners: Vec<Box<dyn game_message::MessageReceiver>>,
     /// The achievement set listening to achievement fulfils
     achievements: achievements::AchievementSet,
     /// The tutorial manager that shows tutorial messages when appropriate
@@ -370,9 +368,6 @@ impl scene_manager::Scene for GameState {
 
         // handle listeners
         for message in total_messages.iter() {
-            // for listener in self.listeners.iter_mut() {
-            //     listener.receive(message, &mut self.gui, ctx);
-            // }
             self.achievements.receive(message, &mut self.gui, ctx);
             self.tutorial.receive(message, &mut self.gui, ctx);
         }
