@@ -183,8 +183,7 @@ pub fn spawn_catapult(cmd: &mut CommandBuffer, pos: components::Position) {
                         |action| {
                             //  set allies x-speed to 0
                             if let actions::GameAction::Move { delta } = action {
-                                *delta =
-                                    ggez::glam::Vec2::new(0., if delta.y == 0. { 0. } else { 4. })
+                                *delta = ggez::glam::Vec2::new(0., (delta.length() + 1.) * 3.0)
                             }
                         },
                     )

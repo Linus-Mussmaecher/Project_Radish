@@ -128,6 +128,7 @@ pub fn handle_wave_menu(
                         // equip the spell
                         caster.equip_spell(index, stored);
                         triggered = true;
+                        player_sync_needed = true;
                     }
                 }
                 _ => {}
@@ -187,26 +188,12 @@ pub fn handle_wave_menu(
             director.next_wave();
             // create wave announcer
             gui.add_element(0, construct_wave_announcer(ctx, director.get_wave()));
-            // make sure spells are correct
-            gui.remove_elements(super::game_ui::ID_SPELL_BAR_CHILDREN);
-            gui.add_element(
-                super::game_ui::ID_SPELL_BAR,
-                caster
-                    .get_spells()
-                    .iter()
-                    .fold(
-                        containers::HorizontalBox::new_spaced(16.)
-                            .to_element_builder(super::game_ui::ID_SPELL_BAR_CHILDREN, ctx),
-                        |loadout, spell| loadout.with_child(spell.info_element_small(0, ctx)),
-                    )
-                    .build(),
-            );
         }
     }
     }
 
     if player_sync_needed {
-        sync_spellslots(ctx, gui, world, resources);
+        sync_ui(ctx, gui, world, resources);
     }
 }
 
@@ -814,7 +801,7 @@ fn construct_wave_announcer(ctx: &ggez::Context, wave: u32) -> UiElement<game_st
     dur
 }
 
-fn sync_spellslots(
+pub fn sync_ui(
     ctx: &ggez::Context,
     gui: &mut mooeye::UiElement<game_state::GameMessage>,
     world: &mut legion::World,
@@ -825,6 +812,9 @@ fn sync_spellslots(
     if let Some(player_ent) = resources.get::<game_state::Entity>();
     if let Ok(mut player) = world.entry_mut(*player_ent);
         then{
+
+            // sync spell
+
             if let Ok(caster) = player.get_component_mut::<game_state::components::SpellCaster>(){
                 // game sync
                 caster.set_extra_slots(data.buildings.target[buildings::BuildingType::Manawell as usize] as usize);
@@ -836,7 +826,25 @@ fn sync_spellslots(
                         super::game_ui::create_spellslot(ctx, i),
                     );
                 }
+
+                // ui_sync
+                gui.remove_elements(super::game_ui::ID_SPELL_BAR_CHILDREN);
+                gui.add_element(
+                    super::game_ui::ID_SPELL_BAR,
+                    caster
+                        .get_spells()
+                        .iter()
+                        .fold(
+                            containers::HorizontalBox::new_spaced(16.)
+                                .to_element_builder(super::game_ui::ID_SPELL_BAR_CHILDREN, ctx),
+                            |loadout, spell| loadout.with_child(spell.info_element_small(0, ctx)),
+                        )
+                        .build(),
+                );
             }
+
+
+            // sync move speed
 
             if let Ok(control) = player.get_component_mut::<game_state::components::Control>(){
                 // game sync

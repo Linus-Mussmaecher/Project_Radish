@@ -119,9 +119,6 @@ impl GameState {
         message_set.insert(UiMessage::Extern(GameMessage::UpdateCityHealth(
             game_data.city_health,
         )));
-        // send a message to 'init the next wave'. The director does not start in the waiting_for_menu state
-        // so nothing will happen on the director.next_wave() call in wave_menu, but the spells will be updated.
-        message_set.insert(UiMessage::Triggered(ui::wave_menu::ID_NEXT_WAVE));
 
         // --- RESOURCE INSERTION ---
 
@@ -135,11 +132,16 @@ impl GameState {
         resources.insert(sprite_pool);
         resources.insert(audio_pool);
 
+        // --- UI CREATION ---
+
+        let mut gui = ui::game_ui::construct_game_ui(ctx, config.clone())?;
+        ui::wave_menu::sync_ui(ctx, &mut gui, &mut world, &mut resources);
+
         // --- SYSTEM REGISTRY / UI CONSTRUCTION / CONTROLLER INITIALIZATION ---
         Ok(Self {
             world,
             camera_offset: (config.initial_camera_offset, config.initial_camera_offset),
-            gui: ui::game_ui::construct_game_ui(ctx, config)?,
+            gui,
             music_player,
             action_prod_schedule: Schedule::builder()
                 // director
@@ -344,18 +346,20 @@ impl scene_manager::Scene for GameState {
         let mut switch = scene_manager::SceneSwitch::None;
 
         // acquire messages
-        let total_messages = self.gui.update(
-            ctx,
-            if let Some(mut message_set) = self.resources.get_mut::<MessageSet>() {
-                // if message set can be retrieved, drain it
-                message_set
-                    .drain()
-                    .collect::<std::collections::HashSet<UiMessage<GameMessage>>>()
-            } else {
-                // otherwise, just put no messages
-                std::collections::HashSet::new()
-            },
-        );
+        let total_messages = if let Some(mut message_set) = self.resources.get_mut::<MessageSet>() {
+            // if message set can be retrieved, drain it
+            self.gui
+                .update(ctx, message_set.clone())
+                .union(
+                    &message_set
+                        .drain()
+                        .collect::<std::collections::HashSet<UiMessage<GameMessage>>>(),
+                )
+                .copied()
+                .collect()
+        } else {
+            self.gui.update(ctx, None)
+        };
 
         // handle wave menu
         ui::wave_menu::handle_wave_menu(
