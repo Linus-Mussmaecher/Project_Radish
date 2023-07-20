@@ -1,15 +1,15 @@
 [package]
 name = "radish"
-version = "1.1.0"
+version = "1.2.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 # Framework
-ggez = "0.9.0-rc0"
+ggez = "^0.9"
 # UI
-mooeye = {git = "https://github.com/Linus-Mussmaecher/mooeye"}
+mooeye = "^0.3"
 # ECS
 legion = "^0.4"
 # Serialization
