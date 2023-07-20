@@ -1,11 +1,11 @@
 use ggez::{graphics, GameError};
-use mooeye::{ui_element::UiContainer, *};
+use mooeye::{scene_manager, ui, ui::UiContainer, ui::UiContent};
 
 use super::game_state::achievements;
 use crate::PALETTE;
 
 pub struct AchievementMenu {
-    gui: UiElement<()>,
+    gui: ui::UiElement<()>,
 }
 
 impl AchievementMenu {
@@ -26,7 +26,7 @@ impl AchievementMenu {
             achievements::AchievementProgressSource::File("./data/achievements.toml".to_owned()),
         );
 
-        let mut achievements = mooeye::containers::GridBox::new(4, (a_list.list.len() - 1) / 4 + 1);
+        let mut achievements = ui::containers::GridBox::new(4, (a_list.list.len() - 1) / 4 + 1);
         for (index, ach) in a_list.list.iter().enumerate() {
             achievements.add(ach.info_element_small(ctx), index % 4, index / 4)?;
         }
@@ -64,7 +64,7 @@ impl AchievementMenu {
 
         // Container
 
-        let mut credits_box = mooeye::containers::VerticalBox::new();
+        let mut credits_box = ui::containers::VerticalBox::new();
         credits_box.add(title);
         credits_box.add(achievements);
         credits_box.add(reset);
@@ -73,7 +73,7 @@ impl AchievementMenu {
         let credits_box = credits_box
             .to_element_builder(0, ctx)
             .with_visuals(super::BUTTON_VIS)
-            .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Center)
+            .with_alignment(ui::Alignment::Max, ui::Alignment::Center)
             .with_offset(-25., 0.)
             .with_padding((25., 25., 25., 25.))
             .build();
@@ -86,10 +86,10 @@ impl scene_manager::Scene for AchievementMenu {
     fn update(
         &mut self,
         ctx: &mut ggez::Context,
-    ) -> Result<mooeye::scene_manager::SceneSwitch, ggez::GameError> {
+    ) -> Result<scene_manager::SceneSwitch, ggez::GameError> {
         let messages = self.gui.manage_messages(ctx, None);
 
-        if messages.contains(&mooeye::UiMessage::Triggered(2)) {
+        if messages.contains(&ui::UiMessage::Triggered(2)) {
             let mut a_list = achievements::AchievementSet::load(
                 ctx,
                 achievements::AchievementProgressSource::File(
@@ -102,10 +102,10 @@ impl scene_manager::Scene for AchievementMenu {
             a_list.save();
         }
 
-        if messages.contains(&mooeye::UiMessage::Triggered(1)) {
-            Ok(mooeye::scene_manager::SceneSwitch::Pop(1))
+        if messages.contains(&ui::UiMessage::Triggered(1)) {
+            Ok(scene_manager::SceneSwitch::Pop(1))
         } else {
-            Ok(mooeye::scene_manager::SceneSwitch::None)
+            Ok(scene_manager::SceneSwitch::None)
         }
     }
 

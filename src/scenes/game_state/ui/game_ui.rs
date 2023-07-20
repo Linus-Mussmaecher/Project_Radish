@@ -1,7 +1,7 @@
 use ggez::{graphics, GameError};
 
-use mooeye::ui_element::UiContainer;
 use mooeye::*;
+use mooeye::{ui, ui::UiContainer, ui::UiContent};
 use std::hash::Hash;
 use std::time::Duration;
 
@@ -24,14 +24,14 @@ pub const ID_MANA_SLOT: u32 = 51;
 pub fn construct_game_ui(
     ctx: &ggez::Context,
     config: super::game_state::GameConfig,
-) -> Result<UiElement<super::super::GameMessage>, GameError> {
+) -> Result<ui::UiElement<super::super::GameMessage>, GameError> {
     // options icon
     let cog_icon = graphics::Image::from_path(ctx, "/sprites/ui/cog.png")?
         .to_element_builder(1, ctx)
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::F10)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
-        .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Max)
+        .with_alignment(ui::Alignment::Max, ui::Alignment::Max)
         .scaled(2., 2.)
         .with_offset(-10., -10.)
         .as_shrink()
@@ -68,11 +68,9 @@ pub fn construct_game_ui(
     )
     .with_message_handler(|message_set, _, transitions| {
         for message in message_set {
-            if let ui_element::UiMessage::Extern(game_state::GameMessage::UpdateGold(new_gold)) =
-                message
-            {
+            if let ui::UiMessage::Extern(game_state::GameMessage::UpdateGold(new_gold)) = message {
                 transitions.push_back(
-                    ui_element::Transition::new(Duration::ZERO).with_new_content(
+                    ui::Transition::new(Duration::ZERO).with_new_content(
                         graphics::Text::new(
                             graphics::TextFragment::new(format!("{:04}", *new_gold))
                                 .color(graphics::Color::from_rgb_u32(PALETTE[6])),
@@ -119,12 +117,11 @@ pub fn construct_game_ui(
     )
     .with_message_handler(|message_set, _, transitions| {
         for message in message_set {
-            if let ui_element::UiMessage::Extern(game_state::GameMessage::UpdateCityHealth(
-                new_health,
-            )) = message
+            if let ui::UiMessage::Extern(game_state::GameMessage::UpdateCityHealth(new_health)) =
+                message
             {
                 transitions.push_back(
-                    ui_element::Transition::new(Duration::ZERO).with_new_content(
+                    ui::Transition::new(Duration::ZERO).with_new_content(
                         graphics::Text::new(
                             graphics::TextFragment::new(format!("{:03}", *new_health))
                                 .color(graphics::Color::from_rgb_u32(PALETTE[6])),
@@ -139,7 +136,7 @@ pub fn construct_game_ui(
     })
     .build();
 
-    let mut data_box = containers::GridBox::new(2, 2);
+    let mut data_box = ui::containers::GridBox::new(2, 2);
     data_box.add(gold_icon, 0, 0)?;
     data_box.add(gold_text, 1, 0)?;
     data_box.add(city_display, 0, 1)?;
@@ -148,13 +145,13 @@ pub fn construct_game_ui(
     let data_box = data_box
         .to_element_builder(0, ctx)
         .with_visuals(super::BUTTON_VIS)
-        .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Min)
+        .with_alignment(ui::Alignment::Max, ui::Alignment::Min)
         .with_offset(-8., 8.)
         .build();
 
     // Spells
 
-    let mut slot_box = containers::HorizontalBox::new();
+    let mut slot_box = ui::containers::HorizontalBox::new();
 
     for i in 0..config.base_slots {
         slot_box.add(create_spellslot(ctx, i));
@@ -162,48 +159,48 @@ pub fn construct_game_ui(
 
     let slot_box = slot_box
         .to_element_builder(ID_MANA_BAR, ctx)
-        .with_visuals(mooeye::ui_element::Visuals {
+        .with_visuals(mooeye::ui::Visuals {
             border_widths: [0., 3., 3., 3.],
             corner_radii: [0., 3., 3., 0.],
             ..super::BUTTON_VIS
         })
-        .with_alignment(ui_element::Alignment::Min, ui_element::Alignment::Min)
+        .with_alignment(ui::Alignment::Min, ui::Alignment::Min)
         .with_offset(32., None)
         .build();
 
-    let spell_box = containers::StackBox::new()
+    let spell_box = ui::containers::StackBox::new()
         .to_element_builder(ID_SPELL_BAR, ctx)
-        .with_visuals(mooeye::ui_element::Visuals {
+        .with_visuals(mooeye::ui::Visuals {
             border_widths: [3., 3., 0., 3.],
             corner_radii: [3., 0., 0., 3.],
             ..super::BUTTON_VIS
         })
         .with_padding((5., 5., 0., 5.))
-        .with_alignment(ui_element::Alignment::Min, ui_element::Alignment::Max)
+        .with_alignment(ui::Alignment::Min, ui::Alignment::Max)
         .with_offset(32., None)
         .build();
 
-    let achievement_box = containers::VerticalBox::new()
+    let achievement_box = ui::containers::VerticalBox::new()
         .to_element_builder(super::super::achievements::ACHIEVEMENT_BOX, ctx)
-        .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Max)
+        .with_alignment(ui::Alignment::Center, ui::Alignment::Max)
         .with_offset(0., -25.)
         .with_size(
-            ui_element::Size::Fill(0., f32::INFINITY),
-            ui_element::Size::Shrink(0., f32::INFINITY),
+            ui::Size::Fill(0., f32::INFINITY),
+            ui::Size::Shrink(0., f32::INFINITY),
         )
         .build();
 
-    let tutorial_box = containers::VerticalBox::new()
+    let tutorial_box = ui::containers::VerticalBox::new()
         .to_element_builder(super::super::tutorial::TUTORIAL_BOX, ctx)
-        .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Center)
+        .with_alignment(ui::Alignment::Max, ui::Alignment::Center)
         .with_offset(-8., None)
         .with_size(
-            ui_element::Size::Shrink(0., f32::INFINITY),
-            ui_element::Size::Shrink(0., f32::INFINITY),
+            ui::Size::Shrink(0., f32::INFINITY),
+            ui::Size::Shrink(0., f32::INFINITY),
         )
         .build();
 
-    Ok(containers::StackBox::new()
+    Ok(ui::containers::StackBox::new()
         .to_element_builder(0, ctx)
         .with_child(achievement_box)
         .with_child(tutorial_box)
@@ -215,7 +212,7 @@ pub fn construct_game_ui(
         .build())
 }
 
-pub fn create_spellslot(ctx: &ggez::Context, i: usize) -> UiElement<game_state::GameMessage> {
+pub fn create_spellslot(ctx: &ggez::Context, i: usize) -> ui::UiElement<game_state::GameMessage> {
     let mana = graphics::Image::from_path(ctx, "/sprites/spells/mana.png")
         .expect("[ERROR] Could not unpack mana symbol. Aborting.")
         .to_element_builder(0, ctx)
@@ -229,14 +226,14 @@ pub fn create_spellslot(ctx: &ggez::Context, i: usize) -> UiElement<game_state::
         .to_element_builder(0, ctx)
         .with_message_handler(move |message_set, _layout, transitions| {
             for message in message_set {
-                if let ui_element::UiMessage::Extern(game_state::GameMessage::UpdateSpellSlots(
+                if let ui::UiMessage::Extern(game_state::GameMessage::UpdateSpellSlots(
                     index,
                     value,
                 )) = message
                 {
                     if *index == i {
                         transitions.push_back(
-                            ui_element::Transition::new(Duration::ZERO)
+                            ui::Transition::new(Duration::ZERO)
                                 .with_new_content(Covering::new(col, *value as f32 / 32.)),
                         );
                     }
@@ -246,7 +243,7 @@ pub fn create_spellslot(ctx: &ggez::Context, i: usize) -> UiElement<game_state::
         .as_fill()
         .build();
 
-    let mut stack = containers::StackBox::new();
+    let mut stack = ui::containers::StackBox::new();
     let mana_layout = mana.get_layout();
     stack.add(progress);
     stack.add(mana);
@@ -273,12 +270,12 @@ impl Covering {
     }
 }
 
-impl<T: Copy + Eq + Hash> UiContent<T> for Covering {
+impl<T: Copy + Eq + Hash> ui::UiContent<T> for Covering {
     fn draw_content(
         &mut self,
         _ctx: &mut ggez::Context,
         canvas: &mut graphics::Canvas,
-        param: ui_element::UiDrawParam,
+        param: ui::UiDrawParam,
     ) {
         let mut target_mod = param.target;
         target_mod.y += (1. - self.covering) * target_mod.h;

@@ -1,7 +1,8 @@
 use crate::{music, options};
 use ggez::{glam::Vec2, graphics, GameError};
 use legion::{component, systems::CommandBuffer, Entity, IntoQuery, Resources, Schedule, World};
-use mooeye::*;
+use mooeye::ui as mui;
+use mooeye::{scene_manager, sprite};
 
 use std::time::Duration;
 
@@ -45,7 +46,7 @@ pub struct GameState {
     /// The main gameplay schedule, producing and consuming actions
     action_prod_schedule: Schedule,
     /// The in-game GUI.
-    gui: UiElement<GameMessage>,
+    gui: mui::UiElement<GameMessage>,
     /// The player for the background music
     music_player: music::MusicPlayer,
     /// The achievement set listening to achievement fulfils
@@ -116,7 +117,7 @@ impl GameState {
 
         let mut message_set = MessageSet::new();
         // insert this to make sure the city health is displayed correctly
-        message_set.insert(UiMessage::Extern(GameMessage::UpdateCityHealth(
+        message_set.insert(mui::UiMessage::Extern(GameMessage::UpdateCityHealth(
             game_data.city_health,
         )));
 
@@ -353,7 +354,7 @@ impl scene_manager::Scene for GameState {
                 .union(
                     &message_set
                         .drain()
-                        .collect::<std::collections::HashSet<UiMessage<GameMessage>>>(),
+                        .collect::<std::collections::HashSet<mui::UiMessage<GameMessage>>>(),
                 )
                 .copied()
                 .collect()
@@ -377,12 +378,12 @@ impl scene_manager::Scene for GameState {
         }
 
         // Escape menu
-        if total_messages.contains(&UiMessage::Triggered(1)) {
+        if total_messages.contains(&mui::UiMessage::Triggered(1)) {
             self.achievements.save();
             switch = scene_manager::SceneSwitch::push(ui::in_game_menu::InGameMenu::new(ctx)?);
         }
 
-        if total_messages.contains(&UiMessage::Triggered(tutorial::TUTORIAL_CLOSE)) {
+        if total_messages.contains(&mui::UiMessage::Triggered(tutorial::TUTORIAL_CLOSE)) {
             self.gui.remove_elements(tutorial::TUTORIAL_INNER);
         }
 

@@ -176,7 +176,7 @@ pub fn direct(
         }
         DirectorState::WaitingForDead => {
             if enemy_query.iter(subworld).count() == 0 {
-                messages.insert(mooeye::UiMessage::Extern(GameMessage::NextWave(
+                messages.insert(mooeye::ui::UiMessage::Extern(GameMessage::NextWave(
                     director.wave as i32 + 1,
                 )));
                 director.reroll_wave_enemies();

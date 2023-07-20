@@ -76,15 +76,15 @@ pub fn resolve_gama_data(
     }
 
     if game_data.last_gold != game_data.gold {
-        messages.insert(mooeye::UiMessage::Extern(GameMessage::UpdateGold(
+        messages.insert(mooeye::ui::UiMessage::Extern(GameMessage::UpdateGold(
             game_data.gold,
         )));
         game_data.last_gold = game_data.gold;
     }
 
     if change_city {
-        messages.insert(mooeye::UiMessage::Extern(GameMessage::UpdateCityHealth(
-            game_data.city_health,
-        )));
+        messages.insert(mooeye::ui::UiMessage::Extern(
+            GameMessage::UpdateCityHealth(game_data.city_health),
+        ));
     }
 }

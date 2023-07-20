@@ -115,7 +115,7 @@ pub fn create_buildings(
                     ));
                 }
                 // inform everyone
-                message_set.insert(mooeye::UiMessage::Extern(
+                message_set.insert(mooeye::ui::UiMessage::Extern(
                     super::super::game_message::GameMessage::BuildingUp(
                         i,
                         data.buildings.target[i],
@@ -126,7 +126,7 @@ pub fn create_buildings(
             }
             std::cmp::Ordering::Less => {
                 // inform everyone of downlevel
-                message_set.insert(mooeye::UiMessage::Extern(
+                message_set.insert(mooeye::ui::UiMessage::Extern(
                     super::super::game_message::GameMessage::BuildingDown(
                         i,
                         data.buildings.target[i],

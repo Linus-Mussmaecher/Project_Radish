@@ -1,10 +1,10 @@
 use ggez::{graphics, GameError};
-use mooeye::{ui_element::UiContainer, *};
+use mooeye::{scene_manager, ui, ui::UiContainer, ui::UiContent};
 
 use crate::PALETTE;
 
 pub struct CreditsMenu {
-    gui: UiElement<()>,
+    gui: ui::UiElement<()>,
 }
 
 impl CreditsMenu {
@@ -111,7 +111,7 @@ impl CreditsMenu {
 
         // Container
 
-        let mut credits_box = mooeye::containers::VerticalBox::new();
+        let mut credits_box = ui::containers::VerticalBox::new();
         credits_box.add(title);
         credits_box.add(text);
         credits_box.add(back);
@@ -119,7 +119,7 @@ impl CreditsMenu {
         let credits_box = credits_box
             .to_element_builder(0, ctx)
             .with_visuals(super::BUTTON_VIS)
-            .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Center)
+            .with_alignment(ui::Alignment::Max, ui::Alignment::Center)
             .with_offset(-25., 0.)
             .with_padding((25., 25., 25., 25.))
             .build();
@@ -132,13 +132,13 @@ impl scene_manager::Scene for CreditsMenu {
     fn update(
         &mut self,
         ctx: &mut ggez::Context,
-    ) -> Result<mooeye::scene_manager::SceneSwitch, ggez::GameError> {
+    ) -> Result<scene_manager::SceneSwitch, ggez::GameError> {
         let messages = self.gui.manage_messages(ctx, None);
 
-        if messages.contains(&mooeye::UiMessage::Triggered(1)) {
-            Ok(mooeye::scene_manager::SceneSwitch::Pop(1))
+        if messages.contains(&ui::UiMessage::Triggered(1)) {
+            Ok(scene_manager::SceneSwitch::Pop(1))
         } else {
-            Ok(mooeye::scene_manager::SceneSwitch::None)
+            Ok(scene_manager::SceneSwitch::None)
         }
     }
 

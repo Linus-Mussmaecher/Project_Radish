@@ -9,7 +9,7 @@ edition = "2021"
 # Framework
 ggez = "^0.9"
 # UI
-mooeye = "^0.3"
+mooeye = "^0.4"
 # ECS
 legion = "^0.4"
 # Serialization

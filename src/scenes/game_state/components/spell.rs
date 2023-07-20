@@ -1,6 +1,6 @@
 use ggez::graphics;
 use legion::system;
-use mooeye::{containers, ui_element, UiContent};
+use mooeye::{ui, ui::UiContent};
 use std::time::Duration;
 use tinyvec::TinyVec;
 
@@ -209,7 +209,7 @@ pub fn spell_casting(
 
     for (i, slot) in caster.spell_slots.iter().enumerate() {
         if !slot.1.is_zero() {
-            messages.insert(mooeye::UiMessage::Extern(
+            messages.insert(ui::UiMessage::Extern(
                 game_message::GameMessage::UpdateSpellSlots(
                     i,
                     (slot.0.as_secs_f32() / slot.1.as_secs_f32() * 32.) as u8,
@@ -300,7 +300,7 @@ impl SpellTemplate {
         id: u32,
         ctx: &ggez::Context,
         buildings: &super::buildings::Buildings,
-    ) -> mooeye::UiElement<T> {
+    ) -> ui::UiElement<T> {
         let icon = self.spell.info_element_small(0, ctx);
 
         let cost = graphics::Text::new(
@@ -312,14 +312,14 @@ impl SpellTemplate {
         .to_owned()
         .to_element_builder(0, ctx)
         .with_padding((2., 2., 2., 2.))
-        .with_visuals(ui_element::Visuals {
+        .with_visuals(ui::Visuals {
             background: graphics::Color::from_rgb_u32(PALETTE[8]),
             border: graphics::Color::from_rgb_u32(PALETTE[8]),
             border_widths: [0.; 4],
             corner_radii: [10.; 4],
         })
         .as_shrink()
-        .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Max)
+        .with_alignment(ui::Alignment::Max, ui::Alignment::Max)
         .build();
 
         let guild = graphics::Text::new(
@@ -331,17 +331,17 @@ impl SpellTemplate {
         .to_owned()
         .to_element_builder(0, ctx)
         .with_padding((2., 2., 2., 2.))
-        .with_visuals(ui_element::Visuals {
+        .with_visuals(ui::Visuals {
             background: graphics::Color::from_rgb_u32(PALETTE[4]),
             border: graphics::Color::from_rgb_u32(PALETTE[4]),
             border_widths: [0.; 4],
             corner_radii: [10.; 4],
         })
         .as_shrink()
-        .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Min)
+        .with_alignment(ui::Alignment::Max, ui::Alignment::Min)
         .build();
 
-        containers::StackBox::new()
+        ui::containers::StackBox::new()
             .to_element_builder(id, ctx)
             .with_wrapper_layout(icon.get_layout())
             .with_child(if self.level == 0 && self.cost != 0 {
@@ -427,15 +427,12 @@ impl Spell {
         &self,
         id: u32,
         ctx: &ggez::Context,
-    ) -> mooeye::UiElement<T> {
+    ) -> ui::UiElement<T> {
         self.icon
             .clone()
             .to_element_builder(id, ctx)
             .with_visuals(crate::scenes::BUTTON_VIS)
-            .with_size(
-                mooeye::ui_element::Size::Fixed(48.),
-                mooeye::ui_element::Size::Fixed(48.),
-            )
+            .with_size(ui::Size::Fixed(48.), ui::Size::Fixed(48.))
             .with_tooltip(
                 graphics::Text::new(
                     graphics::TextFragment::new(&self.name)

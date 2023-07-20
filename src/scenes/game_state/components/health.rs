@@ -85,7 +85,7 @@ pub fn destroy_by_health(
             actions.push(actions::GameAction::GainGold {
                 amount: enemy.bounty,
             });
-            messages.insert(mooeye::UiMessage::Extern(
+            messages.insert(mooeye::ui::UiMessage::Extern(
                 game_message::GameMessage::EnemyKilled(enemy.id),
             ));
         }

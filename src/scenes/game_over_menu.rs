@@ -1,6 +1,6 @@
 use super::game_state::achievements;
 use ggez::{graphics, GameError};
-use mooeye::{ui_element::UiContainer, *};
+use mooeye::{scene_manager, ui, ui::UiContainer, ui::UiContent};
 
 use crate::music;
 use crate::PALETTE;
@@ -8,7 +8,7 @@ use crate::PALETTE;
 /// The Menu that is shown over the game state when the game ends.
 pub struct GameOverMenu {
     /// The UI.
-    ui: UiElement<()>,
+    ui: ui::UiElement<()>,
     /// The music player
     music_player: music::MusicPlayer,
 }
@@ -47,7 +47,7 @@ impl GameOverMenu {
 
         // create UI
 
-        let mut main_box = containers::VerticalBox::new();
+        let mut main_box = ui::containers::VerticalBox::new();
         main_box.spacing = 25.;
 
         // title
@@ -65,7 +65,7 @@ impl GameOverMenu {
 
         // horizontal box with own score left and highscores right
 
-        let mut score_box = containers::HorizontalBox::new();
+        let mut score_box = ui::containers::HorizontalBox::new();
         score_box.spacing = 35.;
 
         // own score + congratulatory message
@@ -94,7 +94,7 @@ impl GameOverMenu {
         .set_font("Retro_M")
         .to_owned()
         .to_element_builder(0, ctx)
-        .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Min)
+        .with_alignment(ui::Alignment::Center, ui::Alignment::Min)
         .build();
         score_box.add(score_disp);
 
@@ -129,7 +129,7 @@ impl GameOverMenu {
             .set_font("Retro_M")
             .to_owned()
             .to_element_builder(0, ctx)
-            .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Min)
+            .with_alignment(ui::Alignment::Center, ui::Alignment::Min)
             .build();
 
         score_box.add(highscore_disp);
@@ -172,7 +172,7 @@ impl GameOverMenu {
         let main_box = main_box
             .to_element_builder(0, ctx)
             .with_visuals(super::BUTTON_VIS)
-            .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Center)
+            .with_alignment(ui::Alignment::Center, ui::Alignment::Center)
             .with_padding((25., 25., 25., 25.))
             .build();
 
@@ -196,7 +196,7 @@ impl scene_manager::Scene for GameOverMenu {
 
         // restart the game
 
-        if messages.contains(&mooeye::UiMessage::Triggered(1)) {
+        if messages.contains(&ui::UiMessage::Triggered(1)) {
             self.music_player.stop(ctx);
             return Ok(mooeye::scene_manager::SceneSwitch::replace(
                 super::game_state::GameState::new(ctx, super::game_state::GameConfig::default())?,
@@ -206,7 +206,7 @@ impl scene_manager::Scene for GameOverMenu {
 
         // return to main menu
 
-        if messages.contains(&mooeye::UiMessage::Triggered(2)) {
+        if messages.contains(&ui::UiMessage::Triggered(2)) {
             self.music_player.stop(ctx);
             return Ok(mooeye::scene_manager::SceneSwitch::replace(
                 super::main_menu::MainMenu::new(ctx)?,

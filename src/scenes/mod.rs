@@ -2,7 +2,7 @@ pub mod game_over_menu;
 pub mod game_state;
 pub mod main_menu;
 
-const BUTTON_VIS: mooeye::ui_element::Visuals = mooeye::ui_element::Visuals {
+const BUTTON_VIS: mooeye::ui::Visuals = mooeye::ui::Visuals {
     background: {
         let c = crate::PALETTE[0].to_be_bytes();
         ggez::graphics::Color::new(
@@ -25,7 +25,7 @@ const BUTTON_VIS: mooeye::ui_element::Visuals = mooeye::ui_element::Visuals {
     corner_radii: [3.; 4],
 };
 
-const BUTTON_HOVER_VIS: mooeye::ui_element::Visuals = mooeye::ui_element::Visuals {
+const BUTTON_HOVER_VIS: mooeye::ui::Visuals = mooeye::ui::Visuals {
     background: {
         let c = crate::PALETTE[1].to_be_bytes();
         ggez::graphics::Color::new(

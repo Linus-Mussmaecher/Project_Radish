@@ -1,7 +1,7 @@
 use std::fs;
 
 use ggez::graphics;
-use mooeye::{ui_element::UiContainer, *};
+use mooeye::{ui, ui::UiContainer, ui::UiContent};
 use serde::{Deserialize, Serialize};
 
 use crate::PALETTE;
@@ -70,7 +70,7 @@ impl Achievement {
     pub fn info_element_small<T: Copy + Eq + std::hash::Hash + 'static>(
         &self,
         ctx: &ggez::Context,
-    ) -> mooeye::UiElement<T> {
+    ) -> ui::UiElement<T> {
         if self.is_achieved() && self.icon.is_some() {
             self.icon.clone().unwrap()
         } else {
@@ -111,8 +111,8 @@ impl Achievement {
     pub fn info_element_large<T: Copy + Eq + std::hash::Hash + 'static>(
         &self,
         ctx: &ggez::Context,
-    ) -> mooeye::UiElement<T> {
-        let mut ach_box = containers::HorizontalBox::new();
+    ) -> ui::UiElement<T> {
+        let mut ach_box = ui::containers::HorizontalBox::new();
 
         if let Ok(trophy) = graphics::Image::from_path(ctx, "/sprites/achievements/a00_16_16.png") {
             ach_box.add(trophy.to_element_builder(0, ctx).scaled(4., 4.).build());
@@ -348,16 +348,16 @@ struct AchievementProgress {
 impl MessageReceiver for AchievementSet {
     fn receive(
         &mut self,
-        message: &mooeye::UiMessage<GameMessage>,
-        gui: &mut UiElement<GameMessage>,
+        message: &ui::UiMessage<GameMessage>,
+        gui: &mut ui::UiElement<GameMessage>,
         ctx: &ggez::Context,
     ) {
-        if let mooeye::UiMessage::Extern(gm) = message {
+        if let ui::UiMessage::Extern(gm) = message {
             for ach in self.list.iter_mut() {
                 if ach.listen(gm) {
                     gui.add_element(
                         ACHIEVEMENT_BOX,
-                        containers::DurationBox::new(
+                        ui::containers::DurationBox::new(
                             std::time::Duration::from_secs(15),
                             ach.info_element_large(ctx),
                         )

@@ -1,4 +1,4 @@
-use mooeye::{UiElement, UiMessage};
+use mooeye::ui;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, std::hash::Hash)]
 pub enum GameMessage {
@@ -55,29 +55,29 @@ impl GameMessageFilter {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum UiMessageFilter {
-    Ui(UiMessage<GameMessage>),
+    Ui(ui::UiMessage<GameMessage>),
     Ext(GameMessage, GameMessageFilter),
 }
 
 impl UiMessageFilter {
-    pub fn check(&self, to_check: &UiMessage<GameMessage>) -> bool {
+    pub fn check(&self, to_check: &ui::UiMessage<GameMessage>) -> bool {
         match self {
             UiMessageFilter::Ui(model) => model == to_check,
             UiMessageFilter::Ext(model, filter) => match to_check {
-                UiMessage::Extern(content) => filter.check(model, content),
+                ui::UiMessage::Extern(content) => filter.check(model, content),
                 _ => false,
             },
         }
     }
 }
 
-pub type MessageSet = std::collections::HashSet<mooeye::UiMessage<GameMessage>>;
+pub type MessageSet = std::collections::HashSet<ui::UiMessage<GameMessage>>;
 
 pub trait MessageReceiver {
     fn receive(
         &mut self,
-        message: &mooeye::UiMessage<GameMessage>,
-        gui: &mut UiElement<GameMessage>,
+        message: &ui::UiMessage<GameMessage>,
+        gui: &mut ui::UiElement<GameMessage>,
         ctx: &ggez::Context,
     );
 }

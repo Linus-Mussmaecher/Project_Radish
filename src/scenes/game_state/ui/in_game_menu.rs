@@ -1,10 +1,10 @@
 use ggez::{graphics, GameError};
-use mooeye::*;
+use mooeye::{scene_manager, ui, ui::UiContent};
 
 use crate::PALETTE;
 
 pub struct InGameMenu {
-    gui: UiElement<()>,
+    gui: ui::UiElement<()>,
 }
 
 impl InGameMenu {
@@ -77,7 +77,7 @@ impl InGameMenu {
 
         // Container
 
-        let menu_box = containers::VerticalBox::new_spaced(25.)
+        let menu_box = ui::containers::VerticalBox::new_spaced(25.)
             .to_element_builder(0, ctx)
             .with_child(pause)
             .with_child(resume)
@@ -85,7 +85,7 @@ impl InGameMenu {
             .with_child(main_menu)
             .with_child(quit)
             .with_visuals(super::BUTTON_VIS)
-            .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Center)
+            .with_alignment(ui::Alignment::Center, ui::Alignment::Center)
             .with_padding((25., 25., 25., 25.))
             .build();
 
@@ -102,24 +102,24 @@ impl scene_manager::Scene for InGameMenu {
 
         let mut res = scene_manager::SceneSwitch::None;
 
-        if messages.contains(&UiMessage::Triggered(1)) {
+        if messages.contains(&ui::UiMessage::Triggered(1)) {
             res = scene_manager::SceneSwitch::pop(1);
         }
 
-        if messages.contains(&mooeye::UiMessage::Triggered(2)) {
+        if messages.contains(&ui::UiMessage::Triggered(2)) {
             res = mooeye::scene_manager::SceneSwitch::push(
                 crate::scenes::main_menu::achievement_menu::AchievementMenu::new(ctx)?,
             );
         }
 
-        if messages.contains(&UiMessage::Triggered(3)) {
+        if messages.contains(&ui::UiMessage::Triggered(3)) {
             res = scene_manager::SceneSwitch::replace(
                 crate::scenes::main_menu::MainMenu::new(ctx)?,
                 2,
             );
         }
 
-        if messages.contains(&UiMessage::Triggered(4)) {
+        if messages.contains(&ui::UiMessage::Triggered(4)) {
             res = scene_manager::SceneSwitch::pop(2);
         }
 

@@ -3,7 +3,7 @@ use std::time::Duration;
 use ggez::graphics::{self, TextFragment};
 use if_chain::if_chain;
 use legion::EntityStore;
-use mooeye::{ui_element::UiContainer, *};
+use mooeye::{ui, ui::UiContainer, ui::UiContent};
 
 use super::game_state;
 use crate::{scenes::game_state::components::buildings, PALETTE};
@@ -26,7 +26,7 @@ const ID_SPELL_AVAIL_START: u32 = 240;
 
 pub fn handle_wave_menu(
     messages: &game_state::MessageSet,
-    gui: &mut mooeye::UiElement<game_state::GameMessage>,
+    gui: &mut ui::UiElement<game_state::GameMessage>,
     ctx: &ggez::Context,
     world: &mut legion::World,
     resources: &mut legion::Resources,
@@ -34,8 +34,8 @@ pub fn handle_wave_menu(
     // if neccessary: Spawn wave menu
     let mut player_sync_needed = false;
     for message in messages {
-        if let UiMessage::Extern(game_state::GameMessage::NextWave(wave)) = message {
-            gui.add_element(0, construct_wave_menu(ctx, (*wave - 1) as u32));
+        if let ui::UiMessage::Extern(game_state::GameMessage::NextWave(wave)) = message {
+            gui.add_element(0, construct_wave_menu(ctx, (wave - 1) as u32));
             player_sync_needed = true;
             break;
         }
@@ -51,7 +51,7 @@ pub fn handle_wave_menu(
         then{
 
         // enemies submenu
-        if messages.contains(&UiMessage::Triggered(ID_ENEMIES)) {
+        if messages.contains(&ui::UiMessage::Triggered(ID_ENEMIES)) {
             gui.remove_elements(ID_WAVE_SUBMENU);
             gui.add_element(
                 ID_WAVE_SUBMENU_CONT,
@@ -60,7 +60,7 @@ pub fn handle_wave_menu(
         }
 
         // spells submenu
-        if messages.contains(&UiMessage::Triggered(ID_SPELLS)) {
+        if messages.contains(&ui::UiMessage::Triggered(ID_SPELLS)) {
             gui.remove_elements(ID_WAVE_SUBMENU);
             gui.add_element(
                 ID_WAVE_SUBMENU_CONT,
@@ -69,7 +69,7 @@ pub fn handle_wave_menu(
         }
 
         // build submenu
-        if messages.contains(&UiMessage::Triggered(ID_HOUSE)) {
+        if messages.contains(&ui::UiMessage::Triggered(ID_HOUSE)) {
             gui.remove_elements(ID_WAVE_SUBMENU);
             gui.add_element(
                 ID_WAVE_SUBMENU_CONT,
@@ -83,7 +83,7 @@ pub fn handle_wave_menu(
             let mut triggered = false;
             match message {
                 // check for clicks if a spell in the shop index-range
-                UiMessage::Triggered(id)
+                ui::UiMessage::Triggered(id)
                     if *id >= ID_SPELL_AVAIL_START
                         && *id < ID_SPELL_AVAIL_START + spell_pool.1.len() as u32 =>
                 {
@@ -118,7 +118,7 @@ pub fn handle_wave_menu(
                 }
 
                 // check for clicks if a spell in the equipped spell index-range
-                UiMessage::Triggered(id)
+                ui::UiMessage::Triggered(id)
                     if *id >= ID_SPELL_EQUIP_START && *id < ID_SPELL_EQUIP_START + 4 =>
                 {
                     // calculate index
@@ -144,7 +144,7 @@ pub fn handle_wave_menu(
         }
 
         // reroll
-        if messages.contains(&UiMessage::Triggered(ID_REROLL))
+        if messages.contains(&ui::UiMessage::Triggered(ID_REROLL))
             && data.spend(director.get_reroll_cost())
             && data.buildings.target[buildings::BuildingType::Watchtower as usize] > 0
         {
@@ -159,7 +159,7 @@ pub fn handle_wave_menu(
         // buildings
         for i in 0..buildings::BUILDING_TYPES {
             let index = data.buildings.target[i] as usize;
-            if messages.contains(&UiMessage::Triggered(ID_BUILDINGS_START + i as u32))
+            if messages.contains(&ui::UiMessage::Triggered(ID_BUILDINGS_START + i as u32))
                 && index < buildings::BUILDING_MAX_LEVEL
                 && data.spend(
                     super::game_state::components::buildings::get_building_info(i).level_costs[index]
@@ -182,7 +182,7 @@ pub fn handle_wave_menu(
         }
 
         // close wave menu and activate next wave
-        if messages.contains(&UiMessage::Triggered(ID_NEXT_WAVE)) {
+        if messages.contains(&ui::UiMessage::Triggered(ID_NEXT_WAVE)) {
             gui.remove_elements(ID_WAVE_MENU);
             // initialize next wave from director
             director.next_wave();
@@ -201,7 +201,7 @@ pub fn handle_wave_menu(
 fn construct_wave_menu(
     ctx: &ggez::Context,
     wave_survived: u32,
-) -> UiElement<game_state::GameMessage> {
+) -> ui::UiElement<game_state::GameMessage> {
     // play happy sound
     let mut wave_done = ggez::audio::Source::new(ctx, "/audio/sounds/ui/wave_done.wav")
         .expect("Could not load wave end sound.");
@@ -229,10 +229,10 @@ fn construct_wave_menu(
             .build(),
         )
         .with_message_handler(|messages, _, transitions| {
-            if messages.contains(&UiMessage::Triggered(ID_ENEMIES)) {
+            if messages.contains(&ui::UiMessage::Triggered(ID_ENEMIES)) {
                 transitions.push_back(
-                    ui_element::Transition::new(Duration::ZERO)
-                        .with_new_visuals(ui_element::Visuals {
+                    ui::Transition::new(Duration::ZERO)
+                        .with_new_visuals(ui::Visuals {
                             border_widths: [3., 3., 0., 3.],
                             corner_radii: [3., 0., 0., 3.],
                             ..super::BUTTON_VIS
@@ -240,11 +240,11 @@ fn construct_wave_menu(
                         .with_new_hover_visuals(None),
                 )
             }
-            if messages.contains(&UiMessage::Triggered(ID_SPELLS))
-                || messages.contains(&UiMessage::Triggered(ID_HOUSE))
+            if messages.contains(&ui::UiMessage::Triggered(ID_SPELLS))
+                || messages.contains(&ui::UiMessage::Triggered(ID_HOUSE))
             {
                 transitions.push_back(
-                    ui_element::Transition::new(Duration::ZERO)
+                    ui::Transition::new(Duration::ZERO)
                         .with_new_visuals(super::BUTTON_VIS)
                         .with_new_hover_visuals(Some(super::BUTTON_HOVER_VIS)),
                 )
@@ -273,10 +273,10 @@ fn construct_wave_menu(
             .build(),
         )
         .with_message_handler(|messages, _, transitions| {
-            if messages.contains(&UiMessage::Triggered(ID_SPELLS)) {
+            if messages.contains(&ui::UiMessage::Triggered(ID_SPELLS)) {
                 transitions.push_back(
-                    ui_element::Transition::new(Duration::ZERO)
-                        .with_new_visuals(ui_element::Visuals {
+                    ui::Transition::new(Duration::ZERO)
+                        .with_new_visuals(ui::Visuals {
                             border_widths: [3., 3., 0., 3.],
                             corner_radii: [3., 0., 0., 3.],
                             ..super::BUTTON_VIS
@@ -284,11 +284,11 @@ fn construct_wave_menu(
                         .with_new_hover_visuals(None),
                 )
             }
-            if messages.contains(&UiMessage::Triggered(ID_ENEMIES))
-                || messages.contains(&UiMessage::Triggered(ID_HOUSE))
+            if messages.contains(&ui::UiMessage::Triggered(ID_ENEMIES))
+                || messages.contains(&ui::UiMessage::Triggered(ID_HOUSE))
             {
                 transitions.push_back(
-                    ui_element::Transition::new(Duration::ZERO)
+                    ui::Transition::new(Duration::ZERO)
                         .with_new_visuals(super::BUTTON_VIS)
                         .with_new_hover_visuals(Some(super::BUTTON_HOVER_VIS)),
                 )
@@ -317,10 +317,10 @@ fn construct_wave_menu(
             .build(),
         )
         .with_message_handler(|messages, _, transitions| {
-            if messages.contains(&UiMessage::Triggered(ID_HOUSE)) {
+            if messages.contains(&ui::UiMessage::Triggered(ID_HOUSE)) {
                 transitions.push_back(
-                    ui_element::Transition::new(Duration::ZERO)
-                        .with_new_visuals(ui_element::Visuals {
+                    ui::Transition::new(Duration::ZERO)
+                        .with_new_visuals(ui::Visuals {
                             border_widths: [3., 3., 0., 3.],
                             corner_radii: [3., 0., 0., 3.],
                             ..super::BUTTON_VIS
@@ -328,11 +328,11 @@ fn construct_wave_menu(
                         .with_new_hover_visuals(None),
                 )
             }
-            if messages.contains(&UiMessage::Triggered(ID_ENEMIES))
-                || messages.contains(&UiMessage::Triggered(ID_SPELLS))
+            if messages.contains(&ui::UiMessage::Triggered(ID_ENEMIES))
+                || messages.contains(&ui::UiMessage::Triggered(ID_SPELLS))
             {
                 transitions.push_back(
-                    ui_element::Transition::new(Duration::ZERO)
+                    ui::Transition::new(Duration::ZERO)
                         .with_new_visuals(super::BUTTON_VIS)
                         .with_new_hover_visuals(Some(super::BUTTON_HOVER_VIS)),
                 )
@@ -362,22 +362,22 @@ fn construct_wave_menu(
         )
         .build();
 
-    let nav_row = containers::HorizontalBox::new_spaced(16.)
+    let nav_row = ui::containers::HorizontalBox::new_spaced(16.)
         .to_element_builder(0, ctx)
         .with_child(enemies)
         .with_child(spellbook)
         .with_child(house)
         .with_child(next)
-        .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Min)
-        .with_visuals(ui_element::Visuals {
+        .with_alignment(ui::Alignment::Center, ui::Alignment::Min)
+        .with_visuals(ui::Visuals {
             corner_radii: [3., 0., 0., 3.],
             border_widths: [0., 0., 3., 0.],
             ..super::BUTTON_VIS
         })
         .with_padding((8., 8., 0., 8.))
         .with_size(
-            ui_element::Size::Fill(0., f32::INFINITY),
-            ui_element::Size::Shrink(0., f32::INFINITY),
+            ui::Size::Fill(0., f32::INFINITY),
+            ui::Size::Shrink(0., f32::INFINITY),
         )
         .build();
 
@@ -401,10 +401,10 @@ fn construct_wave_menu(
     .to_element_builder(0, ctx)
     .build();
 
-    let submenu_cont = containers::StackBox::new()
+    let submenu_cont = ui::containers::StackBox::new()
         .to_element_builder(ID_WAVE_SUBMENU_CONT, ctx)
         .with_child(
-            containers::VerticalBox::new()
+            ui::containers::VerticalBox::new()
                 .to_element_builder(ID_WAVE_SUBMENU, ctx)
                 .with_child(title)
                 .with_child(wave_info)
@@ -414,14 +414,14 @@ fn construct_wave_menu(
         .with_padding((25., 25., 25., 25.))
         .build();
 
-    containers::VerticalBox::new_spaced(8.)
+    ui::containers::VerticalBox::new_spaced(8.)
         .to_element_builder(ID_WAVE_MENU, ctx)
         .with_child(nav_row)
         .with_child(submenu_cont)
         .with_padding((3., 3., 3., 3.))
         .with_visuals(super::BUTTON_VIS)
-        .with_size(ui_element::Size::Shrink(580., f32::INFINITY), None)
-        .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Min)
+        .with_size(ui::Size::Shrink(580., f32::INFINITY), None)
+        .with_alignment(ui::Alignment::Center, ui::Alignment::Min)
         .with_offset(None, 128.)
         .build()
 }
@@ -430,7 +430,7 @@ fn construct_enemies_menu(
     ctx: &ggez::Context,
     director: &super::game_state::director::Director,
     buildings: &mut game_state::components::buildings::Buildings,
-) -> UiElement<game_state::GameMessage> {
+) -> ui::UiElement<game_state::GameMessage> {
     // ---- Enemy display and reroll ----
 
     let title = graphics::Text::new(
@@ -443,7 +443,7 @@ fn construct_enemies_menu(
     .to_element_builder(0, ctx)
     .build();
 
-    let mut enemy_box = containers::HorizontalBox::new();
+    let mut enemy_box = ui::containers::HorizontalBox::new();
 
     for template in director.get_enemies() {
         enemy_box.add(
@@ -478,7 +478,7 @@ fn construct_enemies_menu(
 
     let enemy_box = enemy_box
         .to_element_builder(0, ctx)
-        .with_visuals(ui_element::Visuals {
+        .with_visuals(ui::Visuals {
             background: graphics::Color::from_rgb_u32(PALETTE[10]),
             ..super::BUTTON_VIS
         })
@@ -518,19 +518,19 @@ fn construct_enemies_menu(
             .build()
     };
 
-    let enemy_row = containers::HorizontalBox::new()
+    let enemy_row = ui::containers::HorizontalBox::new()
         .to_element_builder(0, ctx)
         .with_child(enemy_box)
         .with_child(reroll)
-        .with_alignment(ui_element::Alignment::Center, None)
+        .with_alignment(ui::Alignment::Center, None)
         .build();
 
     // Container
-    containers::VerticalBox::new_spaced(16.)
+    ui::containers::VerticalBox::new_spaced(16.)
         .to_element_builder(ID_WAVE_SUBMENU, ctx)
         .with_child(title)
         .with_child(enemy_row)
-        .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Center)
+        .with_alignment(ui::Alignment::Center, ui::Alignment::Center)
         .as_fill()
         .build()
 }
@@ -540,7 +540,7 @@ fn construct_spell_menu(
     caster: &mut game_state::components::SpellCaster,
     spell_pool: &game_state::components::spell::SpellPool,
     buildings: &game_state::components::buildings::Buildings,
-) -> UiElement<game_state::GameMessage> {
+) -> ui::UiElement<game_state::GameMessage> {
     // ---- Title ----
 
     let title = graphics::Text::new(
@@ -569,7 +569,7 @@ fn construct_spell_menu(
         .iter()
         .enumerate()
         .fold(
-            containers::GridBox::new_spaced(6, 4, 8., 8.),
+            ui::containers::GridBox::new_spaced(6, 4, 8., 8.),
             |mut gbox, (ind, template)| {
                 gbox.add(
                     template.info_element_small(ID_SPELL_AVAIL_START + ind as u32, ctx, buildings),
@@ -599,24 +599,24 @@ fn construct_spell_menu(
         .iter()
         .enumerate()
         .fold(
-            containers::HorizontalBox::new_spaced(16.).to_element_builder(0, ctx),
+            ui::containers::HorizontalBox::new_spaced(16.).to_element_builder(0, ctx),
             |loadout, (index, spell)| {
                 loadout
                     .with_child(spell.info_element_small(ID_SPELL_EQUIP_START + index as u32, ctx))
             },
         )
-        .with_alignment(ui_element::Alignment::Center, None)
+        .with_alignment(ui::Alignment::Center, None)
         .as_shrink()
         .build();
 
-    containers::VerticalBox::new_spaced(16.)
+    ui::containers::VerticalBox::new_spaced(16.)
         .to_element_builder(ID_WAVE_SUBMENU, ctx)
         .with_child(title)
         .with_child(available_title)
         .with_child(available)
         .with_child(loadout_title)
         .with_child(loadout)
-        .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Center)
+        .with_alignment(ui::Alignment::Center, ui::Alignment::Center)
         .as_fill()
         .build()
 }
@@ -624,7 +624,7 @@ fn construct_spell_menu(
 fn construct_buildings_menu(
     ctx: &ggez::Context,
     buildings: &mut game_state::components::buildings::Buildings,
-) -> UiElement<game_state::GameMessage> {
+) -> ui::UiElement<game_state::GameMessage> {
     // ---- Enemy display and reroll ----
 
     let title = graphics::Text::new(
@@ -637,7 +637,8 @@ fn construct_buildings_menu(
     .to_element_builder(0, ctx)
     .build();
 
-    let mut construct_box = containers::HorizontalBox::new_spaced(25.).to_element_builder(0, ctx);
+    let mut construct_box =
+        ui::containers::HorizontalBox::new_spaced(25.).to_element_builder(0, ctx);
 
     let icons = [
         "/sprites/ui/looking_glass.png",
@@ -739,18 +740,18 @@ fn construct_buildings_menu(
         .to_owned()
         .to_element_builder(0, ctx)
         .with_padding((2., 2., 2., 2.))
-        .with_visuals(ui_element::Visuals {
+        .with_visuals(ui::Visuals {
             background: graphics::Color::from_rgb_u32(PALETTE[4]),
             border: graphics::Color::from_rgb_u32(PALETTE[4]),
             border_widths: [0.; 4],
             corner_radii: [14.; 4],
         })
         .as_shrink()
-        .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Max)
+        .with_alignment(ui::Alignment::Max, ui::Alignment::Max)
         .build();
 
         construct_box = construct_box.with_child(
-            containers::StackBox::new()
+            ui::containers::StackBox::new()
                 .to_element_builder(0, ctx)
                 .with_child(level)
                 .with_child(build)
@@ -759,17 +760,20 @@ fn construct_buildings_menu(
     }
 
     // Container
-    containers::VerticalBox::new_spaced(16.)
+    ui::containers::VerticalBox::new_spaced(16.)
         .to_element_builder(ID_WAVE_SUBMENU, ctx)
         .with_child(title)
         .with_child(construct_box.build())
-        .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Center)
+        .with_alignment(ui::Alignment::Center, ui::Alignment::Center)
         .as_fill()
         .build()
 }
 
-fn construct_wave_announcer(ctx: &ggez::Context, wave: u32) -> UiElement<game_state::GameMessage> {
-    let mut dur = containers::DurationBox::new(
+fn construct_wave_announcer(
+    ctx: &ggez::Context,
+    wave: u32,
+) -> ui::UiElement<game_state::GameMessage> {
+    let mut dur = ui::containers::DurationBox::new(
         Duration::from_secs(5),
         graphics::Text::new(
             graphics::TextFragment::new(format!("Wave {}", wave))
@@ -784,16 +788,16 @@ fn construct_wave_announcer(ctx: &ggez::Context, wave: u32) -> UiElement<game_st
     )
     .to_element_builder(0, ctx)
     .as_shrink()
-    .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Center)
+    .with_alignment(ui::Alignment::Center, ui::Alignment::Center)
     .build();
 
     let ctr_layout = dur.get_layout();
 
-    dur.add_transition(ui_element::Transition::new(Duration::from_secs(2)));
+    dur.add_transition(ui::Transition::new(Duration::from_secs(2)));
 
     dur.add_transition(
-        ui_element::Transition::new(Duration::from_secs(3)).with_new_layout(ui_element::Layout {
-            y_alignment: ui_element::Alignment::Min,
+        ui::Transition::new(Duration::from_secs(3)).with_new_layout(ui::Layout {
+            y_alignment: ui::Alignment::Min,
             ..ctr_layout
         }),
     );
@@ -803,7 +807,7 @@ fn construct_wave_announcer(ctx: &ggez::Context, wave: u32) -> UiElement<game_st
 
 pub fn sync_ui(
     ctx: &ggez::Context,
-    gui: &mut mooeye::UiElement<game_state::GameMessage>,
+    gui: &mut ui::UiElement<game_state::GameMessage>,
     world: &mut legion::World,
     resources: &mut legion::Resources,
 ) {
@@ -835,7 +839,7 @@ pub fn sync_ui(
                         .get_spells()
                         .iter()
                         .fold(
-                            containers::HorizontalBox::new_spaced(16.)
+                            ui::containers::HorizontalBox::new_spaced(16.)
                                 .to_element_builder(super::game_ui::ID_SPELL_BAR_CHILDREN, ctx),
                             |loadout, spell| loadout.with_child(spell.info_element_small(0, ctx)),
                         )

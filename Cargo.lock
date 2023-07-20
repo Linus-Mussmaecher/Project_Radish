@@ -1512,9 +1512,9 @@ dependencies = [
 
 [[package]]
 name = "mooeye"
-version = "0.3.2"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4e38304a8f6546ff6e937a78c395ad728bfc3ec3c8c6e83d5c38899ec4d92501"
+checksum = "cd1a7dccec42332578fcf55ea7b6a3892952851c051ae5a20619b487b1e2e997"
 dependencies = [
  "ggez",
  "regex",

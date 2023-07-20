@@ -1,12 +1,12 @@
 use ggez::{graphics, GameError};
-use mooeye::{ui_element::UiContainer, *};
+use mooeye::{scene_manager, ui, ui::UiContainer, ui::UiContent};
 
 use crate::PALETTE;
 
 use super::super::game_state;
 
 pub struct HighscoreMenu {
-    gui: UiElement<()>,
+    gui: ui::UiElement<()>,
 }
 
 impl HighscoreMenu {
@@ -42,10 +42,7 @@ impl HighscoreMenu {
             .set_font("Retro_M")
             .to_owned()
             .to_element_builder(0, ctx)
-            .with_alignment(
-                mooeye::ui_element::Alignment::Center,
-                mooeye::ui_element::Alignment::Min,
-            )
+            .with_alignment(ui::Alignment::Center, ui::Alignment::Min)
             .build();
 
         let reset_scores = graphics::Text::new(
@@ -77,7 +74,7 @@ impl HighscoreMenu {
 
         // Container
 
-        let mut hs_box = mooeye::containers::VerticalBox::new();
+        let mut hs_box = ui::containers::VerticalBox::new();
         hs_box.add(title);
         hs_box.add(highscore_disp);
         hs_box.add(reset_scores);
@@ -86,7 +83,7 @@ impl HighscoreMenu {
         let credits_box = hs_box
             .to_element_builder(0, ctx)
             .with_visuals(super::BUTTON_VIS)
-            .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Center)
+            .with_alignment(ui::Alignment::Max, ui::Alignment::Center)
             .with_offset(-25., 0.)
             .with_padding((25., 25., 25., 25.))
             .build();
@@ -99,18 +96,18 @@ impl scene_manager::Scene for HighscoreMenu {
     fn update(
         &mut self,
         ctx: &mut ggez::Context,
-    ) -> Result<mooeye::scene_manager::SceneSwitch, ggez::GameError> {
+    ) -> Result<scene_manager::SceneSwitch, ggez::GameError> {
         let messages = self.gui.manage_messages(ctx, None);
 
-        if messages.contains(&mooeye::UiMessage::Triggered(1)) {
+        if messages.contains(&ui::UiMessage::Triggered(1)) {
             // delete highscores
             std::fs::write("./data/highscores.toml", "")?;
         }
 
-        if messages.contains(&mooeye::UiMessage::Triggered(2)) {
-            Ok(mooeye::scene_manager::SceneSwitch::Pop(1))
+        if messages.contains(&ui::UiMessage::Triggered(2)) {
+            Ok(scene_manager::SceneSwitch::Pop(1))
         } else {
-            Ok(mooeye::scene_manager::SceneSwitch::None)
+            Ok(scene_manager::SceneSwitch::None)
         }
     }
 

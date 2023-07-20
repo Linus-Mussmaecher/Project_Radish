@@ -1,5 +1,5 @@
 use ggez::{glam::Vec2, graphics};
-use mooeye::*;
+use mooeye::{ui, ui::UiContent};
 
 use crate::PALETTE;
 
@@ -27,13 +27,13 @@ impl TutorialMessage {
         }
     }
 
-    fn to_ui_element(&self, ctx: &ggez::Context) -> UiElement<game_message::GameMessage> {
-        containers::VerticalBox::new_spaced(15.)
+    fn to_ui_element(&self, ctx: &ggez::Context) -> ui::UiElement<game_message::GameMessage> {
+        ui::containers::VerticalBox::new_spaced(15.)
             .to_element_builder(TUTORIAL_INNER, ctx)
             .with_visuals(super::super::BUTTON_VIS)
             .with_padding((10., 10., 10., 10.))
-            .with_alignment(ui_element::Alignment::Max, ui_element::Alignment::Center)
-            .with_size(ui_element::Size::Fixed(380.), None)
+            .with_alignment(ui::Alignment::Max, ui::Alignment::Center)
+            .with_size(ui::Size::Fixed(380.), None)
             .with_child({
                 graphics::Text::new("")
                     .add(
@@ -94,7 +94,7 @@ impl TutorialManager {
                     "Defend the town!",
                     "Kill skeletons before they reach the town!\n\n\
                     Move with A/D and cast spells with J/K/L/;. You can hover your spells to see what they do.",
-                    game_message::UiMessageFilter::Ui(UiMessage::Triggered(
+                    game_message::UiMessageFilter::Ui(ui::UiMessage::Triggered(
                         super::ui::wave_menu::ID_NEXT_WAVE,
                     )),
                 ),
@@ -136,7 +136,7 @@ impl TutorialManager {
                     "Here you can view what enemies you will face in the next wave.\n\n\
                     After upgrading your lookout in the construction menu, you can reroll this selection.\n\n\
                     Rerolling gets more expensive every time.",
-                    game_message::UiMessageFilter::Ui(UiMessage::Triggered(
+                    game_message::UiMessageFilter::Ui(ui::UiMessage::Triggered(
                         super::ui::wave_menu::ID_ENEMIES,
                     )),
                 ),
@@ -147,7 +147,7 @@ impl TutorialManager {
                     Purchasing some spells requires you to upgrade your mage guild in the buildings menu first. \
                     Purchasing a spell also makes further spells more expensive.\n\n\
                     To equip a spell for the next wave, click it and then click the slot you want it in.",
-                    game_message::UiMessageFilter::Ui(UiMessage::Triggered(
+                    game_message::UiMessageFilter::Ui(ui::UiMessage::Triggered(
                         super::ui::wave_menu::ID_SPELLS,
                     )),
                 ),
@@ -157,7 +157,7 @@ impl TutorialManager {
                     Construct the watchtower to reroll approaching enemies and later increase your movement speed.\n\n\
                     Construct and upgrade the Mage's Guild to allow the purchase of more powerful spells.\n\n\
                     Construct and upgrade the mana well to increase the amount of spell slots available in combat.",
-                    game_message::UiMessageFilter::Ui(UiMessage::Triggered(
+                    game_message::UiMessageFilter::Ui(ui::UiMessage::Triggered(
                         super::ui::wave_menu::ID_HOUSE,
                     )),
                 ),
@@ -191,8 +191,8 @@ impl TutorialManager {
 impl MessageReceiver for TutorialManager {
     fn receive(
         &mut self,
-        message: &mooeye::UiMessage<super::GameMessage>,
-        gui: &mut UiElement<super::GameMessage>,
+        message: &ui::UiMessage<super::GameMessage>,
+        gui: &mut ui::UiElement<super::GameMessage>,
         ctx: &ggez::Context,
     ) {
         for tut_message in self.messages.iter_mut().filter(|tm| !tm.shown) {
@@ -206,7 +206,7 @@ impl MessageReceiver for TutorialManager {
             }
         }
 
-        if let mooeye::UiMessage::Triggered(TUTORIAL_CLOSE) = message {
+        if let ui::UiMessage::Triggered(TUTORIAL_CLOSE) = message {
             self.active = false;
         }
     }

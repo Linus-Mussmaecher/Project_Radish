@@ -12,7 +12,7 @@ use super::BUTTON_VIS;
 use crate::music;
 use ggez::glam::Vec2;
 use ggez::{graphics, GameError};
-use mooeye::*;
+use mooeye::{scene_manager, sprite, ui, ui::UiContent};
 
 use crate::PALETTE;
 
@@ -23,7 +23,7 @@ const REL_TROOP_SPEED: f32 = 14.;
 /// Contains navigation buttons to multiple submenus and allows starting games.
 pub struct MainMenu {
     /// The gui containing the buttons to the submenus
-    gui: UiElement<()>,
+    gui: ui::UiElement<()>,
     /// The music player for background music. Stops when starting a game
     music_player: music::MusicPlayer,
 
@@ -155,7 +155,7 @@ impl MainMenu {
         .build();
 
         // Container
-        let menu_box = mooeye::containers::VerticalBox::new_spaced(25.)
+        let menu_box = ui::containers::VerticalBox::new_spaced(25.)
             .to_element_builder(0, ctx)
             .with_child(play);
 
@@ -170,15 +170,15 @@ impl MainMenu {
         .with_child(credits)
         .with_child(quit)
         .with_visuals(super::BUTTON_VIS)
-        .with_alignment(ui_element::Alignment::Center, ui_element::Alignment::Min)
+        .with_alignment(ui::Alignment::Center, ui::Alignment::Min)
         .with_padding((25., 25., 25., 25.))
         .build();
 
-        let big_box = mooeye::containers::VerticalBox::new()
+        let big_box = ui::containers::VerticalBox::new()
             .to_element_builder(0, ctx)
             .with_child(title)
             .with_child(menu_box)
-            .with_alignment(ui_element::Alignment::Min, ui_element::Alignment::Min)
+            .with_alignment(ui::Alignment::Min, ui::Alignment::Min)
             .with_padding((25., 25., 25., 25.))
             .build();
 
@@ -288,46 +288,41 @@ impl scene_manager::Scene for MainMenu {
     ) -> Result<mooeye::scene_manager::SceneSwitch, ggez::GameError> {
         let messages = self.gui.manage_messages(ctx, None);
 
-        let mut res = mooeye::scene_manager::SceneSwitch::None;
+        let mut res = scene_manager::SceneSwitch::None;
 
         match self.state.take() {
             None => {
-                if messages.contains(&mooeye::UiMessage::Triggered(1)) {
+                if messages.contains(&ui::UiMessage::Triggered(1)) {
                     for sprite in &mut self.background_sprites {
                         sprite.vel.y -= 128.;
                     }
                     self.state = Some((Duration::from_secs(4), game_state::GameConfig::default()));
                 }
 
-                if messages.contains(&mooeye::UiMessage::Triggered(2)) {
+                if messages.contains(&ui::UiMessage::Triggered(2)) {
                     self.state = Some((Duration::ZERO, game_state::GameConfig::debug()));
                 }
 
-                if messages.contains(&mooeye::UiMessage::Triggered(3)) {
-                    res = mooeye::scene_manager::SceneSwitch::push(
-                        highscore_menu::HighscoreMenu::new(ctx)?,
-                    );
+                if messages.contains(&ui::UiMessage::Triggered(3)) {
+                    res =
+                        scene_manager::SceneSwitch::push(highscore_menu::HighscoreMenu::new(ctx)?);
                 }
 
-                if messages.contains(&mooeye::UiMessage::Triggered(4)) {
-                    res = mooeye::scene_manager::SceneSwitch::push(
-                        achievement_menu::AchievementMenu::new(ctx)?,
-                    );
-                }
-
-                if messages.contains(&mooeye::UiMessage::Triggered(5)) {
-                    res = mooeye::scene_manager::SceneSwitch::push(options_menu::OptionsMenu::new(
+                if messages.contains(&ui::UiMessage::Triggered(4)) {
+                    res = scene_manager::SceneSwitch::push(achievement_menu::AchievementMenu::new(
                         ctx,
                     )?);
                 }
 
-                if messages.contains(&mooeye::UiMessage::Triggered(6)) {
-                    res = mooeye::scene_manager::SceneSwitch::push(credits_menu::CreditsMenu::new(
-                        ctx,
-                    )?);
+                if messages.contains(&ui::UiMessage::Triggered(5)) {
+                    res = scene_manager::SceneSwitch::push(options_menu::OptionsMenu::new(ctx)?);
                 }
 
-                if messages.contains(&mooeye::UiMessage::Triggered(7)) {
+                if messages.contains(&ui::UiMessage::Triggered(6)) {
+                    res = scene_manager::SceneSwitch::push(credits_menu::CreditsMenu::new(ctx)?);
+                }
+
+                if messages.contains(&ui::UiMessage::Triggered(7)) {
                     self.music_player.stop(ctx);
                     res = mooeye::scene_manager::SceneSwitch::Pop(1);
                 }
