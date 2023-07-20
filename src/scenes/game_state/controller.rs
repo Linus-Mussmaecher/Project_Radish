@@ -4,7 +4,7 @@ use std::{collections::HashMap, fs, path::Path, time::Duration};
 use serde::{Deserialize, Serialize};
 use toml;
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, Serialize, Deserialize)]
 /// An enum containing all possible commands the user can give to the game.
 pub enum Command {
     /// Move player character to the left.
@@ -20,6 +20,7 @@ pub enum Command {
     /// Cast the fourth spell in the spell selection.
     Spell3,
     /// No command
+    #[default]
     None,
 }
 
@@ -32,12 +33,6 @@ impl Command {
             3 => Self::Spell3,
             _ => Self::None,
         }
-    }
-}
-
-impl Default for Command {
-    fn default() -> Self {
-        Command::None
     }
 }
 
