@@ -395,6 +395,18 @@ impl scene_manager::Scene for GameState {
             if game_data.city_health <= 0 {
                 // stop music player
                 self.music_player.stop(ctx);
+                // save achieved wave to quick start file
+                let mut cfg = game_config::GameConfig::from_path("/data/quick_config.toml")
+                    .unwrap_or_default();
+                if let Some(director) = self.resources.get::<director::Director>() {
+                    if cfg.starting_wave < director.get_wave() / 2 {
+                        cfg.starting_wave = director.get_wave() / 2;
+                        cfg.starting_gold = game_data.get_score() / 3;
+                    }
+                }
+                if cfg.save_to_file("/data/quick_config.toml").is_err() {
+                    println!("[ERROR/Radish] Could not save quick start config.");
+                };
                 // create the game over menu, replacing any other attempted scene switch
                 switch = scene_manager::SceneSwitch::push(
                     crate::scenes::game_over_menu::GameOverMenu::new(ctx, game_data.get_score())?,

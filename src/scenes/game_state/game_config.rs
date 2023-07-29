@@ -17,6 +17,7 @@ pub struct GameConfig {
     // --- Game Data Config ---
     pub starting_gold: i32,
     pub starting_city_health: i32,
+    pub starting_wave: u32,
 
     // --- Other ---
     pub base_speed: f32,
@@ -40,10 +41,36 @@ impl GameConfig {
             base_speed: 150.,
             starting_gold: 10000,
             starting_city_health: 10,
+            starting_wave: 0,
             tutorial: true,
             achievements_unlocked: super::achievements::AchievementProgressSource::Percentage(1.),
             initial_camera_offset: 0.,
         }
+    }
+    /// Loads a game config from the given path and constructs a controller.
+    pub fn from_path(
+        path: impl AsRef<std::path::Path>,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
+        let string = std::fs::read_to_string(
+            path.as_ref()
+                .to_str()
+                .ok_or_else(|| ggez::GameError::CustomError("Could not read path.".to_owned()))?,
+        )?;
+        Ok(toml::from_str(&string)?)
+    }
+
+    /// Saves this game config to the given path.
+    pub fn save_to_file(
+        &self,
+        path: impl AsRef<std::path::Path>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        std::fs::write(
+            path.as_ref()
+                .to_str()
+                .ok_or_else(|| ggez::GameError::CustomError("Could not read path.".to_owned()))?,
+            toml::to_string(&self)?,
+        )?;
+        Ok(())
     }
 }
 
@@ -58,6 +85,7 @@ impl Default for GameConfig {
             base_speed: 150.,
             starting_gold: 0,
             starting_city_health: 10,
+            starting_wave: 0,
             tutorial: true,
             achievements_unlocked: super::achievements::AchievementProgressSource::File(
                 "./data/achievements.toml".to_owned(),

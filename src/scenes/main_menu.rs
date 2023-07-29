@@ -68,13 +68,28 @@ impl MainMenu {
         .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
         .build();
 
+        // advanced start
+        let quick_advance = graphics::Text::new(
+            graphics::TextFragment::new("Quick Advance")
+                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+        )
+        .set_font("Retro")
+        .set_scale(32.)
+        .to_owned()
+        .to_element_builder(2, ctx)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::Q)
+        .with_visuals(super::BUTTON_VIS)
+        .with_hover_visuals(super::BUTTON_HOVER_VIS)
+        .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
+        .build();
+
         let debug = graphics::Text::new(
             graphics::TextFragment::new("Debug").color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
         .set_font("Retro")
         .set_scale(32.)
         .to_owned()
-        .to_element_builder(2, ctx)
+        .to_element_builder(3, ctx)
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::D)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
@@ -90,7 +105,7 @@ impl MainMenu {
         .set_font("Retro")
         .set_scale(32.)
         .to_owned()
-        .to_element_builder(3, ctx)
+        .to_element_builder(4, ctx)
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::H)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
@@ -106,7 +121,7 @@ impl MainMenu {
         .set_font("Retro")
         .set_scale(32.)
         .to_owned()
-        .to_element_builder(4, ctx)
+        .to_element_builder(5, ctx)
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::A)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
@@ -119,7 +134,7 @@ impl MainMenu {
         .set_font("Retro")
         .set_scale(32.)
         .to_owned()
-        .to_element_builder(5, ctx)
+        .to_element_builder(6, ctx)
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::O)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
@@ -132,7 +147,7 @@ impl MainMenu {
         .set_font("Retro")
         .set_scale(32.)
         .to_owned()
-        .to_element_builder(6, ctx)
+        .to_element_builder(7, ctx)
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::C)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
@@ -147,7 +162,7 @@ impl MainMenu {
         .set_font("Retro")
         .set_scale(32.)
         .to_owned()
-        .to_element_builder(7, ctx)
+        .to_element_builder(8, ctx)
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::Q)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
@@ -158,6 +173,12 @@ impl MainMenu {
         let menu_box = ui::containers::VerticalBox::new_spaced(25.)
             .to_element_builder(0, ctx)
             .with_child(play);
+
+        let menu_box = if game_state::GameConfig::from_path("/data/quick_config.toml").is_ok() {
+            menu_box.with_child(quick_advance)
+        } else {
+            menu_box
+        };
 
         let menu_box = if cfg!(debug_assertions) {
             menu_box.with_child(debug)
@@ -299,30 +320,34 @@ impl scene_manager::Scene for MainMenu {
                     self.state = Some((Duration::from_secs(4), game_state::GameConfig::default()));
                 }
 
-                if messages.contains(&ui::UiMessage::Triggered(2)) {
+                if messages.contains(&ui::UiMessage::Triggered(3)) {
                     self.state = Some((Duration::ZERO, game_state::GameConfig::debug()));
                 }
 
                 if messages.contains(&ui::UiMessage::Triggered(3)) {
+                    self.state = Some((Duration::ZERO, game_state::GameConfig::debug()));
+                }
+
+                if messages.contains(&ui::UiMessage::Triggered(4)) {
                     res =
                         scene_manager::SceneSwitch::push(highscore_menu::HighscoreMenu::new(ctx)?);
                 }
 
-                if messages.contains(&ui::UiMessage::Triggered(4)) {
+                if messages.contains(&ui::UiMessage::Triggered(5)) {
                     res = scene_manager::SceneSwitch::push(achievement_menu::AchievementMenu::new(
                         ctx,
                     )?);
                 }
 
-                if messages.contains(&ui::UiMessage::Triggered(5)) {
+                if messages.contains(&ui::UiMessage::Triggered(6)) {
                     res = scene_manager::SceneSwitch::push(options_menu::OptionsMenu::new(ctx)?);
                 }
 
-                if messages.contains(&ui::UiMessage::Triggered(6)) {
+                if messages.contains(&ui::UiMessage::Triggered(7)) {
                     res = scene_manager::SceneSwitch::push(credits_menu::CreditsMenu::new(ctx)?);
                 }
 
-                if messages.contains(&ui::UiMessage::Triggered(7)) {
+                if messages.contains(&ui::UiMessage::Triggered(8)) {
                     self.music_player.stop(ctx);
                     res = mooeye::scene_manager::SceneSwitch::Pop(1);
                 }

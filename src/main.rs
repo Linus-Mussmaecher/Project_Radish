@@ -19,7 +19,7 @@ const PALETTE: [u32; 16] = [
 
 fn main() -> GameResult {
     // for debugging
-    //std::env::set_var("RUST_BACKTRACE", "1");
+    std::env::set_var("RUST_BACKTRACE", "1");
 
     //generate game context (window etc.)
     let (mut ctx, event_loop): (ggez::context::Context, ggez::event::EventLoop<()>) =

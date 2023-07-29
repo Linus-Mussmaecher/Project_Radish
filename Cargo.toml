@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 # Framework
-ggez = "^0.9"
+ggez = "=0.9.0"
 # UI
 mooeye = "^0.4"
 # ECS
