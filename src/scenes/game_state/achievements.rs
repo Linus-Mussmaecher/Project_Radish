@@ -391,7 +391,7 @@ pub fn load_highscores() -> Vec<i32> {
 pub fn save_highscores(scores: Vec<i32>) {
     if let Ok(toml_string) = toml::to_string(&ScoreList { scores }) {
         if std::fs::write("./data/highscores.toml", toml_string).is_err() {
-            println!("[ERROR] Could not save highscores.")
+            println!("[ERROR/Radish] Could not save highscores.")
         };
     }
 }

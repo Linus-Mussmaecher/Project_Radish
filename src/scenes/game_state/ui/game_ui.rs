@@ -214,7 +214,7 @@ pub fn construct_game_ui(
 
 pub fn create_spellslot(ctx: &ggez::Context, i: usize) -> ui::UiElement<game_state::GameMessage> {
     let mana = graphics::Image::from_path(ctx, "/sprites/spells/mana.png")
-        .expect("[ERROR] Could not unpack mana symbol. Aborting.")
+        .expect("[ERROR/Radish] Could not unpack mana symbol. Aborting.")
         .to_element_builder(0, ctx)
         .scaled(2., 2.)
         .build();

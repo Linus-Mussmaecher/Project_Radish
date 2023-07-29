@@ -206,10 +206,10 @@ fn construct_wave_menu(
     let mut wave_done = ggez::audio::Source::new(ctx, "/audio/sounds/ui/wave_done.wav")
         .expect("Could not load wave end sound.");
     ggez::audio::SoundSource::play(&mut wave_done, ctx)
-        .expect("[ERROR] Could not find wave_done.wav.");
+        .expect("[ERROR/Radish] Could not find wave_done.wav.");
 
     let enemies = graphics::Image::from_path(ctx, "/sprites/ui/enemies.png")
-        .expect("[ERROR] Missing enemies menu sprite.")
+        .expect("[ERROR/Radish] Missing enemies menu sprite.")
         .to_element_builder(ID_ENEMIES, ctx)
         .as_shrink()
         .scaled(4., 4.)
@@ -253,7 +253,7 @@ fn construct_wave_menu(
         .build();
 
     let spellbook = graphics::Image::from_path(ctx, "/sprites/ui/book.png")
-        .expect("[ERROR] Missing spellbook sprite.")
+        .expect("[ERROR/Radish] Missing spellbook sprite.")
         .to_element_builder(ID_SPELLS, ctx)
         .as_shrink()
         .scaled(4., 4.)
@@ -297,7 +297,7 @@ fn construct_wave_menu(
         .build();
 
     let house = graphics::Image::from_path(ctx, "/sprites/ui/house_add.png")
-        .expect("[ERROR] Missing house sprite.")
+        .expect("[ERROR/Radish] Missing house sprite.")
         .to_element_builder(ID_HOUSE, ctx)
         .as_shrink()
         .scaled(4., 4.)
@@ -341,7 +341,7 @@ fn construct_wave_menu(
         .build();
 
     let next = graphics::Image::from_path(ctx, "/sprites/ui/next.png")
-        .expect("[ERROR] Missing next sprite.")
+        .expect("[ERROR/Radish] Missing next sprite.")
         .to_element_builder(ID_NEXT_WAVE, ctx)
         .as_shrink()
         .scaled(4., 4.)
@@ -488,7 +488,7 @@ fn construct_enemies_menu(
         ().to_element(0, ctx)
     } else {
         graphics::Image::from_path(ctx, "/sprites/ui/reroll.png")
-            .expect("[ERROR] Missing reroll sprite.")
+            .expect("[ERROR/Radish] Missing reroll sprite.")
             .to_element_builder(ID_REROLL, ctx)
             .as_shrink()
             .scaled(4., 4.)
@@ -654,7 +654,7 @@ fn construct_buildings_menu(
     for i in 0..buildings::BUILDING_TYPES {
         let info = buildings::get_building_info(i);
         let build = graphics::Image::from_path(ctx, icons[i])
-            .expect("[ERROR] Missing building sprite.")
+            .expect("[ERROR/Radish] Missing building sprite.")
             .to_element_builder(ID_BUILDINGS_START + i as u32, ctx)
             .as_shrink()
             .scaled(4., 4.)

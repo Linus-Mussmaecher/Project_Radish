@@ -80,7 +80,7 @@ impl GameState {
             };
             new_options
                 .save_to_file("./data/options.toml")
-                .expect("[ERROR] Could not save updated options.");
+                .expect("[ERROR/Radish] Could not save updated options.");
         }
 
         let achievement_set =
@@ -218,7 +218,7 @@ impl GameState {
         }
         positions.sort_by(|p1, p2| {
             p1.y.partial_cmp(&p2.y)
-                .expect("[ERROR] Ordering of y-coordinates in brush init failed.")
+                .expect("[ERROR/Radish] Ordering of y-coordinates in brush init failed.")
         });
         for pos in positions {
             world.push((

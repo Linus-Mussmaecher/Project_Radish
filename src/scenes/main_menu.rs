@@ -258,7 +258,7 @@ impl MainMenu {
             p1.pos
                 .y
                 .partial_cmp(&p2.pos.y)
-                .expect("[ERROR] Ordering of y-coordinates in main menu sprites.")
+                .expect("[ERROR/Radish] Ordering of y-coordinates in main menu sprites.")
         });
 
         // step 3: troops
