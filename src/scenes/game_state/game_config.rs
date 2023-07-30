@@ -41,7 +41,7 @@ impl GameConfig {
             base_speed: 150.,
             starting_gold: 10000,
             starting_city_health: 10,
-            starting_wave: 0,
+            starting_wave: 1,
             tutorial: true,
             achievements_unlocked: super::achievements::AchievementProgressSource::Percentage(1.),
             initial_camera_offset: 0.,
@@ -85,7 +85,7 @@ impl Default for GameConfig {
             base_speed: 150.,
             starting_gold: 0,
             starting_city_health: 10,
-            starting_wave: 0,
+            starting_wave: 1,
             tutorial: true,
             achievements_unlocked: super::achievements::AchievementProgressSource::File(
                 "./data/achievements.toml".to_owned(),
