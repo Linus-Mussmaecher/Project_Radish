@@ -44,11 +44,11 @@ impl Director {
     /// Spawns a new director with default parameters.
     pub fn new(sprite_pool: &sprite::SpritePool, config: &super::GameConfig) -> Self {
         Self {
-            wave: config.starting_wave - 1,
-            state: if config.starting_wave > 1 {
-                DirectorState::Spawning(0)
+            wave: (config.starting_wave - 1).max(1),
+            state: if config.starting_wave <= 1 {
+                DirectorState::Spawning(450)
             } else {
-                DirectorState::WaitingForMenu
+                DirectorState::WaitingForDead
             },
 
             intervall: Duration::ZERO,

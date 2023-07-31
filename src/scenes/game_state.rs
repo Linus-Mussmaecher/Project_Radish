@@ -78,9 +78,9 @@ impl GameState {
                 tutorial: false,
                 ..options
             };
-            new_options
-                .save_to_file("./data/options.toml")
-                .expect("[ERROR/Radish] Could not save updated options.");
+            if new_options.save_to_file("./data/options.toml").is_err() {
+                println!("[ERROR/Radish] Could not save updated options.");
+            }
         }
 
         let achievement_set =
@@ -396,7 +396,7 @@ impl scene_manager::Scene for GameState {
                 // stop music player
                 self.music_player.stop(ctx);
                 // save achieved wave to quick start file
-                let mut cfg = game_config::GameConfig::from_path("/data/quick_config.toml")
+                let mut cfg = game_config::GameConfig::from_path("./data/quick_config.toml")
                     .unwrap_or_default();
                 if let Some(director) = self.resources.get::<director::Director>() {
                     if cfg.starting_wave < director.get_wave() / 2 {
@@ -404,7 +404,7 @@ impl scene_manager::Scene for GameState {
                         cfg.starting_gold = game_data.get_score() / 3;
                     }
                 }
-                if cfg.save_to_file("/data/quick_config.toml").is_err() {
+                if cfg.save_to_file("./data/quick_config.toml").is_err() {
                     println!("[ERROR/Radish] Could not save quick start config.");
                 };
                 // create the game over menu, replacing any other attempted scene switch

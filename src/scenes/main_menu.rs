@@ -81,6 +81,20 @@ impl MainMenu {
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
+        .with_tooltip(
+            graphics::Text::new(
+                graphics::TextFragment::new(
+                    "Immediately start at a higher level, with some starting gold.",
+                )
+                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+            )
+            .set_scale(24.)
+            .set_font("Retro")
+            .to_owned()
+            .to_element_builder(0, ctx)
+            .with_visuals(super::BUTTON_VIS)
+            .build(),
+        )
         .build();
 
         let debug = graphics::Text::new(
@@ -174,7 +188,7 @@ impl MainMenu {
             .to_element_builder(0, ctx)
             .with_child(play);
 
-        let menu_box = if game_state::GameConfig::from_path("/data/quick_config.toml").is_ok() {
+        let menu_box = if game_state::GameConfig::from_path("./data/quick_config.toml").is_ok() {
             menu_box.with_child(quick_advance)
         } else {
             menu_box
@@ -320,8 +334,15 @@ impl scene_manager::Scene for MainMenu {
                     self.state = Some((Duration::from_secs(4), game_state::GameConfig::default()));
                 }
 
-                if messages.contains(&ui::UiMessage::Triggered(3)) {
-                    self.state = Some((Duration::ZERO, game_state::GameConfig::debug()));
+                if messages.contains(&ui::UiMessage::Triggered(2)) {
+                    for sprite in &mut self.background_sprites {
+                        sprite.vel.y -= 128.;
+                    }
+                    self.state = Some((
+                        Duration::from_secs(4),
+                        game_state::GameConfig::from_path("./data/quick_config.toml")
+                            .unwrap_or_default(),
+                    ));
                 }
 
                 if messages.contains(&ui::UiMessage::Triggered(3)) {
