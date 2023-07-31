@@ -94,9 +94,7 @@ impl TutorialManager {
                     "Defend the town!",
                     "Kill skeletons before they reach the town!\n\n\
                     Move with A/D and cast spells with J/K/L/;. You can hover your spells to see what they do.",
-                    game_message::UiMessageFilter::Ui(ui::UiMessage::Triggered(
-                        super::ui::wave_menu::ID_NEXT_WAVE,
-                    )),
+                    game_message::UiMessageFilter::Ext(game_message::GameMessage::UpdateCityHealth(0), game_message::GameMessageFilter::Type),
                 ),
                 TutorialMessage::new(
                     "You just cast a spell",
