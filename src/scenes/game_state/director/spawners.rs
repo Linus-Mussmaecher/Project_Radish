@@ -332,7 +332,7 @@ pub fn spawn_wizard_skeleton(cmd: &mut CommandBuffer, pos: components::Position)
                     .with_enemies_only(true)
                     .with_limit(1),
                 vec![
-                    actions::GameAction::play_sound("/audio/sounds/enemies/speed"),
+                    //actions::GameAction::play_sound("/audio/sounds/enemies/speed"),
                     actions::GameAction::AddParticle(
                         components::graphics::Particle::new(
                             "/sprites/effects/bolt",
@@ -364,7 +364,7 @@ pub fn spawn_wizard_skeleton(cmd: &mut CommandBuffer, pos: components::Position)
                     .with_enemies_only(true)
                     .with_limit(1),
                 vec![
-                    actions::GameAction::play_sound("/audio/sounds/enemies/heal"),
+                    //actions::GameAction::play_sound("/audio/sounds/enemies/heal"),
                     actions::GameAction::AddParticle(
                         components::graphics::Particle::new(
                             "/sprites/effects/heal",
@@ -404,7 +404,7 @@ pub fn spawn_wizard_skeleton2(cmd: &mut CommandBuffer, pos: components::Position
                     .with_enemies_only(true)
                     .with_limit(1),
                 vec![
-                    actions::GameAction::play_sound("/audio/sounds/enemies/shield"),
+                    //actions::GameAction::play_sound("/audio/sounds/enemies/shield"),
                     actions::GameAction::AddParticle(
                         components::graphics::Particle::new(
                             "/sprites/effects/shield",
@@ -434,7 +434,7 @@ pub fn spawn_wizard_skeleton2(cmd: &mut CommandBuffer, pos: components::Position
                     .with_enemies_only(true)
                     .with_limit(1),
                 vec![
-                    actions::GameAction::play_sound("/audio/sounds/enemies/heal"),
+                    //actions::GameAction::play_sound("/audio/sounds/enemies/heal"),
                     actions::GameAction::AddParticle(
                         components::graphics::Particle::new(
                             "/sprites/effects/heal",
@@ -489,7 +489,7 @@ pub fn spawn_wizard_skeleton3(cmd: &mut CommandBuffer, pos: components::Position
                     .with_limit(3),
                 vec![
                     actions::GameAction::TakeDamage { dmg: 15 },
-                    actions::GameAction::play_sound("/audio/sounds/enemies/speed"),
+                    //actions::GameAction::play_sound("/audio/sounds/enemies/speed"),
                     actions::GameAction::AddParticle(
                         components::graphics::Particle::new(
                             "/sprites/effects/bolt",
@@ -563,7 +563,7 @@ pub fn spawn_ghost(cmd: &mut CommandBuffer, pos: components::Position) {
                 actions::GameAction::TakeDamage { dmg: _ } => {
                     vec![
                         // gain damage reduction for 2 seconds
-                        actions::GameAction::play_sound("/audio/sounds/enemies/speed"),
+                        //actions::GameAction::play_sound("/audio/sounds/enemies/speed"),
                         actions::GameAction::ApplyEffect(Box::new(
                             actions::ActionEffect::transform(
                                 actions::ActionEffectTarget::new_only_self(),
