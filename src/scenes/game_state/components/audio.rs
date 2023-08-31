@@ -27,7 +27,7 @@ pub fn audio_play_system(
     for sound in audio_pool.sound_queue.iter().take(SOUNDS_PER_FRAME) {
         // play the sound
         if let Some(sound) = audio_pool.sources.get_mut(sound) {
-            sound.set_volume(audio_pool.options.volume as f32 / 100.);
+            sound.set_volume(audio_pool.options.volume as f32 / 100. * 0.2);
             sound.play_detached(ctx)?;
         };
     }
