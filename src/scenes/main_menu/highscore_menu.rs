@@ -53,6 +53,20 @@ impl HighscoreMenu {
         .set_scale(28.)
         .to_owned()
         .to_element_builder(1, ctx)
+        .with_tooltip(
+            graphics::Text::new(
+                graphics::TextFragment::new(
+                    "Clears the highscore list.\nAlso resets your quick advance progress.",
+                )
+                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+            )
+            .set_scale(24.)
+            .set_font("Retro")
+            .to_owned()
+            .to_element_builder(0, ctx)
+            .with_visuals(super::BUTTON_VIS)
+            .build(),
+        )
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::R)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
@@ -102,6 +116,7 @@ impl scene_manager::Scene for HighscoreMenu {
         if messages.contains(&ui::UiMessage::Triggered(1)) {
             // delete highscores
             std::fs::write("./data/highscores.toml", "")?;
+            std::fs::remove_file("./data/quick_config.toml")?;
         }
 
         if messages.contains(&ui::UiMessage::Triggered(2)) {
