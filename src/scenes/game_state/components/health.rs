@@ -49,12 +49,19 @@ pub struct Enemy {
     bounty: i32,
     /// An identifier to check for certain enemy kills.
     id: u8,
+    /// Marks if an enemy is elite or not, giving it increased health and bounty.
+    elite: bool,
 }
 
 impl Enemy {
     /// Creates a new enemy component.
     pub fn new(damage: i32, bounty: i32, id: u8) -> Self {
-        Self { damage, bounty, id }
+        Self {
+            damage,
+            bounty,
+            id,
+            elite: false,
+        }
     }
 }
 
@@ -85,9 +92,16 @@ pub fn destroy_by_health(
             actions.push(actions::GameAction::GainGold {
                 amount: enemy.bounty,
             });
+            // inform subscribers of kill
             messages.insert(mooeye::ui::UiMessage::Extern(
                 game_message::GameMessage::EnemyKilled(enemy.id),
             ));
+            // also inform that it was an elite
+            if enemy.elite {
+                messages.insert(mooeye::ui::UiMessage::Extern(
+                    game_message::GameMessage::EliteKilled,
+                ));
+            }
         }
 
         actions.push(actions::GameAction::Remove(

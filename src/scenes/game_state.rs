@@ -14,7 +14,7 @@ pub use game_message::MessageSet;
 mod game_data;
 
 mod director;
-pub use director::EnemyTemplate;
+pub use director::EnemyDescriptor;
 
 mod components;
 

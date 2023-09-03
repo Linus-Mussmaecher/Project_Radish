@@ -8,8 +8,8 @@ use rand::random;
 /// The maximum amount of different enemy templates per wave
 pub(super) const WAVE_SIZE: usize = 4;
 
+mod descriptor;
 mod spawners;
-mod templates;
 /// The director struct is responsible for spawning waves of enemies.
 /// A director regularly earns credit points and spends them on units from a customizable enemy set until a wave threshhold is reached.
 /// Then, the director rerolls the enemy pool and starts a new wave.
@@ -29,7 +29,7 @@ pub struct Director {
     /// The enemies
     wave_enemies: [usize; WAVE_SIZE],
     /// The enemy posse the director can select spawns from, containing their costs and a spawning function pointer.
-    enemies: Vec<EnemyTemplate>,
+    enemies: Vec<EnemyDescriptor>,
     /// The cost to reroll the current enemy selection
     reroll_cost: i32,
 
@@ -55,7 +55,7 @@ impl Director {
             credits: 0,
 
             wave_enemies: config.wave_enemies,
-            enemies: templates::generate_templates(sprite_pool).unwrap_or_default(),
+            enemies: descriptor::generate_descriptors(sprite_pool).unwrap_or_default(),
             reroll_cost: 30,
 
             base_credits: config.base_credits,
@@ -69,7 +69,7 @@ impl Director {
     }
 
     /// Returns a reference with the current wave's enemies
-    pub fn get_enemies(&self) -> [&EnemyTemplate; WAVE_SIZE] {
+    pub fn get_enemies(&self) -> [&EnemyDescriptor; WAVE_SIZE] {
         self.wave_enemies.map(|i| &self.enemies[i])
     }
 
@@ -143,7 +143,7 @@ pub fn direct(
 
                     // downgrade spawn until affordable
                     while match enemy {
-                        Some(enemy_template) => enemy_template.cost > to_spend,
+                        Some(enemy_descriptor) => enemy_descriptor.cost > to_spend,
                         None => true,
                     } {
                         // if no downgrade possible, end this spending round
@@ -156,19 +156,19 @@ pub fn direct(
                     }
 
                     // unpack enemy
-                    if let Some(enemy_template) = enemy {
+                    if let Some(enemy_descriptor) = enemy {
                         // spawn
-                        (enemy_template.spawner._spawner)(
+                        (enemy_descriptor.spawner._spawner)(
                             cmd,
                             ggez::glam::Vec2::new(rand::random::<f32>() * boundaries.w, -20.),
                         );
 
                         // reduce available credits
-                        to_spend -= enemy_template.cost;
-                        director.credits -= enemy_template.cost;
+                        to_spend -= enemy_descriptor.cost;
+                        director.credits -= enemy_descriptor.cost;
 
                         // possible switch state on every spawn
-                        let left = wave_pool.saturating_sub(enemy_template.cost);
+                        let left = wave_pool.saturating_sub(enemy_descriptor.cost);
                         director.state = if left > 0 {
                             DirectorState::Spawning(left)
                         } else {
@@ -208,8 +208,8 @@ enum DirectorState {
 }
 
 #[derive(Debug, Clone)]
-/// A template for spawning an enemy. Also contains descriptions and icon to display in wave menu.
-pub struct EnemyTemplate {
+/// A descriptor describing an enemy and how to spawn them. Also contains descriptions and icon to display in wave menu.
+pub struct EnemyDescriptor {
     /// The icon of this enemy, to be displayed in the wave menu.
     pub icon: sprite::Sprite,
     /// The name of the enemy.
@@ -222,7 +222,7 @@ pub struct EnemyTemplate {
     spawner: EnemySpawner,
 }
 
-impl EnemyTemplate {
+impl EnemyDescriptor {
     // Creates a new enemy template.
     pub fn new(
         icon: sprite::Sprite,

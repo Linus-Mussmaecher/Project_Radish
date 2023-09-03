@@ -8,6 +8,7 @@ pub enum GameMessage {
     UpdateSpellSlots(usize, u8),
     NextWave(i32),
     EnemyKilled(u8),
+    EliteKilled,
     BuildingUp(usize, u8),
     BuildingDown(usize, u8),
 }
@@ -20,6 +21,7 @@ impl PartialOrd for GameMessage {
             (Self::UpdateSpellSlots(_, a), Self::UpdateSpellSlots(_, b)) => Some(a.cmp(b)),
             (Self::NextWave(a), Self::NextWave(b)) => Some(a.cmp(b)),
             (Self::EnemyKilled(a), Self::EnemyKilled(b)) => Some(a.cmp(b)),
+            (Self::EliteKilled, Self::EliteKilled) => Some(std::cmp::Ordering::Equal),
             (Self::BuildingUp(a, lvl_a), Self::BuildingUp(b, lvl_b)) => {
                 if *a == *b {
                     Some(lvl_a.cmp(lvl_b))
