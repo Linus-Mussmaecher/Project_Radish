@@ -1,4 +1,4 @@
-use std::fs;
+use std::{cell::RefCell, fs};
 
 use ggez::graphics;
 use mooeye::{ui, ui::UiContainer, ui::UiContent};
@@ -12,6 +12,13 @@ use super::{
     game_message::{GameMessageFilter, MessageReceiver},
     GameMessage,
 };
+
+thread_local! {
+    pub static ACHIEVEMENTS: RefCell<AchievementProgress> = RefCell::new(
+        toml::from_str(&fs::read_to_string("./data/achievements.toml").unwrap_or_else(|_| "".to_owned()))
+            .unwrap_or_default()
+    );
+}
 
 #[derive(Clone, Debug)]
 /// A struct that represents a feat to achvieve in the game (by triggering a message matching a condition a set amount of times)
@@ -290,20 +297,16 @@ impl AchievementSet {
         // load progress
 
         match &source {
-            AchievementProgressSource::File(path) => {
-                let progress: AchievementProgress =
-                    toml::from_str(&fs::read_to_string(path).unwrap_or_else(|_| "".to_owned()))
-                        .unwrap_or_default();
-
-                for i in 0..progress.progress_vals.len().min(list.len()) {
-                    list[i].progress = progress.progress_vals[i];
-                }
-            }
             AchievementProgressSource::Percentage(percent) => {
                 for achievement in list.iter_mut() {
                     achievement.progress = (percent * achievement.target as f32) as u32;
                 }
             }
+            AchievementProgressSource::Cache => ACHIEVEMENTS.with(|ach| {
+                for i in 0..ach.borrow().progress_vals.len().min(list.len()) {
+                    list[i].progress = ach.borrow().progress_vals[i];
+                }
+            }),
         }
 
         Self { list, source }
@@ -311,7 +314,7 @@ impl AchievementSet {
 
     pub fn save(&self) {
         match &self.source {
-            AchievementProgressSource::File(path) => {
+            AchievementProgressSource::Cache => {
                 let progress = AchievementProgress {
                     progress_vals: self
                         .list
@@ -319,9 +322,7 @@ impl AchievementSet {
                         .map(|achievement| achievement.progress)
                         .collect(),
                 };
-                if fs::write(path, toml::to_string(&progress).unwrap_or_default()).is_err() {
-                    println!("[WARNING] Could not save achievements.");
-                };
+                ACHIEVEMENTS.with(|ach| *ach.borrow_mut() = progress)
             }
             AchievementProgressSource::Percentage(_) => {}
         }
@@ -336,12 +337,12 @@ impl Drop for AchievementSet {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum AchievementProgressSource {
-    File(String),
     Percentage(f32),
+    Cache,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-struct AchievementProgress {
+pub struct AchievementProgress {
     progress_vals: Vec<u32>,
 }
 

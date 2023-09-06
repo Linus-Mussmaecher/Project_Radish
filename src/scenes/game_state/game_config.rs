@@ -87,9 +87,7 @@ impl Default for GameConfig {
             starting_city_health: 10,
             starting_wave: 1,
             tutorial: true,
-            achievements_unlocked: super::achievements::AchievementProgressSource::File(
-                "./data/achievements.toml".to_owned(),
-            ),
+            achievements_unlocked: super::achievements::AchievementProgressSource::Cache,
             initial_camera_offset: 1500.,
         }
     }

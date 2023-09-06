@@ -470,7 +470,18 @@ impl Drop for MainMenu {
         crate::options::OPTIONS.with(|opt| {
             if opt.borrow().save_to_file("./data/options.toml").is_err() {
                 println!("[WARNING] Could not save options.")
-            }
+            };
+        });
+
+        crate::scenes::game_state::achievements::ACHIEVEMENTS.with(|ach| {
+            if std::fs::write(
+                "./data/achievements.toml",
+                toml::to_string(ach).unwrap_or_default(),
+            )
+            .is_err()
+            {
+                println!("[WARNING] Could not save achievements.");
+            };
         });
     }
 }

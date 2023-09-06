@@ -21,10 +21,8 @@ impl AchievementMenu {
         .to_owned()
         .to_element(0, ctx);
 
-        let a_list = achievements::AchievementSet::load(
-            ctx,
-            achievements::AchievementProgressSource::File("./data/achievements.toml".to_owned()),
-        );
+        let a_list =
+            achievements::AchievementSet::load(ctx, achievements::AchievementProgressSource::Cache);
 
         let mut achievements = ui::containers::GridBox::new(4, (a_list.list.len() - 1) / 4 + 1);
         for (index, ach) in a_list.list.iter().enumerate() {
@@ -92,9 +90,7 @@ impl scene_manager::Scene for AchievementMenu {
         if messages.contains(&ui::UiMessage::Triggered(2)) {
             let mut a_list = achievements::AchievementSet::load(
                 ctx,
-                achievements::AchievementProgressSource::File(
-                    "./data/achievements.toml".to_owned(),
-                ),
+                achievements::AchievementProgressSource::Cache,
             );
             for achievement in a_list.list.iter_mut() {
                 achievement.reset_progress();
