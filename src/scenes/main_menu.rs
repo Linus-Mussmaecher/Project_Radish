@@ -397,6 +397,7 @@ impl scene_manager::Scene for MainMenu {
     fn draw(&mut self, ctx: &mut ggez::Context, mouse_listen: bool) -> Result<(), ggez::GameError> {
         // music
         self.music_player.check_song(ctx);
+        self.music_player.poll_options();
 
         // graphics
         let mut canvas =
@@ -460,5 +461,16 @@ impl scene_manager::Scene for MainMenu {
         canvas.finish(ctx)?;
 
         Ok(())
+    }
+}
+
+impl Drop for MainMenu {
+    fn drop(&mut self) {
+        // save options to file on game exit (when the main menu is dropped)
+        crate::options::OPTIONS.with(|opt| {
+            if opt.borrow().save_to_file("./data/options.toml").is_err() {
+                println!("[WARNING] Could not save options.")
+            }
+        });
     }
 }

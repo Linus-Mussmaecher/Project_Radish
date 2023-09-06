@@ -19,10 +19,11 @@ pub fn audio_play_system(
     ctx: &ggez::Context,
     res: &mut legion::Resources,
 ) -> Result<(), ggez::GameError> {
-    // get boundaries for relative moving
     let audio_pool = &mut *res
         .get_mut::<AudioPool>()
         .ok_or_else(|| ggez::GameError::CustomError("Could not unpack audio pool.".to_owned()))?;
+
+    audio_pool.poll_options();
 
     for sound in audio_pool.sound_queue.iter().take(SOUNDS_PER_FRAME) {
         // play the sound
@@ -83,5 +84,10 @@ impl AudioPool {
         }
         //println!("Now containing {} files.", self.sources.len());
         self
+    }
+
+    /// Checks for changes in the options file to change music volume if neccessary.
+    pub fn poll_options(&mut self) {
+        self.options = crate::options::OPTIONS.with(|opt| *opt.borrow());
     }
 }

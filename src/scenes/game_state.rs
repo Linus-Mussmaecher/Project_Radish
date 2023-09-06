@@ -67,20 +67,14 @@ impl GameState {
 
         // --- RESOURCE INITIALIZATION ---
 
-        let options = options::OptionsConfig::from_path("./data/options.toml").unwrap_or_default();
+        let options = options::OPTIONS.with(|opt| *opt.borrow());
         let tutorial = if options.tutorial {
             tutorial::TutorialManager::new()
         } else {
             tutorial::TutorialManager::new_empty()
         };
         if options.tutorial {
-            let new_options = options::OptionsConfig {
-                tutorial: false,
-                ..options
-            };
-            if new_options.save_to_file("./data/options.toml").is_err() {
-                println!("[ERROR/Radish] Could not save updated options.");
-            }
+            options::OPTIONS.with(|opt| opt.borrow_mut().tutorial = false);
         }
 
         let achievement_set =
@@ -420,6 +414,7 @@ impl scene_manager::Scene for GameState {
     fn draw(&mut self, ctx: &mut ggez::Context, mouse_listen: bool) -> Result<(), GameError> {
         // Manage music
         self.music_player.check_song(ctx);
+        self.music_player.poll_options();
 
         // Get canvas & set sampler
         let mut canvas =

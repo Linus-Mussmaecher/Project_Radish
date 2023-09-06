@@ -79,8 +79,10 @@ impl MusicPlayer {
 
     /// Checks for changes in the options file to change music volume if neccessary.
     pub fn poll_options(&mut self) {
-        if let Ok(options) = super::options::OptionsConfig::from_path("./data/options.toml") {
-            self.volume = options.music_volume as f32 / 100. * 0.2;
-        }
+        self.volume = crate::options::OPTIONS
+            .with(|opt| *opt.borrow())
+            .music_volume as f32
+            / 100.
+            * 0.2;
     }
 }

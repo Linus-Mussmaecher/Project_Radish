@@ -1,6 +1,10 @@
-use std::{fs, path::Path};
+use std::{cell::RefCell, fs, path::Path};
 
 use serde::{Deserialize, Serialize};
+
+thread_local! {
+    pub static OPTIONS: RefCell<OptionsConfig> = RefCell::new(OptionsConfig::from_path("./data/options.toml").unwrap_or_default());
+}
 
 /// A struct that represents the game options.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]

@@ -47,6 +47,19 @@ impl InGameMenu {
         .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
         .build();
 
+        let options = graphics::Text::new(
+            graphics::TextFragment::new("Options").color(graphics::Color::from_rgb_u32(PALETTE[6])),
+        )
+        .set_font("Retro")
+        .set_scale(32.)
+        .to_owned()
+        .to_element_builder(3, ctx)
+        .with_trigger_key(ggez::winit::event::VirtualKeyCode::O)
+        .with_visuals(super::BUTTON_VIS)
+        .with_hover_visuals(super::BUTTON_HOVER_VIS)
+        .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
+        .build();
+
         let main_menu = graphics::Text::new(
             graphics::TextFragment::new("Return to Main Menu")
                 .color(graphics::Color::from_rgb_u32(PALETTE[6])),
@@ -54,7 +67,7 @@ impl InGameMenu {
         .set_font("Retro")
         .set_scale(32.)
         .to_owned()
-        .to_element_builder(3, ctx)
+        .to_element_builder(4, ctx)
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::M)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
@@ -68,7 +81,7 @@ impl InGameMenu {
         .set_font("Retro")
         .set_scale(32.)
         .to_owned()
-        .to_element_builder(4, ctx)
+        .to_element_builder(5, ctx)
         .with_trigger_key(ggez::winit::event::VirtualKeyCode::Q)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
@@ -82,6 +95,7 @@ impl InGameMenu {
             .with_child(pause)
             .with_child(resume)
             .with_child(achievements)
+            .with_child(options)
             .with_child(main_menu)
             .with_child(quit)
             .with_visuals(super::BUTTON_VIS)
@@ -113,13 +127,19 @@ impl scene_manager::Scene for InGameMenu {
         }
 
         if messages.contains(&ui::UiMessage::Triggered(3)) {
+            res = scene_manager::SceneSwitch::push(
+                crate::scenes::main_menu::options_menu::OptionsMenu::new(ctx)?,
+            );
+        }
+
+        if messages.contains(&ui::UiMessage::Triggered(4)) {
             res = scene_manager::SceneSwitch::replace(
                 crate::scenes::main_menu::MainMenu::new(ctx)?,
                 2,
             );
         }
 
-        if messages.contains(&ui::UiMessage::Triggered(4)) {
+        if messages.contains(&ui::UiMessage::Triggered(5)) {
             res = scene_manager::SceneSwitch::pop(2);
         }
 

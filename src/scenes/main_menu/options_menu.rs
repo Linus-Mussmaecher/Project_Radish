@@ -13,7 +13,6 @@ pub struct OptionsMenu {
     gui: ui::UiElement<()>,
     controller: super::game_state::Controller,
     options: options::OptionsConfig,
-    reload_main: bool,
 }
 
 impl OptionsMenu {
@@ -75,7 +74,7 @@ impl OptionsMenu {
         .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
         .build();
 
-        let options = options::OptionsConfig::from_path("./data/options.toml").unwrap_or_default();
+        let options = options::OPTIONS.with(|opt| *opt.borrow());
 
         let tutorial = graphics::Text::new(
             graphics::TextFragment::new("Re-enable Tutorial Hints")
@@ -150,7 +149,6 @@ impl OptionsMenu {
             controller: super::game_state::Controller::from_path("./data/keymap.toml")
                 .unwrap_or_default(),
             options,
-            reload_main: false,
         })
     }
 }
@@ -198,7 +196,6 @@ impl scene_manager::Scene for OptionsMenu {
             );
             // reset marker
             rebuild_meter = false;
-            self.reload_main = true;
         }
 
         // Adjust music volume
@@ -229,7 +226,6 @@ impl scene_manager::Scene for OptionsMenu {
                 VOLUME_MUSIC_CONTAINER_ID,
                 create_sound_adjuster(ctx, VOLUME_MUSIC_IDS, self.options.music_volume),
             );
-            self.reload_main = true;
         }
 
         // Reset keybinginds
@@ -247,17 +243,10 @@ impl scene_manager::Scene for OptionsMenu {
             if self.controller.save_to_file("./data/keymap.toml").is_err() {
                 println!("[WARNING] Could not save keybindings.")
             }
-            if self.options.save_to_file("./data/options.toml").is_err() {
-                println!("[WARNING] Could not save options.")
-            }
-            if self.reload_main {
-                Ok(mooeye::scene_manager::SceneSwitch::replace(
-                    super::MainMenu::new(ctx)?,
-                    2,
-                ))
-            } else {
-                Ok(mooeye::scene_manager::SceneSwitch::Pop(1))
-            }
+            // save internally
+            options::OPTIONS.with(|opt| *opt.borrow_mut() = self.options);
+
+            Ok(mooeye::scene_manager::SceneSwitch::Pop(1))
         } else {
             Ok(mooeye::scene_manager::SceneSwitch::None)
         }
