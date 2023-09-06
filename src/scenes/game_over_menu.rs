@@ -16,25 +16,24 @@ pub struct GameOverMenu {
 impl GameOverMenu {
     /// Creates a new GameOverMenu displaying the passed score and adding it (if good enough) to the highscore list.
     /// Also displays the highscore list and marks the newly achieved score (it it shows up).
-    pub fn new(ctx: &ggez::Context, score: i32) -> Result<Self, GameError> {
+    pub fn new(ctx: &ggez::Context, wave: u32, score: u32) -> Result<Self, GameError> {
         // load highscores
 
-        let mut highscores = achievements::load_highscores();
-
-        // if only a small amount of scores is recorded or the worst result from the list was beaten, insert the new result
-        let own_index =
-            if highscores.len() < 25 || score >= highscores.last().copied().unwrap_or_default() {
+        let own_index = achievements::HIGHSCORES.with(|scores| {
+            let highscores = &mut scores.borrow_mut().scores;
+            // if only a small amount of scores is recorded or the worst result from the list was beaten, insert the new result
+            if highscores.len() < 25 || score >= highscores.last().copied().unwrap_or_default().1 {
                 // set default index: at the end of the list
                 let mut index = highscores.len();
                 // see if there is an appropriate earlier index
                 for (i, &value) in highscores.iter().enumerate() {
-                    if score >= value {
+                    if score >= value.1 {
                         index = i;
                         break;
                     }
                 }
                 // insert at appropriate index
-                highscores.insert(index, score);
+                highscores.insert(index, (wave, score));
                 // if list has grown too much, cut last element
                 if highscores.len() > 25 {
                     highscores.pop();
@@ -43,7 +42,8 @@ impl GameOverMenu {
                 Some(index)
             } else {
                 None
-            };
+            }
+        });
 
         // create UI
 
@@ -108,9 +108,15 @@ impl GameOverMenu {
 
         // add the first 5 (or less) scores as texts to the element
 
-        for (index, &score) in highscores.iter().enumerate().take(5) {
-            highscore_disp.add(
-                graphics::TextFragment::new(format!("\n  {:02}.{:>5}", index + 1, score))
+        achievements::HIGHSCORES.with(|scores| {
+            for (index, &(wave, score)) in scores.borrow().scores.iter().enumerate().take(5) {
+                highscore_disp.add(
+                    graphics::TextFragment::new(format!(
+                        "\n  {:02}. {:>3} {:>5}",
+                        index + 1,
+                        wave,
+                        score
+                    ))
                     .color(graphics::Color::from_rgb_u32(
                         // if own score shows up, change color to make it stand out
                         if index == own_index.unwrap_or(128) {
@@ -120,8 +126,9 @@ impl GameOverMenu {
                         },
                     ))
                     .scale(32.),
-            );
-        }
+                );
+            }
+        });
 
         // convert to ui element
 
@@ -175,9 +182,6 @@ impl GameOverMenu {
             .with_alignment(ui::Alignment::Center, ui::Alignment::Center)
             .with_padding((25., 25., 25., 25.))
             .build();
-
-        // save highscores
-        achievements::save_highscores(highscores);
 
         let mut music_player = music::MusicPlayer::from_folder(ctx, "/audio/music/in_game");
         music_player.poll_options();

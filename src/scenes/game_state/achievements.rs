@@ -15,9 +15,16 @@ use super::{
 
 thread_local! {
     pub static ACHIEVEMENTS: RefCell<AchievementProgress> = RefCell::new(
-        toml::from_str(&fs::read_to_string("./data/achievements.toml").unwrap_or_else(|_| "".to_owned()))
+        toml::from_str(&fs::read_to_string("./data/achievements.toml")
+            .unwrap_or_else(|_| "".to_owned()))
             .unwrap_or_default()
     );
+
+    pub static HIGHSCORES: RefCell<ScoreList> = RefCell::new(
+            toml::from_str::<ScoreList>(&fs::read_to_string("./data/highscores.toml")
+                .unwrap_or_else(|_| "".to_owned()))
+                .unwrap_or_default()
+    )
 }
 
 #[derive(Clone, Debug)]
@@ -372,27 +379,7 @@ impl MessageReceiver for AchievementSet {
 
 /// A struct that represents a list of scores. Allows Serde to .toml.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-struct ScoreList {
+pub struct ScoreList {
     /// The scores
-    scores: Vec<i32>,
-}
-
-/// Loads the highscore list stored at ./data/highscores.toml and converts it to a vector of integer scores.
-/// Returns an empty list if none can be found.
-pub fn load_highscores() -> Vec<i32> {
-    if let Ok(file) = std::fs::read_to_string("./data/highscores.toml") {
-        toml::from_str::<ScoreList>(&file)
-            .unwrap_or_default()
-            .scores
-    } else {
-        Vec::new()
-    }
-}
-
-pub fn save_highscores(scores: Vec<i32>) {
-    if let Ok(toml_string) = toml::to_string(&ScoreList { scores }) {
-        if std::fs::write("./data/highscores.toml", toml_string).is_err() {
-            println!("[ERROR/Radish] Could not save highscores.")
-        };
-    }
+    pub scores: Vec<(u32, u32)>,
 }

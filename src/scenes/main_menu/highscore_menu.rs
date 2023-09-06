@@ -26,17 +26,20 @@ impl HighscoreMenu {
 
         let mut highscore_disp = graphics::Text::default();
 
-        for (index, value) in game_state::achievements::load_highscores()
-            .iter()
-            .enumerate()
-            .take(10)
-        {
-            highscore_disp.add(
-                graphics::TextFragment::new(format!("{:02}.{:>7}\n", index + 1, *value))
+        game_state::achievements::HIGHSCORES.with(|scores| {
+            for (index, (wave, score)) in scores.borrow().scores.iter().enumerate().take(10) {
+                highscore_disp.add(
+                    graphics::TextFragment::new(format!(
+                        "{:02}. {:>3} {:>7}\n",
+                        index + 1,
+                        *wave,
+                        *score
+                    ))
                     .color(graphics::Color::from_rgb_u32(PALETTE[6]))
                     .scale(32.),
-            );
-        }
+                );
+            }
+        });
 
         let highscore_disp = highscore_disp
             .set_font("Retro_M")

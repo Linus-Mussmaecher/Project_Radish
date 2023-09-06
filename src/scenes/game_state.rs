@@ -401,10 +401,16 @@ impl scene_manager::Scene for GameState {
                 if cfg.save_to_file("./data/quick_config.toml").is_err() {
                     println!("[ERROR/Radish] Could not save quick start config.");
                 };
-                // create the game over menu, replacing any other attempted scene switch
-                switch = scene_manager::SceneSwitch::push(
-                    crate::scenes::game_over_menu::GameOverMenu::new(ctx, game_data.get_score())?,
-                );
+                if let Some(director) = self.resources.get_mut::<director::Director>() {
+                    // create the game over menu, replacing any other attempted scene switch
+                    switch = scene_manager::SceneSwitch::push(
+                        crate::scenes::game_over_menu::GameOverMenu::new(
+                            ctx,
+                            director.get_wave(),
+                            game_data.get_score() as u32,
+                        )?,
+                    );
+                }
             }
         }
 

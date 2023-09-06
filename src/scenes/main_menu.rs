@@ -469,7 +469,7 @@ impl Drop for MainMenu {
         // save options to file on game exit (when the main menu is dropped)
         crate::options::OPTIONS.with(|opt| {
             if opt.borrow().save_to_file("./data/options.toml").is_err() {
-                println!("[WARNING] Could not save options.")
+                println!("[ERROR/Radish] Could not save options.")
             };
         });
 
@@ -480,8 +480,20 @@ impl Drop for MainMenu {
             )
             .is_err()
             {
-                println!("[WARNING] Could not save achievements.");
+                println!("[ERROR/Radish] Could not save achievements.");
             };
+        });
+
+        // Save highscores
+        crate::scenes::game_state::achievements::HIGHSCORES.with(|scores| {
+            if std::fs::write(
+                "./data/highscores.toml",
+                toml::to_string(scores).unwrap_or_default(),
+            )
+            .is_err()
+            {
+                println!("[ERROR/Radish] Could not save highscores.")
+            }
         });
     }
 }

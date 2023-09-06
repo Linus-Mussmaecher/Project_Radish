@@ -18,7 +18,7 @@ pub struct OptionsConfig {
 }
 
 impl OptionsConfig {
-    /// Loads a keymap from the given path and constructs a controller.
+    /// Loads an option config from the given path.
     pub fn from_path(path: impl AsRef<Path>) -> Result<Self, Box<dyn std::error::Error>> {
         let string = fs::read_to_string(
             path.as_ref()
@@ -28,7 +28,7 @@ impl OptionsConfig {
         Ok(toml::from_str(&string)?)
     }
 
-    /// Saves this controllers keymap to the given path.
+    /// Saves this option config to the given path.
     pub fn save_to_file(&self, path: impl AsRef<Path>) -> Result<(), Box<dyn std::error::Error>> {
         fs::write(
             path.as_ref()
