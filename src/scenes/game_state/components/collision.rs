@@ -6,7 +6,7 @@ use super::actions::Actions;
 /// A custom type to remember a set of delayed actions.
 type ActionQueue = Vec<(legion::Entity, GameAction)>;
 
-use super::{actions::GameAction, Position};
+use super::{actions::GameAction, health::Enemy, Position};
 
 /// A component that manages an entities collision box and collision handling.
 pub struct Collision {
@@ -17,6 +17,8 @@ pub struct Collision {
 
     /// A function that provides a number of actions and messages to execute on collision, based on the entities colliding.
     collision_handler: Box<dyn Fn(Entity, Entity) -> ActionQueue + Send + Sync>,
+    /// Makes this collider respond only to collision with entities that have the 'Enemy' component.
+    enemies_only: bool,
 
     /// A list of all entities that cannot collide with this one.
     immunity: Vec<Entity>,
@@ -27,19 +29,21 @@ impl Collision {
     pub fn new(
         w: f32,
         h: f32,
+        enemies_only: bool,
         collision_handler: impl Fn(Entity, Entity) -> ActionQueue + Send + Sync + 'static,
     ) -> Self {
         Self {
             w,
             h,
             collision_handler: Box::new(collision_handler),
+            enemies_only,
             immunity: Vec::new(),
         }
     }
 
     /// Creates a new collision component that does itself not apply actions or send messages (but can trigger collisions with other collision components).
     pub fn new_basic(w: f32, h: f32) -> Self {
-        Self::new(w, h, |_, _| ActionQueue::new())
+        Self::new(w, h, false, |_, _| ActionQueue::new())
     }
 
     /// Returns the collision bounds (x,y,w,h) of this component.
@@ -142,6 +146,7 @@ pub fn boundary_collision(
 #[system]
 #[read_component(Position)]
 #[read_component(Collision)]
+#[read_component(Enemy)]
 #[write_component(Actions)]
 /// A system that manages collisions of entities with each other.
 pub fn collision(world: &mut legion::world::SubWorld) {
@@ -150,11 +155,14 @@ pub fn collision(world: &mut legion::world::SubWorld) {
 
     // Iterate over all pairs of possible colliders.
     for (ent1, pos1, col1) in <(Entity, &Position, &Collision)>::query().iter(world) {
-        for (ent2, pos2, col2) in <(Entity, &Position, &Collision)>::query().iter(world) {
+        for (ent2, pos2, col2, enemy2) in
+            <(Entity, &Position, &Collision, Option<&Enemy>)>::query().iter(world)
+        {
             // check for collision
             if col1.get_collider(*pos1).overlaps(&col2.get_collider(*pos2))
                 && *ent1 != *ent2
                 && !col1.immunity.contains(ent2)
+                && (!col1.enemies_only || enemy2.is_some())
             {
                 let n_actions = (col1.collision_handler)(*ent1, *ent2);
                 total_actions.extend(n_actions);

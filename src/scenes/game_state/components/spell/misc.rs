@@ -23,7 +23,7 @@ pub(super) fn construct_gale_force(sprite_pool: &SpritePool) -> Spell {
                     Duration::from_secs_f32(0.2),
                 ),
                 components::Velocity::new(0., -300.),
-                components::Collision::new(128., 16., |e1, e2| {
+                components::Collision::new(128., 16., false, |e1, e2| {
                     vec![
                         (e1, GameAction::AddImmunity { other: e2 }),
                         (e2, GameAction::TakeDamage { dmg: 10 }),
@@ -63,7 +63,7 @@ pub(super) fn construct_airburst(sprite_pool: &SpritePool) -> Spell {
                     Duration::from_secs_f32(0.2),
                 ),
                 components::Velocity::new(0., -350.),
-                components::Collision::new(32., 32., |e1, e2| {
+                components::Collision::new(32., 32., true, |e1, e2| {
                     vec![
                         (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                         (e1, GameAction::play_sound("/audio/sounds/spells/airburst_hit")),
@@ -116,7 +116,7 @@ pub(super) fn construct_blackhole(sprite_pool: &SpritePool) -> Spell {
                     Duration::from_secs_f32(0.2),
                 ),
                 components::Velocity::new(0., -180.),
-                components::Collision::new(16., 16., |e1, e2| vec![
+                components::Collision::new(16., 16., true, |e1, e2| vec![
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                             (e1, GameAction::play_sound("/audio/sounds/spells/blackhole_hit")),
                             (e2, GameAction::TakeDamage { dmg: 80 }),
@@ -184,7 +184,7 @@ pub(super) fn construct_mind_wipe(sprite_pool: &SpritePool) -> Spell {
                     Duration::from_secs_f32(0.2),
                 ),
                 components::Velocity::new(0., -250.),
-                components::Collision::new(32., 32., |e1, e2| vec![
+                components::Collision::new(32., 32., true, |e1, e2| vec![
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                             (e1, GameAction::play_sound("/audio/sounds/spells/mindwipe_hit")),
                             (e2, GameAction::TakeDamage { dmg: 42 }),
@@ -203,7 +203,7 @@ pub(super) fn construct_mind_wipe(sprite_pool: &SpritePool) -> Spell {
 pub(super) fn construct_arcane_missiles(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Arcane Missiles",
-        "Infuse your self with arcane power. Every second for the next 10 seconds, launch an arcane missile towards the nearest enemy, dealing moderate damage.",
+        "Infuse your self with arcane power. Every second for the next 10 seconds, launch an arcane missile towards a nearby enemy, dealing moderate damage.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/icons/arcane_bolt_icon", Duration::ZERO),
         "/audio/sounds/spells/amissiles_cast",
         ActionEffect::repeat(
@@ -226,7 +226,7 @@ pub(super) fn construct_arcane_missiles(sprite_pool: &SpritePool) -> Spell {
                     pos_list.sort_by(|a,b| a.distance(pos_src).total_cmp(&b.distance(pos_src)) );
 
                     // get closest vector
-                    if let Some(&target) = pos_list.first(){
+                    if let Some(&target) = pos_list.get(rand::random::<usize>() % pos_list.len().min(4).max(1)){
 
                         // get sprite pool
                         let sp = res.get::<mooeye::sprite::SpritePool>().expect("Could not find sprite pool when spawning arcane missile.");
@@ -240,7 +240,7 @@ pub(super) fn construct_arcane_missiles(sprite_pool: &SpritePool) -> Spell {
                                 Duration::from_secs_f32(0.2),
                             )),
                             components::Velocity::from((target - pos_src).clamp_length(240., 240.)),
-                            components::Collision::new(32., 32., |e1, e2| vec![
+                            components::Collision::new(32., 32., true, |e1, e2| vec![
                                         (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                                         (e1, GameAction::play_sound("/audio/sounds/spells/amissiles_hit")),
                                         (e2, GameAction::TakeDamage { dmg: 25 }),
@@ -269,7 +269,7 @@ pub(super) fn construct_arcane_blast(sprite_pool: &SpritePool) -> Spell {
                     Duration::from_secs_f32(0.2),
                 ),
                 components::Velocity::new(0., -360.),
-                components::Collision::new(32., 32., |e1, e2| vec![
+                components::Collision::new(32., 32., true, |e1, e2| vec![
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                             (e1, GameAction::play_sound("/audio/sounds/spells/ablast_hit1")),
                             (e2, GameAction::TakeDamage { dmg: 30 }),
@@ -284,7 +284,7 @@ pub(super) fn construct_arcane_blast(sprite_pool: &SpritePool) -> Spell {
                                             Duration::from_secs_f32(0.2),
                                         ),
                                         components::Velocity::from(rel.clamp_length(240., 240.) * -1.),
-                                        components::Collision::new(8., 8., |e1, e2| vec![
+                                        components::Collision::new(8., 8., true, |e1, e2| vec![
                                                     (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                                                     (e1, GameAction::play_sound("/audio/sounds/spells/ablast_hit2")),
                                                     (e2, GameAction::TakeDamage { dmg: 30 }),

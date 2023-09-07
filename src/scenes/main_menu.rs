@@ -346,14 +346,14 @@ impl scene_manager::Scene for MainMenu {
                                 scores
                                     .borrow()
                                     .first()
-                                    .map(|(score, _)| *score as i32)
+                                    .map(|(_, score)| *score as i32)
                                     .unwrap_or_default()
-                            }) / 3,
+                            }) / 4,
                             starting_wave: game_state::achievements::HIGHSCORES.with(|scores| {
                                 scores
                                     .borrow()
                                     .first()
-                                    .map(|(_, wave)| *wave)
+                                    .map(|(wave, _)| *wave)
                                     .unwrap_or_default()
                             }) / 2,
                             ..Default::default()

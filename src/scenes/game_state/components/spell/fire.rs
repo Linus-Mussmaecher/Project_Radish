@@ -21,7 +21,7 @@ pub(super) fn construct_fireball(sprite_pool: &SpritePool) -> Spell {
                 components::LifeDuration::new(Duration::from_secs(10)),
                 components::Graphics::new("/sprites/spells/fireball", Duration::from_secs_f32(0.2)),
                 components::Velocity::new(0., -250.),
-                components::Collision::new(32., 32., |e1, e2| {
+                components::Collision::new(32., 32., true, |e1, e2| {
                     vec![
                         (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                         (e2, GameAction::TakeDamage { dmg: 20 }),
@@ -52,7 +52,7 @@ pub(super) fn construct_scorch(sprite_pool: &SpritePool) -> Spell {
                     Duration::from_secs_f32(0.2),
                 ),
                 components::Velocity::new(0., -200.),
-                components::Collision::new(32., 32., |e1, e2| vec![
+                components::Collision::new(32., 32., true, |e1, e2| vec![
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                             (e1, GameAction::play_sound("/audio/sounds/spells/scorch_hit")),
                             (e1, GameAction::spawn(|_, pos, cmd|{
@@ -132,7 +132,7 @@ pub(super) fn construct_flameorb(sprite_pool: &SpritePool) -> Spell {
                     Duration::from_secs_f32(0.2),
                 ),
                 components::Velocity::new(0., -250.),
-                components::Collision::new(24., 24., |e1, e2| {
+                components::Collision::new(24., 24., true, |e1, e2| {
                     vec![
                         (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                         (e1, GameAction::play_sound("/audio/sounds/spells/flameorb_hit")),
@@ -220,7 +220,7 @@ pub(super) fn construct_phoenix(sprite_pool: &SpritePool) -> Spell {
                                     Duration::from_secs_f32(0.3),
                                 ),
                                 components::Velocity::new(0., -250.),
-                                components::Collision::new(32., 32., |e1, e2| {
+                                components::Collision::new(32., 32., true, |e1, e2| {
                                     vec![
                                         (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                                         (e2, GameAction::TakeDamage { dmg: 20 }),

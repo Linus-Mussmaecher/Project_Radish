@@ -25,7 +25,7 @@ pub(super) fn construct_ice_bomb(sprite_pool: &SpritePool) -> Spell {
                     Duration::from_secs_f32(0.2),
                 ),
                 components::Velocity::new(0., -520.),
-                components::Collision::new(32., 32., |e1, e2|
+                components::Collision::new(32., 32., true, |e1, e2|
                         vec![
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                             (e1, GameAction::play_sound("/audio/sounds/spells/icebomb_hit")),
@@ -83,7 +83,7 @@ pub(super) fn construct_shard(sprite_pool: &SpritePool) -> Spell {
                 components::Velocity::new(0., -250.),
                 components::LifeDuration::new(Duration::from_secs(10)),
                 components::Graphics::new("/sprites/spells/icebomb", Duration::from_secs_f32(0.25)),
-                components::Collision::new(32., 32., |e1, e2| vec![
+                components::Collision::new(32., 32., true, |e1, e2| vec![
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                             (e1, GameAction::play_sound("/audio/sounds/spells/shard_hit")),
                             (e2, GameAction::TakeDamage { dmg: 20 }),
@@ -98,7 +98,7 @@ pub(super) fn construct_shard(sprite_pool: &SpritePool) -> Spell {
                                             "/sprites/spells/icebomb",
                                             Duration::ZERO,
                                         ).with_sprite_variant(if i == 0 {0} else {2}),
-                                        components::Collision::new(32., 32., |e1, e2| vec![
+                                        components::Collision::new(32., 32., true, |e1, e2| vec![
                                                 (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                                                 (e1, GameAction::play_sound("/audio/sounds/spells/shard_hit")),
                                                 (e2, GameAction::TakeDamage { dmg: 8 }),
@@ -129,7 +129,7 @@ pub(super) fn construct_ice_lance(sprite_pool: &SpritePool) -> Spell {
                     Duration::from_secs_f32(0.2),
                 ),
                 components::Velocity::new(0., -450.),
-                components::Collision::new(32., 32., move |e1, e2| vec![
+                components::Collision::new(32., 32., true, move |e1, e2| vec![
                             (e1, GameAction::AddImmunity { other: e2 }),
                             (e1, GameAction::play_sound("/audio/sounds/spells/lance_hit")),
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
@@ -171,7 +171,7 @@ pub(super) fn construct_lightning_orb(sprite_pool: &SpritePool) -> Spell {
                     Duration::from_secs_f32(0.2),
                 ),
                 components::Velocity::new(0., -180.),
-                components::Collision::new(32., 32., |e1, e2| vec![
+                components::Collision::new(32., 32., true, |e1, e2| vec![
                             (e1, GameAction::AddImmunity { other: e2 }),
                             (e1, GameAction::play_sound("/audio/sounds/spells/electroorb_hit")),
                             (
@@ -208,7 +208,7 @@ pub(super) fn construct_overload(sprite_pool: &SpritePool) -> Spell {
                     Duration::from_secs_f32(0.2),
                 ),
                 components::Velocity::new(0., -300.),
-                components::Collision::new(12., 32., move |e1, e2| vec![
+                components::Collision::new(12., 32., true, move |e1, e2| vec![
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                             (e1, GameAction::play_sound("/audio/sounds/spells/overload_hit")),
                             (e2, GameAction::TakeDamage { dmg: 10 }),

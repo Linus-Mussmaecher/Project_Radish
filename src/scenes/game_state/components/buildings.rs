@@ -94,7 +94,7 @@ pub fn create_buildings(
                             boundaries.h + 32. + 8.,
                         ),
                         Building { building_type: i },
-                        super::Collision::new(4. * 32., 2. * 32., |e1, e2| {
+                        super::Collision::new(4. * 32., 2. * 32., true, |e1, e2| {
                             vec![
                                 (
                                     e1,
