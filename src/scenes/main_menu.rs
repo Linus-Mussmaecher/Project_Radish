@@ -188,13 +188,12 @@ impl MainMenu {
             .to_element_builder(0, ctx)
             .with_child(play);
 
-        let menu_box = if game_state::achievements::HIGHSCORES
-            .with(|scores| scores.borrow().scores.is_empty())
-        {
-            menu_box
-        } else {
-            menu_box.with_child(quick_advance)
-        };
+        let menu_box =
+            if game_state::achievements::HIGHSCORES.with(|scores| scores.borrow().is_empty()) {
+                menu_box
+            } else {
+                menu_box.with_child(quick_advance)
+            };
 
         let menu_box = if cfg!(debug_assertions) {
             menu_box.with_child(debug)
@@ -346,7 +345,6 @@ impl scene_manager::Scene for MainMenu {
                             starting_gold: game_state::achievements::HIGHSCORES.with(|scores| {
                                 scores
                                     .borrow()
-                                    .scores
                                     .first()
                                     .map(|(score, _)| *score as i32)
                                     .unwrap_or_default()
@@ -354,7 +352,6 @@ impl scene_manager::Scene for MainMenu {
                             starting_wave: game_state::achievements::HIGHSCORES.with(|scores| {
                                 scores
                                     .borrow()
-                                    .scores
                                     .first()
                                     .map(|(_, wave)| *wave)
                                     .unwrap_or_default()
@@ -389,6 +386,8 @@ impl scene_manager::Scene for MainMenu {
 
                 if messages.contains(&ui::UiMessage::Triggered(8)) {
                     self.music_player.stop(ctx);
+                    crate::options::save_options();
+                    game_state::achievements::save_data_to_file();
                     res = mooeye::scene_manager::SceneSwitch::Pop(1);
                 }
             }
@@ -480,39 +479,5 @@ impl scene_manager::Scene for MainMenu {
         canvas.finish(ctx)?;
 
         Ok(())
-    }
-}
-
-impl Drop for MainMenu {
-    fn drop(&mut self) {
-        // save options to file on game exit (when the main menu is dropped)
-        crate::options::OPTIONS.with(|opt| {
-            if opt.borrow().save_to_file("./data/options.toml").is_err() {
-                println!("[ERROR/Radish] Could not save options.")
-            };
-        });
-
-        crate::scenes::game_state::achievements::ACHIEVEMENTS.with(|ach| {
-            if std::fs::write(
-                "./data/achievements.toml",
-                toml::to_string(ach).unwrap_or_default(),
-            )
-            .is_err()
-            {
-                println!("[ERROR/Radish] Could not save achievements.");
-            };
-        });
-
-        // Save highscores
-        crate::scenes::game_state::achievements::HIGHSCORES.with(|scores| {
-            if std::fs::write(
-                "./data/highscores.toml",
-                toml::to_string(scores).unwrap_or_default(),
-            )
-            .is_err()
-            {
-                println!("[ERROR/Radish] Could not save highscores.")
-            }
-        });
     }
 }

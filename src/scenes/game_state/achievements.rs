@@ -20,11 +20,46 @@ thread_local! {
             .unwrap_or_default()
     );
 
-    pub static HIGHSCORES: RefCell<ScoreList> = RefCell::new(
+    pub static HIGHSCORES: RefCell<Vec<(u32, u32)>> = RefCell::new(
             toml::from_str::<ScoreList>(&fs::read_to_string("./data/highscores.toml")
                 .unwrap_or_else(|_| "".to_owned()))
-                .unwrap_or_default()
+                .unwrap_or_default().scores
     )
+}
+
+pub fn save_data_to_file() {
+    crate::scenes::game_state::achievements::ACHIEVEMENTS.with(|ach| {
+        if std::fs::write(
+            "./data/achievements.toml",
+            toml::to_string(ach).unwrap_or_default(),
+        )
+        .is_err()
+        {
+            println!("[ERROR/Radish] Could not save achievements.");
+        };
+    });
+
+    // Save highscores
+    crate::scenes::game_state::achievements::HIGHSCORES.with(|scores| {
+        if std::fs::write(
+            "./data/highscores.toml",
+            toml::to_string(&ScoreList {
+                scores: scores.take(),
+            })
+            .unwrap_or_default(),
+        )
+        .is_err()
+        {
+            println!("[ERROR/Radish] Could not save highscores.")
+        }
+    });
+}
+
+/// A struct that represents a list of scores. Allows Serde to .toml.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ScoreList {
+    /// The scores
+    pub scores: Vec<(u32, u32)>,
 }
 
 #[derive(Clone, Debug)]
@@ -375,11 +410,4 @@ impl MessageReceiver for AchievementSet {
             }
         }
     }
-}
-
-/// A struct that represents a list of scores. Allows Serde to .toml.
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ScoreList {
-    /// The scores
-    pub scores: Vec<(u32, u32)>,
 }

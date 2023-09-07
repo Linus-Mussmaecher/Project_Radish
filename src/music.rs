@@ -83,6 +83,6 @@ impl MusicPlayer {
             .with(|opt| *opt.borrow())
             .music_volume as f32
             / 100.
-            * 0.2;
+            * 0.15;
     }
 }

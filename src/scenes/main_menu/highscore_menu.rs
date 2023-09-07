@@ -27,7 +27,7 @@ impl HighscoreMenu {
         let mut highscore_disp = graphics::Text::default();
 
         game_state::achievements::HIGHSCORES.with(|scores| {
-            for (index, (_, score)) in scores.borrow().scores.iter().enumerate().take(10) {
+            for (index, (_, score)) in scores.borrow().iter().enumerate().take(10) {
                 highscore_disp.add(
                     graphics::TextFragment::new(format!("{:02}.{:>7}\n", index + 1, *score))
                         .color(graphics::Color::from_rgb_u32(PALETTE[6]))

@@ -143,7 +143,6 @@ impl SpellCaster {
         self.spell_slots.len()
     }
 
-    #[allow(dead_code)]
     /// Returns the amount of currently free and unblocked spell slots.
     pub fn get_free_slots(&self) -> usize {
         self.spell_slots

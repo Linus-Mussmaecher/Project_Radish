@@ -47,6 +47,8 @@ impl GameConfig {
             initial_camera_offset: 0.,
         }
     }
+
+    #[allow(dead_code)]
     /// Loads a game config from the given path and constructs a controller.
     pub fn from_path(
         path: impl AsRef<std::path::Path>,
@@ -59,6 +61,7 @@ impl GameConfig {
         Ok(toml::from_str(&string)?)
     }
 
+    #[allow(dead_code)]
     /// Saves this game config to the given path.
     pub fn save_to_file(
         &self,

@@ -49,3 +49,12 @@ impl Default for OptionsConfig {
         }
     }
 }
+
+pub fn save_options() {
+    // save options to file on game exit (when the main menu is dropped)
+    crate::options::OPTIONS.with(|opt| {
+        if opt.borrow().save_to_file("./data/options.toml").is_err() {
+            println!("[ERROR/Radish] Could not save options.")
+        };
+    });
+}

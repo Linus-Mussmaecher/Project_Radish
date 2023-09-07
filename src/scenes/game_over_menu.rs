@@ -20,7 +20,7 @@ impl GameOverMenu {
         // load highscores
 
         let own_index = achievements::HIGHSCORES.with(|scores| {
-            let highscores = &mut scores.borrow_mut().scores;
+            let highscores = &mut scores.borrow_mut();
             // if only a small amount of scores is recorded or the worst result from the list was beaten, insert the new result
             if highscores.len() < 25 || score >= highscores.last().copied().unwrap_or_default().1 {
                 // set default index: at the end of the list
@@ -109,7 +109,7 @@ impl GameOverMenu {
         // add the first 5 (or less) scores as texts to the element
 
         achievements::HIGHSCORES.with(|scores| {
-            for (index, &(_, score)) in scores.borrow().scores.iter().enumerate().take(5) {
+            for (index, &(_, score)) in scores.borrow().iter().enumerate().take(5) {
                 highscore_disp.add(
                     graphics::TextFragment::new(format!("\n  {:02}.{:>5}", index + 1, score))
                         .color(graphics::Color::from_rgb_u32(
