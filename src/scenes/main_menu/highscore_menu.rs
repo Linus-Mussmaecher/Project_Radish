@@ -27,16 +27,11 @@ impl HighscoreMenu {
         let mut highscore_disp = graphics::Text::default();
 
         game_state::achievements::HIGHSCORES.with(|scores| {
-            for (index, (wave, score)) in scores.borrow().scores.iter().enumerate().take(10) {
+            for (index, (_, score)) in scores.borrow().scores.iter().enumerate().take(10) {
                 highscore_disp.add(
-                    graphics::TextFragment::new(format!(
-                        "{:02}. {:>3} {:>7}\n",
-                        index + 1,
-                        *wave,
-                        *score
-                    ))
-                    .color(graphics::Color::from_rgb_u32(PALETTE[6]))
-                    .scale(32.),
+                    graphics::TextFragment::new(format!("{:02}.{:>7}\n", index + 1, *score))
+                        .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                        .scale(32.),
                 );
             }
         });
@@ -119,7 +114,6 @@ impl scene_manager::Scene for HighscoreMenu {
         if messages.contains(&ui::UiMessage::Triggered(1)) {
             // delete highscores
             std::fs::write("./data/highscores.toml", "")?;
-            std::fs::remove_file("./data/quick_config.toml")?;
         }
 
         if messages.contains(&ui::UiMessage::Triggered(2)) {

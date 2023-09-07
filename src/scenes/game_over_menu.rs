@@ -109,23 +109,18 @@ impl GameOverMenu {
         // add the first 5 (or less) scores as texts to the element
 
         achievements::HIGHSCORES.with(|scores| {
-            for (index, &(wave, score)) in scores.borrow().scores.iter().enumerate().take(5) {
+            for (index, &(_, score)) in scores.borrow().scores.iter().enumerate().take(5) {
                 highscore_disp.add(
-                    graphics::TextFragment::new(format!(
-                        "\n  {:02}. {:>3} {:>5}",
-                        index + 1,
-                        wave,
-                        score
-                    ))
-                    .color(graphics::Color::from_rgb_u32(
-                        // if own score shows up, change color to make it stand out
-                        if index == own_index.unwrap_or(128) {
-                            PALETTE[8]
-                        } else {
-                            PALETTE[6]
-                        },
-                    ))
-                    .scale(32.),
+                    graphics::TextFragment::new(format!("\n  {:02}.{:>5}", index + 1, score))
+                        .color(graphics::Color::from_rgb_u32(
+                            // if own score shows up, change color to make it stand out
+                            if index == own_index.unwrap_or(128) {
+                                PALETTE[8]
+                            } else {
+                                PALETTE[6]
+                            },
+                        ))
+                        .scale(32.),
                 );
             }
         });

@@ -188,10 +188,12 @@ impl MainMenu {
             .to_element_builder(0, ctx)
             .with_child(play);
 
-        let menu_box = if game_state::GameConfig::from_path("./data/quick_config.toml").is_ok() {
-            menu_box.with_child(quick_advance)
-        } else {
+        let menu_box = if game_state::achievements::HIGHSCORES
+            .with(|scores| scores.borrow().scores.is_empty())
+        {
             menu_box
+        } else {
+            menu_box.with_child(quick_advance)
         };
 
         let menu_box = if cfg!(debug_assertions) {
@@ -340,8 +342,25 @@ impl scene_manager::Scene for MainMenu {
                     }
                     self.state = Some((
                         Duration::from_secs(4),
-                        game_state::GameConfig::from_path("./data/quick_config.toml")
-                            .unwrap_or_default(),
+                        game_state::GameConfig {
+                            starting_gold: game_state::achievements::HIGHSCORES.with(|scores| {
+                                scores
+                                    .borrow()
+                                    .scores
+                                    .first()
+                                    .map(|(score, _)| *score as i32)
+                                    .unwrap_or_default()
+                            }) / 3,
+                            starting_wave: game_state::achievements::HIGHSCORES.with(|scores| {
+                                scores
+                                    .borrow()
+                                    .scores
+                                    .first()
+                                    .map(|(_, wave)| *wave)
+                                    .unwrap_or_default()
+                            }) / 2,
+                            ..Default::default()
+                        },
                     ));
                 }
 
