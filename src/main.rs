@@ -3,7 +3,7 @@
     windows_subsystem = "windows"
 )]
 
-use ggez::*;
+use good_web_game::*;
 
 mod music;
 mod options;
@@ -17,43 +17,60 @@ const PALETTE: [u32; 16] = [
     0xf0d1a5, 0x968981, 0x7f7574, 0x484850, 0x313848, 0x1c283e, 0x0b1321,
 ];
 
+thread_local! {
+    /// The font used in this example.
+    pub static RETRO: std::cell::RefCell<Option<graphics::Font>>  = std::cell::RefCell::new(None);
+    pub static RETRO_M: std::cell::RefCell<Option<graphics::Font>>  = std::cell::RefCell::new(None);
+}
+
 fn main() -> GameResult {
     // for debugging
-    std::env::set_var("RUST_BACKTRACE", "full");
+    // std::env::set_var("RUST_BACKTRACE", "full");
 
-    //generate game context (window etc.)
-    let (mut ctx, event_loop): (ggez::context::Context, ggez::event::EventLoop<()>) =
-        ContextBuilder::new("radish", "Linus Mußmächer")
-            .add_resource_path("./resources")
-            .window_setup(
-                conf::WindowSetup::default()
-                    .icon("/sprites/spells/mana.png")
-                    .title("Spellstruck"),
+    // Fetch and set resource directory.
+
+    let resource_dir = if let Ok(manifest_dir) = std::env::var("CARGO_MANIFEST_DIR") {
+        let mut path = std::path::PathBuf::from(manifest_dir);
+        path.push("./resources");
+        path
+    } else {
+        std::path::PathBuf::from("./resources")
+    };
+
+    // Generate game context and event loop.
+
+    let conf = good_web_game::conf::Conf::default()
+        .physical_root_dir(Some(resource_dir))
+        .cache(Some(include_bytes!("../resources/resources.tar")));
+
+    good_web_game::start(conf, |ctx, mut _gfx_ctx| {
+        // Add fonts from the resource folder.
+        RETRO.with(|bs| {
+            *bs.borrow_mut() = good_web_game::graphics::Font::new_glyph_font_bytes(
+                ctx,
+                &ctx.filesystem
+                    .open("./fonts/retro_gaming.ttf")
+                    .unwrap()
+                    .bytes
+                    .into_inner(),
             )
-            .window_mode(
-                conf::WindowMode::default()
-                    .fullscreen_type(conf::FullscreenType::Windowed)
-                    .resizable(true)
-                    .dimensions(WIDTH, HEIGHT),
+            .ok();
+        });
+
+        RETRO_M.with(|bs| {
+            *bs.borrow_mut() = good_web_game::graphics::Font::new_glyph_font_bytes(
+                ctx,
+                &ctx.filesystem
+                    .open("./fonts/retro_mono.otf")
+                    .unwrap()
+                    .bytes
+                    .into_inner(),
             )
-            .build()?;
+            .ok();
+        });
 
-    //add fonts
-
-    ctx.gfx.add_font(
-        "Retro",
-        graphics::FontData::from_path(&ctx, "/fonts/retro_gaming.ttf")?,
-    );
-    ctx.gfx.add_font(
-        "Retro_M",
-        graphics::FontData::from_path(&ctx, "/fonts/retro_mono.otf")?,
-    );
-
-    // create Start Scene
-
-    let start_scene = scenes::main_menu::MainMenu::new(&ctx)?;
-
-    //create Scene Manager
-
-    mooeye::scene_manager::SceneManager::new_and_run(event_loop, ctx, start_scene);
+        let start_scene = scenes::main_menu::MainMenu::new(&ctx)?;
+        let sm = mooeye::scene_manager::SceneManager::new(start_scene);
+        Box::new(sm)
+    })
 }
