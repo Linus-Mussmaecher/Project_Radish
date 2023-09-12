@@ -7,9 +7,9 @@ edition = "2021"
 
 [dependencies]
 # Framework
-ggez = "=0.9.1"
+good-web-game = "0.6"
 # UI
-mooeye = "^0.4"
+mooeye = {git = "https://github.com/Linus-Mussmaecher/mooeye-web"}
 # ECS
 legion = "^0.4"
 # Serialization
@@ -20,8 +20,10 @@ rand = "^0.8"
 # other
 tinyvec = "^1.6"
 if_chain = "1.0.2"
+
+
+# Building
 [build-dependencies]
-# Buidling
 copy_to_output = "2.1.0"
 glob = "0.3"
 
