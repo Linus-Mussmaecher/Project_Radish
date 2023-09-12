@@ -1,12 +1,12 @@
-use std::{collections::VecDeque, time::Duration};
+use std::collections::VecDeque;
 
-use ggez::{audio::SoundSource, *};
+use good_web_game::{audio, *};
 
-#[derive(Debug)]
 pub struct MusicPlayer {
     volume: f32,
     current_song: Option<audio::Source>,
     playlist: VecDeque<audio::Source>,
+    wave: u32,
 }
 
 impl MusicPlayer {
@@ -17,60 +17,64 @@ impl MusicPlayer {
             volume: 0.01,
             current_song: None,
             playlist,
+            wave: 0,
         }
     }
 
     /// Creates a new MusicPlayer with all .wav or .mp3 files from the selected folder.
-    pub fn from_folder(ctx: &Context, path: impl AsRef<std::path::Path>) -> Self {
+    pub fn from_folder(ctx: &mut Context, path: impl AsRef<std::path::Path>) -> Self {
         let mut playlist = VecDeque::new();
-        let paths = ctx
-            .fs
-            .read_dir(path.as_ref())
-            .expect("Could not find specified path.");
+        // let paths = ctx
+        //     .fs
+        //     .read_dir(path.as_ref())
+        //     .expect("Could not find specified path.");
 
-        for sub_path in paths {
-            let path_string = sub_path.to_string_lossy().to_string();
-            let len = path_string.len();
-            if path_string[len - 4..] == *".wav" || path_string[len - 4..] == *".mp3" {
-                if let Ok(source) = audio::Source::new(ctx, sub_path) {
-                    playlist.push_back(source);
-                }
-            }
-        }
+        // for sub_path in paths {
+        //     let path_string = sub_path.to_string_lossy().to_string();
+        //     let len = path_string.len();
+        //     if path_string[len - 4..] == *".wav" || path_string[len - 4..] == *".mp3" {
+        //         if let Ok(source) = audio::Source::new(ctx, sub_path) {
+        //             playlist.push_back(source);
+        //         }
+        //     }
+        // }
+        // TODO: Song loading.
 
         Self {
             volume: 0.5,
             current_song: None,
             playlist,
+            wave: 0,
         }
     }
 
     /// Checks if the currently playing song is finished and starts the next one if neccessary
     /// Also corrects the song volume.
-    pub fn check_song(&mut self, ctx: &Context) {
+    pub fn check_song(&mut self, ctx: &mut Context, wave: u32) {
         if let Some(song) = &mut self.current_song {
             if song.volume() != self.volume {
-                song.set_volume(self.volume);
+                song.set_volume(ctx, self.volume);
             }
-            if song.stopped() {
+            if self.wave != wave {
+                self.wave = wave;
                 self.next_song(ctx);
             }
         }
     }
 
     /// Stops the currently playing song and starts the next one from the list.
-    pub fn next_song(&mut self, ctx: &Context) {
+    pub fn next_song(&mut self, ctx: &mut Context) {
         self.stop(ctx);
         self.current_song = self.playlist.pop_front();
         if let Some(song) = &mut self.current_song {
-            song.set_fade_in(Duration::new(3, 0));
-            song.set_volume(self.volume);
+            song.set_repeat(true);
+            song.set_volume(ctx, self.volume);
             song.play(ctx).unwrap();
         }
     }
 
     /// Stops the currently playing song (if there is one playing) and puts it back into the queue.
-    pub fn stop(&mut self, ctx: &Context) {
+    pub fn stop(&mut self, ctx: &mut Context) {
         if let Some(mut song) = self.current_song.take() {
             song.stop(ctx).unwrap();
             self.playlist.push_back(song);

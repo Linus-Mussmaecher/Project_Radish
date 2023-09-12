@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 # Framework
 good-web-game = "0.6"
+glam = "0.24"
 # UI
 mooeye = {git = "https://github.com/Linus-Mussmaecher/mooeye-web"}
 # ECS

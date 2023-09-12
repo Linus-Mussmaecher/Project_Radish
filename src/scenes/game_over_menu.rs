@@ -1,5 +1,6 @@
 use super::game_state::achievements;
-use ggez::{graphics, GameError};
+use good_web_game::event::GraphicsContext;
+use good_web_game::{graphics, GameError};
 use mooeye::{scene_manager, ui, ui::UiContainer, ui::UiContent};
 
 use crate::music;
@@ -16,7 +17,12 @@ pub struct GameOverMenu {
 impl GameOverMenu {
     /// Creates a new GameOverMenu displaying the passed score and adding it (if good enough) to the highscore list.
     /// Also displays the highscore list and marks the newly achieved score (it it shows up).
-    pub fn new(ctx: &ggez::Context, wave: u32, score: u32) -> Result<Self, GameError> {
+    pub fn new(
+        ctx: &mut good_web_game::Context,
+        gfx_ctx: &mut GraphicsContext,
+        wave: u32,
+        score: u32,
+    ) -> Result<Self, GameError> {
         // load highscores
 
         let own_index = achievements::HIGHSCORES.with(|scores| {
@@ -56,8 +62,10 @@ impl GameOverMenu {
             graphics::TextFragment::new("Game Over!")
                 .color(graphics::Color::from_rgb_u32(PALETTE[8])),
         )
-        .set_font("Retro")
-        .set_scale(54.)
+        .set_font(
+            crate::RETRO.with(|f| f.borrow().unwrap()),
+            graphics::PxScale { x: 54., y: 54. },
+        )
         .to_owned()
         .to_element_builder(0, ctx)
         .build();
@@ -75,6 +83,11 @@ impl GameOverMenu {
                 .color(graphics::Color::from_rgb_u32(PALETTE[7]))
                 .scale(36.),
         )
+        // monospace font for scores
+        .set_font(
+            crate::RETRO_M.with(|f| f.borrow().unwrap()),
+            graphics::PxScale { x: 36., y: 36. },
+        )
         .add(
             graphics::TextFragment::new(format!("{:>7}", score))
                 .color(graphics::Color::from_rgb_u32(PALETTE[6]))
@@ -90,8 +103,6 @@ impl GameOverMenu {
             .color(graphics::Color::from_rgb_u32(PALETTE[8]))
             .scale(34.),
         )
-        // monospace font for scores
-        .set_font("Retro_M")
         .to_owned()
         .to_element_builder(0, ctx)
         .with_alignment(ui::Alignment::Center, ui::Alignment::Min)
@@ -128,7 +139,10 @@ impl GameOverMenu {
         // convert to ui element
 
         let highscore_disp = highscore_disp
-            .set_font("Retro_M")
+            .set_font(
+                crate::RETRO_M.with(|f| f.borrow().unwrap()),
+                graphics::PxScale { x: 36., y: 36. },
+            )
             .to_owned()
             .to_element_builder(0, ctx)
             .with_alignment(ui::Alignment::Center, ui::Alignment::Min)
@@ -143,14 +157,18 @@ impl GameOverMenu {
         let restart = graphics::Text::new(
             graphics::TextFragment::new("Restart").color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
-        .set_font("Retro")
-        .set_scale(32.)
+        .set_font(
+            crate::RETRO.with(|f| f.borrow().unwrap()),
+            graphics::PxScale { x: 32., y: 32. },
+        )
         .to_owned()
         .to_element_builder(1, ctx)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::R)
+        .with_trigger_key(good_web_game::input::keyboard::KeyCode::R)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
-        .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
+        .with_trigger_sound(
+            good_web_game::audio::Source::new(ctx, "./audio/sounds/ui/blipSelect.wav").ok(),
+        )
         .build();
         main_box.add(restart);
 
@@ -160,14 +178,18 @@ impl GameOverMenu {
             graphics::TextFragment::new("Return to Main Menu")
                 .color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
-        .set_font("Retro")
-        .set_scale(32.)
+        .set_font(
+            crate::RETRO.with(|f| f.borrow().unwrap()),
+            graphics::PxScale { x: 32., y: 32. },
+        )
         .to_owned()
         .to_element_builder(2, ctx)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::M)
+        .with_trigger_key(good_web_game::input::keyboard::KeyCode::M)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
-        .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
+        .with_trigger_sound(
+            good_web_game::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok(),
+        )
         .build();
         main_box.add(main_menu);
 
@@ -190,7 +212,11 @@ impl GameOverMenu {
 }
 
 impl scene_manager::Scene for GameOverMenu {
-    fn update(&mut self, ctx: &mut ggez::Context) -> Result<scene_manager::SceneSwitch, GameError> {
+    fn update(
+        &mut self,
+        ctx: &mut good_web_game::Context,
+        gfx_ctx: &mut GraphicsContext,
+    ) -> Result<scene_manager::SceneSwitch, GameError> {
         let messages = self.ui.manage_messages(ctx, None);
 
         // restart the game
@@ -198,7 +224,11 @@ impl scene_manager::Scene for GameOverMenu {
         if messages.contains(&ui::UiMessage::Triggered(1)) {
             self.music_player.stop(ctx);
             return Ok(mooeye::scene_manager::SceneSwitch::replace(
-                super::game_state::GameState::new(ctx, super::game_state::GameConfig::default())?,
+                super::game_state::GameState::new(
+                    ctx,
+                    gfx_ctx,
+                    super::game_state::GameConfig::default(),
+                )?,
                 2,
             ));
         }
@@ -208,23 +238,24 @@ impl scene_manager::Scene for GameOverMenu {
         if messages.contains(&ui::UiMessage::Triggered(2)) {
             self.music_player.stop(ctx);
             return Ok(mooeye::scene_manager::SceneSwitch::replace(
-                super::main_menu::MainMenu::new(ctx)?,
+                super::main_menu::MainMenu::new(ctx, gfx_ctx)?,
                 2,
             ));
         }
         Ok(mooeye::scene_manager::SceneSwitch::None)
     }
 
-    fn draw(&mut self, ctx: &mut ggez::Context, mouse_listen: bool) -> Result<(), GameError> {
+    fn draw(
+        &mut self,
+        ctx: &mut good_web_game::Context,
+        gfx_ctx: &mut GraphicsContext,
+        mouse_listen: bool,
+    ) -> Result<(), GameError> {
         // music
-        self.music_player.check_song(ctx);
-        // graphics
-        let mut canvas = graphics::Canvas::from_frame(ctx, None);
-        canvas.set_sampler(graphics::Sampler::nearest_clamp());
+        self.music_player.check_song(ctx, 0);
 
-        self.ui.draw_to_screen(ctx, &mut canvas, mouse_listen);
+        self.ui.draw_to_screen(ctx, gfx_ctx, mouse_listen);
 
-        canvas.finish(ctx)?;
         Ok(())
     }
 }

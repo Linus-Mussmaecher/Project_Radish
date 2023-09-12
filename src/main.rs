@@ -43,7 +43,7 @@ fn main() -> GameResult {
         .physical_root_dir(Some(resource_dir))
         .cache(Some(include_bytes!("../resources/resources.tar")));
 
-    good_web_game::start(conf, |ctx, mut _gfx_ctx| {
+    good_web_game::start(conf, |ctx, mut gfx_ctx| {
         // Add fonts from the resource folder.
         RETRO.with(|bs| {
             *bs.borrow_mut() = good_web_game::graphics::Font::new_glyph_font_bytes(
@@ -69,7 +69,7 @@ fn main() -> GameResult {
             .ok();
         });
 
-        let start_scene = scenes::main_menu::MainMenu::new(&ctx)?;
+        let start_scene = scenes::main_menu::MainMenu::new(ctx, gfx_ctx).unwrap();
         let sm = mooeye::scene_manager::SceneManager::new(start_scene);
         Box::new(sm)
     })

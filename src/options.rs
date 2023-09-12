@@ -20,20 +20,18 @@ pub struct OptionsConfig {
 impl OptionsConfig {
     /// Loads an option config from the given path.
     pub fn from_path(path: impl AsRef<Path>) -> Result<Self, Box<dyn std::error::Error>> {
-        let string = fs::read_to_string(
-            path.as_ref()
-                .to_str()
-                .ok_or_else(|| ggez::GameError::CustomError("Could not read path.".to_owned()))?,
-        )?;
+        let string = fs::read_to_string(path.as_ref().to_str().ok_or_else(|| {
+            good_web_game::GameError::CustomError("Could not read path.".to_owned())
+        })?)?;
         Ok(toml::from_str(&string)?)
     }
 
     /// Saves this option config to the given path.
     pub fn save_to_file(&self, path: impl AsRef<Path>) -> Result<(), Box<dyn std::error::Error>> {
         fs::write(
-            path.as_ref()
-                .to_str()
-                .ok_or_else(|| ggez::GameError::CustomError("Could not read path.".to_owned()))?,
+            path.as_ref().to_str().ok_or_else(|| {
+                good_web_game::GameError::CustomError("Could not read path.".to_owned())
+            })?,
             toml::to_string(&self)?,
         )?;
         Ok(())

@@ -122,7 +122,6 @@ pub fn draw_sprites(
     world: &mut legion::World,
     resources: &mut legion::Resources,
     ctx: &Context,
-    canvas: &mut Canvas,
     animate: bool,
     camera_offset: &mut (f32, f32),
 ) -> Result<(), ggez::GameError> {

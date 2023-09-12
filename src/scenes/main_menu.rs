@@ -10,8 +10,8 @@ use super::BUTTON_HOVER_VIS;
 use super::BUTTON_VIS;
 
 use crate::music;
-use ggez::glam::Vec2;
-use ggez::{graphics, GameError};
+use glam::Vec2;
+use good_web_game::{event::GraphicsContext, graphics, graphics::Drawable, GameError};
 use mooeye::{scene_manager, sprite, ui, ui::UiContent};
 
 use crate::PALETTE;
@@ -47,9 +47,12 @@ struct MainMenuSprite {
 type MainMenuTransition = Option<(Duration, game_state::GameConfig)>;
 
 impl MainMenu {
-    pub fn new(ctx: &ggez::Context) -> Result<Self, GameError> {
+    pub fn new(
+        ctx: &mut good_web_game::Context,
+        gfx_ctx: &mut GraphicsContext,
+    ) -> Result<Self, GameError> {
         // title
-        let title = graphics::Image::from_path(ctx, "/sprites/ui/logo1.png")?
+        let title = graphics::Image::new(ctx, gfx_ctx, "./sprites/ui/logo1.png")?
             .to_element_builder(0, ctx)
             .scaled(4., 4.)
             .build();
@@ -58,14 +61,18 @@ impl MainMenu {
         let play = graphics::Text::new(
             graphics::TextFragment::new("Play").color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
-        .set_font("Retro")
-        .set_scale(32.)
+        .set_font(
+            crate::RETRO.with(|f| f.borrow().unwrap()),
+            graphics::PxScale { x: 32., y: 32. },
+        )
         .to_owned()
         .to_element_builder(1, ctx)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::P)
+        .with_trigger_key(good_web_game::input::keyboard::KeyCode::P)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
-        .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
+        .with_trigger_sound(
+            good_web_game::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok(),
+        )
         .build();
 
         // advanced start
@@ -73,14 +80,18 @@ impl MainMenu {
             graphics::TextFragment::new("Quick Advance")
                 .color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
-        .set_font("Retro")
-        .set_scale(32.)
+        .set_font(
+            crate::RETRO.with(|f| f.borrow().unwrap()),
+            graphics::PxScale { x: 32., y: 32. },
+        )
         .to_owned()
         .to_element_builder(2, ctx)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::U)
+        .with_trigger_key(good_web_game::input::keyboard::KeyCode::U)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
-        .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
+        .with_trigger_sound(
+            good_web_game::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok(),
+        )
         .with_tooltip(
             graphics::Text::new(
                 graphics::TextFragment::new(
@@ -89,8 +100,10 @@ impl MainMenu {
                 .color(graphics::Color::from_rgb_u32(PALETTE[6])),
             )
             .set_scale(24.)
-            .set_font("Retro")
-            .to_owned()
+            .set_font(
+                crate::RETRO.with(|f| f.borrow().unwrap()),
+                graphics::PxScale { x: 32., y: 32. },
+            )
             .to_element_builder(0, ctx)
             .with_visuals(super::BUTTON_VIS)
             .build(),
@@ -100,14 +113,18 @@ impl MainMenu {
         let debug = graphics::Text::new(
             graphics::TextFragment::new("Debug").color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
-        .set_font("Retro")
-        .set_scale(32.)
+        .set_font(
+            crate::RETRO.with(|f| f.borrow().unwrap()),
+            graphics::PxScale { x: 32., y: 32. },
+        )
         .to_owned()
         .to_element_builder(3, ctx)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::D)
+        .with_trigger_key(good_web_game::input::keyboard::KeyCode::D)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
-        .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
+        .with_trigger_sound(
+            good_web_game::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok(),
+        )
         .build();
 
         // highscores
@@ -116,14 +133,18 @@ impl MainMenu {
             graphics::TextFragment::new("Highscores")
                 .color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
-        .set_font("Retro")
-        .set_scale(32.)
+        .set_font(
+            crate::RETRO.with(|f| f.borrow().unwrap()),
+            graphics::PxScale { x: 32., y: 32. },
+        )
         .to_owned()
         .to_element_builder(4, ctx)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::H)
+        .with_trigger_key(good_web_game::input::keyboard::KeyCode::H)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
-        .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
+        .with_trigger_sound(
+            good_web_game::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok(),
+        )
         .build();
 
         // achievement
@@ -132,55 +153,69 @@ impl MainMenu {
             graphics::TextFragment::new("Achievements")
                 .color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
-        .set_font("Retro")
-        .set_scale(32.)
+        .set_font(
+            crate::RETRO.with(|f| f.borrow().unwrap()),
+            graphics::PxScale { x: 32., y: 32. },
+        )
         .to_owned()
         .to_element_builder(5, ctx)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::A)
+        .with_trigger_key(good_web_game::input::keyboard::KeyCode::A)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
-        .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
+        .with_trigger_sound(
+            good_web_game::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok(),
+        )
         .build();
 
         let options = graphics::Text::new(
             graphics::TextFragment::new("Options").color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
-        .set_font("Retro")
-        .set_scale(32.)
+        .set_font(
+            crate::RETRO.with(|f| f.borrow().unwrap()),
+            graphics::PxScale { x: 32., y: 32. },
+        )
         .to_owned()
         .to_element_builder(6, ctx)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::O)
+        .with_trigger_key(good_web_game::input::keyboard::KeyCode::O)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
-        .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
+        .with_trigger_sound(
+            good_web_game::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok(),
+        )
         .build();
 
         let credits = graphics::Text::new(
             graphics::TextFragment::new("Credits").color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
-        .set_font("Retro")
-        .set_scale(32.)
+        .set_font(
+            crate::RETRO.with(|f| f.borrow().unwrap()),
+            graphics::PxScale { x: 32., y: 32. },
+        )
         .to_owned()
         .to_element_builder(7, ctx)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::C)
+        .with_trigger_key(good_web_game::input::keyboard::KeyCode::C)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .with_trigger_sound(
-            ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").unwrap(),
+            good_web_game::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").unwrap(),
         )
         .build();
 
         let quit = graphics::Text::new(
             graphics::TextFragment::new("Quit").color(graphics::Color::from_rgb_u32(PALETTE[6])),
         )
-        .set_font("Retro")
-        .set_scale(32.)
+        .set_font(
+            crate::RETRO.with(|f| f.borrow().unwrap()),
+            graphics::PxScale { x: 32., y: 32. },
+        )
         .to_owned()
         .to_element_builder(8, ctx)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::Q)
+        .with_trigger_key(good_web_game::input::keyboard::KeyCode::Q)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
-        .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
+        .with_trigger_sound(
+            good_web_game::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok(),
+        )
         .build();
 
         // Container
@@ -320,8 +355,9 @@ impl MainMenu {
 impl scene_manager::Scene for MainMenu {
     fn update(
         &mut self,
-        ctx: &mut ggez::Context,
-    ) -> Result<mooeye::scene_manager::SceneSwitch, ggez::GameError> {
+        ctx: &mut good_web_game::Context,
+        gfx_ctx: &mut GraphicsContext,
+    ) -> Result<mooeye::scene_manager::SceneSwitch, good_web_game::GameError> {
         let messages = self.gui.manage_messages(ctx, None);
 
         let mut res = scene_manager::SceneSwitch::None;
@@ -400,7 +436,7 @@ impl scene_manager::Scene for MainMenu {
                 if dur.is_zero() {
                     self.music_player.stop(ctx);
                     res = mooeye::scene_manager::SceneSwitch::replace(
-                        game_state::GameState::new(ctx, config)?,
+                        game_state::GameState::new(ctx, gfx_ctx, config)?,
                         1,
                     );
                 } else {
@@ -412,15 +448,17 @@ impl scene_manager::Scene for MainMenu {
         Ok(res)
     }
 
-    fn draw(&mut self, ctx: &mut ggez::Context, mouse_listen: bool) -> Result<(), ggez::GameError> {
+    fn draw(
+        &mut self,
+        ctx: &mut good_web_game::Context,
+        gfx_ctx: &mut GraphicsContext,
+        mouse_listen: bool,
+    ) -> Result<(), good_web_game::GameError> {
         // music
-        self.music_player.check_song(ctx);
+        self.music_player.check_song(ctx, 0);
         self.music_player.poll_options();
 
         // graphics
-        let mut canvas =
-            graphics::Canvas::from_frame(ctx, graphics::Color::from_rgb_u32(PALETTE[11]));
-        canvas.set_sampler(graphics::Sampler::nearest_clamp());
         let (screen_w, screen_h) = ctx.gfx.drawable_size();
 
         // move sprites
@@ -436,47 +474,56 @@ impl scene_manager::Scene for MainMenu {
 
         // draw environment & background sprites
         game_state::GameState::draw_background(
-            &ggez::graphics::Rect::new(0., 0., 600., 900.),
+            &good_web_game::graphics::Rect::new(0., 0., 600., 900.),
             ctx,
-            &mut canvas,
+            gfx_ctx,
         );
 
         for b_sprite in self.background_sprites.iter_mut() {
             b_sprite.sprite.draw_sprite(
                 ctx,
-                &mut canvas,
-                ggez::graphics::DrawParam::new()
-                    .dest(Vec2::new(
+                gfx_ctx,
+                good_web_game::graphics::DrawParam::new()
+                    .dest(good_web_game::graphics::Point2::new(
                         (b_sprite.pos.x + (screen_w - game_state::BOUNDARIES.w) / 2.).floor(),
                         (b_sprite.pos.y + (screen_h - game_state::BOUNDARIES.h) / 2.).floor(),
                     ))
-                    .scale(Vec2::new(4., 4.)),
+                    .scale(graphics::Vector2::new(4., 4.)),
             );
         }
 
-        self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);
+        self.gui.draw_to_screen(ctx, gfx_ctx, mouse_listen);
 
         // draw occlusion
         if let Some((dur, _)) = self.state {
             let ratio = 1. - dur.as_secs_f32() / 4.;
-            canvas.draw(
-                &graphics::Quad,
-                graphics::DrawParam::new()
-                    .color(graphics::Color::new(0., 0., 0., ratio))
-                    .scale(Vec2::new(screen_w, screen_h)),
-            );
-            canvas.draw(
-                &graphics::Text::new(
-                    graphics::TextFragment::new("Loading...")
-                        .color(graphics::Color::from_rgb_u32(PALETTE[8]))
-                        .font("Retro")
-                        .scale(28.),
-                ),
-                graphics::DrawParam::new().dest(Vec2::new(16., screen_h - 16. - 28.)),
+            graphics::MeshBuilder::new()
+                .rectangle(
+                    graphics::DrawMode::Fill(graphics::FillOptions::DEFAULT),
+                    graphics::Rect {
+                        x: 0.,
+                        y: 0.,
+                        w: screen_w,
+                        h: screen_h,
+                    },
+                    graphics::Color::new(0., 0., 0., ratio),
+                )?
+                .build(ctx, gfx_ctx)?
+                .draw(ctx, gfx_ctx, graphics::DrawParam::default());
+
+            graphics::Text::new(
+                graphics::TextFragment::new("Loading...")
+                    .color(graphics::Color::from_rgb_u32(PALETTE[8]))
+                    .font(crate::RETRO.with(|f| f.borrow().unwrap()))
+                    .scale(8.),
+            )
+            .draw(
+                ctx,
+                gfx_ctx,
+                graphics::DrawParam::default()
+                    .dest(graphics::Point2::new(16., screen_h - 16. - 28.)),
             );
         }
-
-        canvas.finish(ctx)?;
 
         Ok(())
     }

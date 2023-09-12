@@ -1,5 +1,7 @@
 use crate::{music, options};
-use ggez::{glam::Vec2, graphics, GameError};
+use good_web_game::event::GraphicsContext;
+use good_web_game::graphics::{Drawable, FillOptions};
+use good_web_game::{graphics, GameError};
 use legion::{component, systems::CommandBuffer, Entity, IntoQuery, Resources, Schedule, World};
 use mooeye::ui as mui;
 use mooeye::{scene_manager, sprite};
@@ -59,7 +61,11 @@ pub struct GameState {
 
 impl GameState {
     /// Creates a new game state.
-    pub fn new(ctx: &ggez::Context, config: GameConfig) -> Result<Self, GameError> {
+    pub fn new(
+        ctx: &mut good_web_game::Context,
+        gfx_ctx: &mut GraphicsContext,
+        config: GameConfig,
+    ) -> Result<Self, GameError> {
         // --- WORLD CREATION ---
 
         // Create world
@@ -79,7 +85,7 @@ impl GameState {
 
         let achievement_set =
             achievements::AchievementSet::load(ctx, config.achievements_unlocked.clone());
-        let sprite_pool = sprite::SpritePool::new().with_folder(ctx, "/sprites", true);
+        let sprite_pool = sprite::SpritePool::new();
         let audio_pool =
             components::audio::AudioPool::new(options).with_folder(ctx, "/audio", true);
 
@@ -92,7 +98,7 @@ impl GameState {
         music_player.poll_options();
         music_player.next_song(ctx);
 
-        Self::initalize_environment(&boundaries, &sprite_pool, &mut world)?;
+        Self::initalize_environment(&boundaries, &sprite_pool, &mut world, ctx, gfx_ctx)?;
 
         // Add player
 
@@ -100,9 +106,12 @@ impl GameState {
             components::Position::new(boundaries.w / 2., boundaries.h - 64.),
             components::BoundaryCollision::new(true, false, false),
             components::Control::new(config.base_speed),
-            components::Graphics::from(
-                sprite_pool.init_sprite("/sprites/mage2", Duration::from_secs_f32(0.25))?,
-            ),
+            components::Graphics::from(sprite_pool.init_sprite_fmt(
+                "./sprites/mage2_16_16.png",
+                ctx,
+                gfx_ctx,
+                Duration::from_secs_f32(0.25),
+            )?),
             components::SpellCaster::new(
                 components::spell::init_base_spells(&spell_pool, &sprite_pool, &config.base_spells),
                 config.base_slots,
@@ -182,6 +191,8 @@ impl GameState {
         boundaries: &graphics::Rect,
         sprite_pool: &sprite::SpritePool,
         world: &mut World,
+        ctx: &mut good_web_game::Context,
+        gfx_ctx: &mut GraphicsContext,
     ) -> Result<(), GameError> {
         // Create cobble sprites
         for _i in 0..48 {
@@ -191,8 +202,12 @@ impl GameState {
                     boundaries.h * (rand::random::<f32>() * 2. - 0.5),
                 ),
                 components::Graphics::from({
-                    let mut cobble =
-                        sprite_pool.init_sprite("/sprites/environment/cobble", Duration::ZERO)?;
+                    let mut cobble = sprite_pool.init_sprite_fmt(
+                        "./sprites/environment/cobble_4_4.png",
+                        ctx,
+                        gfx_ctx,
+                        Duration::ZERO,
+                    )?;
                     cobble.set_variant(rand::random::<u32>());
                     cobble
                 }),
@@ -218,8 +233,12 @@ impl GameState {
             world.push((
                 pos,
                 components::Graphics::from({
-                    let mut tree =
-                        sprite_pool.init_sprite("/sprites/environment/tree", Duration::ZERO)?;
+                    let mut tree = sprite_pool.init_sprite_fmt(
+                        "./sprites/environment/tree_8_16.png",
+                        ctx,
+                        gfx_ctx,
+                        Duration::ZERO,
+                    )?;
                     tree.set_variant(rand::random::<u32>());
                     tree
                 }),
@@ -249,8 +268,12 @@ impl GameState {
                     y * building_size + boundaries.h,
                 ),
                 components::Graphics::from({
-                    let mut build =
-                        sprite_pool.init_sprite("/sprites/environment/building", Duration::ZERO)?;
+                    let mut build = sprite_pool.init_sprite_fmt(
+                        "./sprites/environment/building_32_32.png",
+                        ctx,
+                        gfx_ctx,
+                        Duration::ZERO,
+                    )?;
                     build.set_variant(rand::random::<u32>());
                     build
                 }),
@@ -262,32 +285,49 @@ impl GameState {
     /// A helper function that draw the background street.
     pub fn draw_background(
         boundaries: &graphics::Rect,
-        ctx: &ggez::Context,
-        canvas: &mut ggez::graphics::Canvas,
+        ctx: &mut good_web_game::Context,
+        gfx_ctx: &mut GraphicsContext,
     ) {
-        let (screen_w, screen_h) = ctx.gfx.drawable_size();
-        canvas.draw(
-            &graphics::Quad,
-            graphics::DrawParam::new()
-                .color(graphics::Color::from_rgb_u32(crate::PALETTE[10]))
-                .scale(Vec2::new(boundaries.w, screen_h))
-                .dest(Vec2::new((screen_w - boundaries.w) / 2., 0.)),
+        let (screen_w, screen_h) = gfx_ctx.screen_size();
+
+        let mut mesh = graphics::MeshBuilder::new();
+        //street
+        mesh.rectangle(
+            graphics::DrawMode::Fill(FillOptions::DEFAULT),
+            graphics::Rect {
+                w: boundaries.w,
+                h: screen_h,
+                x: (screen_w - boundaries.w) / 2.,
+                y: 0.,
+            },
+            graphics::Color::from_rgb_u32(crate::PALETTE[10]),
         );
         // street edges
-        canvas.draw(
-            &graphics::Quad,
-            graphics::DrawParam::new()
-                .color(graphics::Color::from_rgb_u32(crate::PALETTE[12]))
-                .scale(Vec2::new(8., screen_h))
-                .dest(Vec2::new((screen_w - boundaries.w) / 2. - 4., 0.)),
+        mesh.rectangle(
+            graphics::DrawMode::Fill(FillOptions::DEFAULT),
+            graphics::Rect {
+                w: 8.,
+                h: screen_h,
+                x: (screen_w - boundaries.w) / 2. - 4.,
+                y: 0.,
+            },
+            graphics::Color::from_rgb_u32(crate::PALETTE[12]),
         );
-        canvas.draw(
-            &graphics::Quad,
-            graphics::DrawParam::new()
-                .color(graphics::Color::from_rgb_u32(crate::PALETTE[12]))
-                .scale(Vec2::new(8., screen_h))
-                .dest(Vec2::new((screen_w + boundaries.w) / 2. - 4., 0.)),
+
+        mesh.rectangle(
+            graphics::DrawMode::Fill(FillOptions::DEFAULT),
+            graphics::Rect {
+                w: 8.,
+                h: screen_h,
+                x: (screen_w + boundaries.w) / 2. - 4.,
+                y: 0.,
+            },
+            graphics::Color::from_rgb_u32(crate::PALETTE[12]),
         );
+
+        if let Ok(mesh) = mesh.build(ctx, gfx_ctx) {
+            mesh.draw(ctx, gfx_ctx, graphics::DrawParam::default());
+        }
     }
 
     /// A helper function that ensures every entity in the world has a certain component subset
@@ -308,7 +348,11 @@ impl GameState {
 }
 
 impl scene_manager::Scene for GameState {
-    fn update(&mut self, ctx: &mut ggez::Context) -> Result<scene_manager::SceneSwitch, GameError> {
+    fn update(
+        &mut self,
+        ctx: &mut good_web_game::Context,
+        gfx_ctx: &mut GraphicsContext,
+    ) -> Result<scene_manager::SceneSwitch, GameError> {
         // +-------------------------------------------------------+
         // |                     Preparation                       |
         // +-------------------------------------------------------+
@@ -394,6 +438,7 @@ impl scene_manager::Scene for GameState {
                     switch = scene_manager::SceneSwitch::push(
                         crate::scenes::game_over_menu::GameOverMenu::new(
                             ctx,
+                            gfx_ctx,
                             director.get_wave(),
                             game_data.get_score() as u32,
                         )?,
@@ -405,16 +450,24 @@ impl scene_manager::Scene for GameState {
         Ok(switch)
     }
 
-    fn draw(&mut self, ctx: &mut ggez::Context, mouse_listen: bool) -> Result<(), GameError> {
+    fn draw(
+        &mut self,
+        ctx: &mut good_web_game::Context,
+        gfx_ctx: &mut GraphicsContext,
+        mouse_listen: bool,
+    ) -> Result<(), GameError> {
         // Manage music
-        self.music_player.check_song(ctx);
-        self.music_player.poll_options();
 
-        // Get canvas & set sampler
-        let mut canvas =
-            graphics::Canvas::from_frame(ctx, graphics::Color::from_rgb_u32(crate::PALETTE[11]));
-        canvas.set_sampler(graphics::Sampler::nearest_clamp());
-        let (screen_w, screen_h) = ctx.gfx.drawable_size();
+        self.music_player.check_song(
+            ctx,
+            if let Some(director) = self.resources.get_mut::<director::Director>() {
+                director.get_wave()
+            } else {
+                0
+            },
+        );
+        self.music_player.poll_options();
+        let (screen_w, screen_h) = gfx_ctx.screen_size();
 
         // Draw background
         Self::draw_background(
@@ -424,7 +477,7 @@ impl scene_manager::Scene for GameState {
                 .map(|r| *r)
                 .unwrap_or_default(),
             ctx,
-            &mut canvas,
+            gfx_ctx,
         );
 
         // Draw world
@@ -433,28 +486,30 @@ impl scene_manager::Scene for GameState {
             &mut self.world,
             &mut self.resources,
             ctx,
-            &mut canvas,
             mouse_listen && !self.tutorial.is_active(),
             &mut self.camera_offset,
         )?;
 
         // Draw GUI
-        self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);
+        self.gui.draw_to_screen(ctx, gfx_ctx, mouse_listen);
 
         // draw occlusion
         if self.camera_offset.0 > 0. {
             let ratio = self.camera_offset.0 / self.camera_offset.1;
-            canvas.draw(
-                &graphics::Quad,
-                graphics::DrawParam::new()
-                    .color(graphics::Color::new(0., 0., 0., ratio))
-                    .scale(Vec2::new(screen_w, screen_h)),
-            );
+            graphics::MeshBuilder::new()
+                .rectangle(
+                    graphics::DrawMode::Fill(FillOptions::DEFAULT),
+                    graphics::Rect {
+                        x: 0.,
+                        y: 0.,
+                        w: screen_w,
+                        h: screen_h,
+                    },
+                    graphics::Color::new(0., 0., 0., ratio),
+                )?
+                .build(ctx, gfx_ctx)?
+                .draw(ctx, gfx_ctx, graphics::DrawParam::default());
         }
-
-        // Finish
-        canvas.finish(ctx)?;
-
         // Sounds
 
         components::audio::audio_play_system(ctx, &mut self.resources)?;

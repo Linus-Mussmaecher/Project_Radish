@@ -5,7 +5,7 @@ pub mod main_menu;
 const BUTTON_VIS: mooeye::ui::Visuals = mooeye::ui::Visuals {
     background: {
         let c = crate::PALETTE[0].to_be_bytes();
-        ggez::graphics::Color::new(
+        good_web_game::graphics::Color::new(
             c[1] as f32 / 255.,
             c[2] as f32 / 255.,
             c[3] as f32 / 255.,
@@ -14,7 +14,7 @@ const BUTTON_VIS: mooeye::ui::Visuals = mooeye::ui::Visuals {
     },
     border: {
         let c = crate::PALETTE[7].to_be_bytes();
-        ggez::graphics::Color::new(
+        good_web_game::graphics::Color::new(
             c[1] as f32 / 255.,
             c[2] as f32 / 255.,
             c[3] as f32 / 255.,
@@ -28,7 +28,7 @@ const BUTTON_VIS: mooeye::ui::Visuals = mooeye::ui::Visuals {
 const BUTTON_HOVER_VIS: mooeye::ui::Visuals = mooeye::ui::Visuals {
     background: {
         let c = crate::PALETTE[1].to_be_bytes();
-        ggez::graphics::Color::new(
+        good_web_game::graphics::Color::new(
             c[1] as f32 / 255.,
             c[2] as f32 / 255.,
             c[3] as f32 / 255.,
@@ -37,7 +37,7 @@ const BUTTON_HOVER_VIS: mooeye::ui::Visuals = mooeye::ui::Visuals {
     },
     border: {
         let c = crate::PALETTE[7].to_be_bytes();
-        ggez::graphics::Color::new(
+        good_web_game::graphics::Color::new(
             c[1] as f32 / 255.,
             c[2] as f32 / 255.,
             c[3] as f32 / 255.,
