@@ -1,4 +1,4 @@
-use ggez::{event::ScanCode, winit::event::VirtualKeyCode, Context};
+use good_web_game::{event::ScanCode, winit::event::VirtualKeyCode, Context};
 use std::{collections::HashMap, fs, path::Path, time::Duration};
 
 use serde::{Deserialize, Serialize};

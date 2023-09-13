@@ -90,7 +90,8 @@ impl GameState {
             components::audio::AudioPool::new(options).with_folder(ctx, "/audio", true);
 
         let boundaries = BOUNDARIES;
-        let spell_pool = components::spell::init_spell_pool(&sprite_pool, &achievement_set);
+        let spell_pool =
+            components::spell::init_spell_pool(&sprite_pool, &achievement_set, ctx, gfx_ctx);
         let game_data = game_data::GameData::new(config.starting_gold, config.starting_city_health);
         let director = director::Director::new(&sprite_pool, &config);
 
@@ -113,7 +114,13 @@ impl GameState {
                 Duration::from_secs_f32(0.25),
             )?),
             components::SpellCaster::new(
-                components::spell::init_base_spells(&spell_pool, &sprite_pool, &config.base_spells),
+                components::spell::init_base_spells(
+                    &spell_pool,
+                    &sprite_pool,
+                    &config.base_spells,
+                    ctx,
+                    gfx_ctx,
+                ),
                 config.base_slots,
             ),
         ));

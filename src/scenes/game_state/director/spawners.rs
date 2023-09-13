@@ -11,7 +11,7 @@ pub fn spawn_basic_skeleton(cmd: &mut CommandBuffer, pos: components::Position) 
         pos,
         components::Velocity::new(0., 10.),
         components::Graphics::new(
-            "/sprites/enemies/skeleton_basic",
+            "./sprites/enemies/skeleton_basic_16_16.png",
             Duration::from_secs_f32(0.25),
         ),
         components::Enemy::new(1, 10, 0),
@@ -30,7 +30,7 @@ pub fn spawn_fast_skeleton(cmd: &mut CommandBuffer, pos: components::Position) {
         components::Velocity::new(40., 20.),
         components::BoundaryCollision::new(true, false, true),
         components::Graphics::new(
-            "/sprites/enemies/skeleton_sword",
+            "./sprites/enemies/skeleton_sword_16_16.png",
             Duration::from_secs_f32(0.25),
         ),
         components::Enemy::new(1, 15, 1),
@@ -48,7 +48,7 @@ pub fn spawn_dodge_skeleton(cmd: &mut CommandBuffer, pos: components::Position) 
         components::Velocity::new(10., 22.),
         components::BoundaryCollision::new(true, false, true),
         components::Graphics::new(
-            "/sprites/enemies/skeleton_sword",
+            "./sprites/enemies/skeleton_sword_16_16.png",
             Duration::from_secs_f32(0.25),
         ),
         components::Actions::new().with_effect(actions::ActionEffect::repeat(
@@ -83,7 +83,7 @@ pub fn spawn_jump_skeleton(cmd: &mut CommandBuffer, pos: components::Position) {
         components::Velocity::new(5., 25.),
         components::BoundaryCollision::new(true, false, true),
         components::Graphics::new(
-            "/sprites/enemies/skeleton_jump",
+            "./sprites/enemies/skeleton_jump_16_16.png",
             Duration::from_secs_f32(0.25),
         ),
         components::Actions::new().with_effect(actions::ActionEffect::react(
@@ -120,7 +120,7 @@ pub fn spawn_dynamite_skeleton(cmd: &mut CommandBuffer, pos: components::Positio
         pos,
         components::Velocity::new(0., 10.),
         components::Graphics::new(
-            "/sprites/enemies/skeleton_dynamite",
+            "./sprites/enemies/skeleton_dynamite_16_16.png",
             Duration::from_secs_f32(0.25),
         ),
         components::Actions::new()
@@ -134,7 +134,7 @@ pub fn spawn_dynamite_skeleton(cmd: &mut CommandBuffer, pos: components::Positio
             .with_effect(actions::ActionEffect::on_death(
                 actions::ActionEffectTarget::new_only_self(),
                 actions::RemoveSource::HealthLoss,
-                actions::GameAction::play_sound("/audio/sounds/enemies/explosion"),
+                actions::GameAction::play_sound("./audio/sounds/enemies/explosion.wav"),
             )),
         components::Enemy::new(3, 30, 7),
         components::Health::new(150),
@@ -148,11 +148,11 @@ pub fn spawn_dynamite_skeleton(cmd: &mut CommandBuffer, pos: components::Positio
 /// It has lots of health and despawns after a set time, but drops lots of gold on death.
 pub fn spawn_loot_skeleton(cmd: &mut CommandBuffer, pos: components::Position) {
     cmd.push((
-        pos + ggez::glam::Vec2::new(0., 120.),
+        pos + glam::Vec2::new(0., 120.),
         components::Velocity::new(50., 0.),
         components::BoundaryCollision::new(true, false, true),
         components::Graphics::new(
-            "/sprites/enemies/skeleton_loot",
+            "./sprites/enemies/skeleton_loot_16_16.png",
             Duration::from_secs_f32(0.20),
         ),
         components::Enemy::new(0, 100, 8),
@@ -167,8 +167,11 @@ pub fn spawn_loot_skeleton(cmd: &mut CommandBuffer, pos: components::Position) {
 /// An enemy that stays put, but regularly accelerates other enemies passing over it.
 pub fn spawn_catapult(cmd: &mut CommandBuffer, pos: components::Position) {
     cmd.push((
-        pos + ggez::glam::Vec2::new(0., 180.),
-        components::Graphics::new("/sprites/enemies/catapult", Duration::from_secs_f32(0.20)),
+        pos + glam::Vec2::new(0., 180.),
+        components::Graphics::new(
+            "./sprites/enemies/catapult_16_16.png",
+            Duration::from_secs_f32(0.20),
+        ),
         components::Actions::new()
             // catapult stuff
             .with_effect(actions::ActionEffect::repeat(
@@ -183,7 +186,7 @@ pub fn spawn_catapult(cmd: &mut CommandBuffer, pos: components::Position) {
                         |action| {
                             //  set allies x-speed to 0
                             if let actions::GameAction::Move { delta } = action {
-                                *delta = ggez::glam::Vec2::new(0., (delta.length() + 1.) * 3.0)
+                                *delta = glam::Vec2::new(0., (delta.length() + 1.) * 3.0)
                             }
                         },
                     )
@@ -206,7 +209,7 @@ pub fn spawn_tank_skeleton(cmd: &mut CommandBuffer, pos: components::Position) {
         pos,
         components::Velocity::new(0., 10.),
         components::Graphics::new(
-            "/sprites/enemies/skeleton_tank",
+            "./sprites/enemies/skeleton_tank_16_16.png",
             Duration::from_secs_f32(0.25),
         ),
         components::actions::Actions::new()
@@ -231,11 +234,11 @@ pub fn spawn_tank_skeleton(cmd: &mut CommandBuffer, pos: components::Position) {
                     .with_enemies_only(true),
                 actions::RemoveSource::HealthLoss,
                 vec![
-                    actions::GameAction::play_sound("/audio/sounds/enemies/heal"),
+                    actions::GameAction::play_sound("./audio/sounds/enemies/heal.wav"),
                     actions::GameAction::TakeHealing { heal: 40 },
                     actions::GameAction::AddParticle(
                         components::graphics::Particle::new(
-                            "/sprites/effects/heal",
+                            "./sprites/effects/heal_8_8.png",
                             Duration::from_secs_f32(0.25),
                         )
                         .with_duration(Duration::from_secs(1))
@@ -259,7 +262,7 @@ pub fn spawn_charge_skeleton(cmd: &mut CommandBuffer, pos: components::Position)
         pos,
         components::Velocity::new(0., 21.),
         components::Graphics::new(
-            "/sprites/enemies/skeleton_flag",
+            "./sprites/enemies/skeleton_flag_16_16.png",
             Duration::from_secs_f32(0.25),
         ),
         // concurrently small speed boost to nearby allies
@@ -283,10 +286,10 @@ pub fn spawn_charge_skeleton(cmd: &mut CommandBuffer, pos: components::Position)
                     .with_enemies_only(true),
                 actions::RemoveSource::HealthLoss,
                 vec![
-                    actions::GameAction::play_sound("/audio/sounds/enemies/speed"),
+                    actions::GameAction::play_sound("./audio/sounds/enemies/speed.wav"),
                     actions::GameAction::AddParticle(
                         components::graphics::Particle::new(
-                            "/sprites/effects/bolt",
+                            "./sprites/effects/bolt_8_8.png",
                             Duration::from_secs_f32(0.25),
                         )
                         .with_duration(Duration::from_secs(5))
@@ -320,7 +323,7 @@ pub fn spawn_wizard_skeleton(cmd: &mut CommandBuffer, pos: components::Position)
         pos,
         components::Velocity::new(0., 7.),
         components::Graphics::new(
-            "/sprites/enemies/skeleton_wizard",
+            "./sprites/enemies/skeleton_wizard_16_16.png",
             Duration::from_secs_f32(0.25),
         ),
         // 'Spell' 1: Speed up a nearby ally for 3 seconds every 5 seconds.
@@ -332,10 +335,10 @@ pub fn spawn_wizard_skeleton(cmd: &mut CommandBuffer, pos: components::Position)
                     .with_enemies_only(true)
                     .with_limit(1),
                 vec![
-                    //actions::GameAction::play_sound("/audio/sounds/enemies/speed"),
+                    //actions::GameAction::play_sound("./audio/sounds/enemies/speed.wav"),
                     actions::GameAction::AddParticle(
                         components::graphics::Particle::new(
-                            "/sprites/effects/bolt",
+                            "./sprites/effects/bolt_8_8.png",
                             Duration::from_secs_f32(0.25),
                         )
                         .with_duration(Duration::from_secs(3))
@@ -364,10 +367,10 @@ pub fn spawn_wizard_skeleton(cmd: &mut CommandBuffer, pos: components::Position)
                     .with_enemies_only(true)
                     .with_limit(1),
                 vec![
-                    //actions::GameAction::play_sound("/audio/sounds/enemies/heal"),
+                    //actions::GameAction::play_sound("./audio/sounds/enemies/heal.wav"),
                     actions::GameAction::AddParticle(
                         components::graphics::Particle::new(
-                            "/sprites/effects/heal",
+                            "./sprites/effects/heal_8_8.png",
                             Duration::from_secs_f32(0.25),
                         )
                         .with_duration(Duration::from_secs(3))
@@ -392,7 +395,7 @@ pub fn spawn_wizard_skeleton2(cmd: &mut CommandBuffer, pos: components::Position
         pos,
         components::Velocity::new(0., 7.),
         components::Graphics::new(
-            "/sprites/enemies/skeleton_wizard2",
+            "./sprites/enemies/skeleton_wizard2_16_16.png",
             Duration::from_secs_f32(0.25),
         ),
         // 'Spell' 1: Speed up a nearby ally for 3 seconds every 5 seconds.
@@ -404,10 +407,10 @@ pub fn spawn_wizard_skeleton2(cmd: &mut CommandBuffer, pos: components::Position
                     .with_enemies_only(true)
                     .with_limit(1),
                 vec![
-                    //actions::GameAction::play_sound("/audio/sounds/enemies/shield"),
+                    //actions::GameAction::play_sound("./audio/sounds/enemies/shield.wav"),
                     actions::GameAction::AddParticle(
                         components::graphics::Particle::new(
-                            "/sprites/effects/shield",
+                            "./sprites/effects/shield_16_16.png",
                             Duration::from_secs_f32(0.25),
                         )
                         .with_duration(Duration::from_secs(3)),
@@ -434,10 +437,10 @@ pub fn spawn_wizard_skeleton2(cmd: &mut CommandBuffer, pos: components::Position
                     .with_enemies_only(true)
                     .with_limit(1),
                 vec![
-                    //actions::GameAction::play_sound("/audio/sounds/enemies/heal"),
+                    //actions::GameAction::play_sound("./audio/sounds/enemies/heal.wav"),
                     actions::GameAction::AddParticle(
                         components::graphics::Particle::new(
-                            "/sprites/effects/heal",
+                            "./sprites/effects/heal_8_8.png",
                             Duration::from_secs_f32(0.25),
                         )
                         .with_duration(Duration::from_secs(3))
@@ -462,7 +465,7 @@ pub fn spawn_wizard_skeleton3(cmd: &mut CommandBuffer, pos: components::Position
         pos,
         components::Velocity::new(0., 7.),
         components::Graphics::new(
-            "/sprites/enemies/skeleton_wizard3",
+            "./sprites/enemies/skeleton_wizard3_16_16.png",
             Duration::from_secs_f32(0.25),
         ),
         components::actions::Actions::new()
@@ -472,7 +475,7 @@ pub fn spawn_wizard_skeleton3(cmd: &mut CommandBuffer, pos: components::Position
                 actions::GameAction::spawn(|_, pos, cmd| {
                     spawn_basic_skeleton(
                         cmd,
-                        pos + ggez::glam::Vec2 {
+                        pos + glam::Vec2 {
                             x: -16. + 32. * rand::random::<f32>(),
                             y: 32.,
                         },
@@ -489,10 +492,10 @@ pub fn spawn_wizard_skeleton3(cmd: &mut CommandBuffer, pos: components::Position
                     .with_limit(3),
                 vec![
                     actions::GameAction::TakeDamage { dmg: 15 },
-                    //actions::GameAction::play_sound("/audio/sounds/enemies/speed"),
+                    //actions::GameAction::play_sound("./audio/sounds/enemies/speed.wav"),
                     actions::GameAction::AddParticle(
                         components::graphics::Particle::new(
-                            "/sprites/effects/bolt",
+                            "./sprites/effects/bolt_8_8.png",
                             Duration::from_secs_f32(0.25),
                         )
                         .with_duration(Duration::from_secs(3))
@@ -526,7 +529,10 @@ pub fn spawn_splitter(cmd: &mut CommandBuffer, pos: components::Position) {
     cmd.push((
         pos,
         components::Velocity::new(0., 8.),
-        components::Graphics::new("/sprites/enemies/golem", Duration::from_secs_f32(0.25)),
+        components::Graphics::new(
+            "./sprites/enemies/golem_16_16.png",
+            Duration::from_secs_f32(0.25),
+        ),
         components::actions::Actions::new().with_effect(actions::ActionEffect::on_death(
             actions::ActionEffectTarget::new_only_self(),
             actions::RemoveSource::HealthLoss,
@@ -534,7 +540,7 @@ pub fn spawn_splitter(cmd: &mut CommandBuffer, pos: components::Position) {
                 for _ in 0..3 {
                     spawn_basic_skeleton(
                         cmd,
-                        vec + ggez::glam::Vec2::new(
+                        vec + glam::Vec2::new(
                             (rand::random::<f32>() - 0.5) * 64.,
                             (rand::random::<f32>() - 0.5) * 64.,
                         ),
@@ -555,7 +561,10 @@ pub fn spawn_ghost(cmd: &mut CommandBuffer, pos: components::Position) {
     cmd.push((
         pos,
         components::Velocity::new(0., 8.),
-        components::Graphics::new("/sprites/enemies/ghost", Duration::from_secs_f32(0.25)),
+        components::Graphics::new(
+            "./sprites/enemies/ghost_16_16.png",
+            Duration::from_secs_f32(0.25),
+        ),
         components::Actions::new().with_effect(actions::ActionEffect::react(
             actions::ActionEffectTarget::new_only_self(),
             |action| match action {
@@ -563,7 +572,7 @@ pub fn spawn_ghost(cmd: &mut CommandBuffer, pos: components::Position) {
                 actions::GameAction::TakeDamage { dmg: _ } => {
                     vec![
                         // gain damage reduction for 2 seconds
-                        //actions::GameAction::play_sound("/audio/sounds/enemies/speed"),
+                        //actions::GameAction::play_sound("./audio/sounds/enemies/speed.wav"),
                         actions::GameAction::ApplyEffect(Box::new(
                             actions::ActionEffect::transform(
                                 actions::ActionEffectTarget::new_only_self(),
@@ -605,7 +614,10 @@ pub fn spawn_animated_armor(cmd: &mut CommandBuffer, pos: components::Position) 
     cmd.push((
         pos,
         components::Velocity::new(0., 12.),
-        components::Graphics::new("/sprites/enemies/armor", Duration::from_secs_f32(0.25)),
+        components::Graphics::new(
+            "./sprites/enemies/armor_16_16.png",
+            Duration::from_secs_f32(0.25),
+        ),
         components::Actions::new()
             // distribute damage to nearby allies
             .with_effect(actions::ActionEffect::react(
@@ -650,7 +662,7 @@ pub fn spawn_animated_armor(cmd: &mut CommandBuffer, pos: components::Position) 
                     actions::GameAction::TakeHealing { heal: 40 },
                     actions::GameAction::AddParticle(
                         components::graphics::Particle::new(
-                            "/sprites/effects/heal",
+                            "./sprites/effects/heal_8_8.png",
                             Duration::from_secs_f32(0.25),
                         )
                         .with_duration(Duration::from_secs(1))
@@ -670,7 +682,7 @@ pub fn spawn_legionnaire(cmd: &mut CommandBuffer, pos: components::Position) {
         pos,
         components::Velocity::new(0., 30.),
         components::Graphics::new(
-            "/sprites/enemies/legionnaire",
+            "./sprites/enemies/legionnaire_16_16.png",
             Duration::from_secs_f32(0.25),
         ),
         components::Actions::new().with_effect(actions::ActionEffect::repeat(

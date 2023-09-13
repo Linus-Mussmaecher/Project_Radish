@@ -8,18 +8,27 @@ use crate::scenes::game_state::components::{self, actions::*, spell::MAX_SPELL_S
 
 use super::Spell;
 
-pub(super) fn construct_gale_force(sprite_pool: &SpritePool) -> Spell {
+pub(super) fn construct_gale_force(
+    sprite_pool: &SpritePool,
+    ctx: &mut good_web_game::Context,
+    gfx_ctx: &mut good_web_game::event::GraphicsContext,
+) -> Spell {
     Spell::new(
         "Gale Force",
         "Create a gust of wind, pushing back enemies and dealing slight damage.",
-        sprite_pool.init_sprite_unchecked("/sprites/spells/icons/gale_icon", Duration::ZERO),
-        "/audio/sounds/spells/galeforce_cast",
+        sprite_pool.init_sprite_fmt_unchecked(
+            "./sprites/spells/icons/gale_icon_8_8.png",
+            ctx,
+            gfx_ctx,
+            Duration::ZERO,
+        ),
+        "./audio/sounds/spells/galeforce_cast.wav",
         GameAction::spawn(|_, pos, cmd| {
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(3)),
                 components::Graphics::new(
-                    "/sprites/spells/galeforce",
+                    "./sprites/spells/galeforce_32_4.png",
                     Duration::from_secs_f32(0.2),
                 ),
                 components::Velocity::new(0., -300.),
@@ -33,7 +42,7 @@ pub(super) fn construct_gale_force(sprite_pool: &SpritePool) -> Spell {
                                 ActionEffect::repeat(
                                     ActionEffectTarget::new_only_self(),
                                     GameAction::Move {
-                                        delta: ggez::glam::Vec2::new(0., -7.),
+                                        delta: glam::Vec2::new(0., -7.),
                                     },
                                     Duration::from_secs_f32(0.02),
                                 )
@@ -48,29 +57,33 @@ pub(super) fn construct_gale_force(sprite_pool: &SpritePool) -> Spell {
     )
 }
 
-pub(super) fn construct_airburst(sprite_pool: &SpritePool) -> Spell {
+pub(super) fn construct_airburst(
+    sprite_pool: &SpritePool,
+    ctx: &mut good_web_game::Context,
+    gfx_ctx: &mut good_web_game::event::GraphicsContext,
+) -> Spell {
     Spell::new(
         "Airburst",
         "Launch a ball of compressed air. Upon hitting an enemy, it deals area damage and pulls nearby enemies towards a point behind the target.",
-        sprite_pool.init_sprite_unchecked("/sprites/spells/airburst", Duration::ZERO),
-        "/audio/sounds/spells/airburst_cast",
+        sprite_pool.init_sprite_fmt_unchecked("./sprites/spells/airburst_8_8.png", ctx, gfx_ctx, Duration::ZERO),
+        "./audio/sounds/spells/airburst_cast.wav",
         GameAction::spawn(|_, pos, cmd| {
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(4)),
                 components::Graphics::new(
-                    "/sprites/spells/airburst",
+                    "./sprites/spells/airburst_8_8.png",
                     Duration::from_secs_f32(0.2),
                 ),
                 components::Velocity::new(0., -350.),
                 components::Collision::new(32., 32., true, |e1, e2| {
                     vec![
                         (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
-                        (e1, GameAction::play_sound("/audio/sounds/spells/airburst_hit")),
+                        (e1, GameAction::play_sound("./audio/sounds/spells/airburst_hit.wav")),
                         (e2, GameAction::TakeDamage { dmg: 45 }),
                         (e2, GameAction::spawn(|_, pos, cmd|{
                             cmd.push((
-                                pos + ggez::glam::Vec2::new(0., -64.),
+                                pos + glam::Vec2::new(0., -64.),
                                 components::LifeDuration::new(Duration::from_secs_f32(0.3)),
                                 components::Actions::new()
                                     .with_effect(
@@ -101,31 +114,35 @@ pub(super) fn construct_airburst(sprite_pool: &SpritePool) -> Spell {
     )
 }
 
-pub(super) fn construct_blackhole(sprite_pool: &SpritePool) -> Spell {
+pub(super) fn construct_blackhole(
+    sprite_pool: &SpritePool,
+    ctx: &mut good_web_game::Context,
+    gfx_ctx: &mut good_web_game::event::GraphicsContext,
+) -> Spell {
     Spell::new(
         "Blackhole",
         "Launch a slow-moving ball of antimatter. When colliding with an enemy, it will spawn a blackhole that attracts enemies for 6 seconds, then damages and shortly silences close enemies.",
-        sprite_pool.init_sprite_unchecked("/sprites/spells/blackhole", Duration::ZERO),
-        "/audio/sounds/spells/blackhole_cast",
+        sprite_pool.init_sprite_fmt_unchecked("./sprites/spells/blackhole_8_8.png", ctx, gfx_ctx, Duration::ZERO),
+        "./audio/sounds/spells/blackhole_cast.wav",
         GameAction::spawn(|_, pos, cmd| {
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(3)),
                 components::Graphics::new(
-                    "/sprites/spells/blackhole_mini",
+                    "./sprites/spells/blackhole_mini_4_4.png",
                     Duration::from_secs_f32(0.2),
                 ),
                 components::Velocity::new(0., -180.),
                 components::Collision::new(16., 16., true, |e1, e2| vec![
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
-                            (e1, GameAction::play_sound("/audio/sounds/spells/blackhole_hit")),
+                            (e1, GameAction::play_sound("./audio/sounds/spells/blackhole_hit.wav")),
                             (e2, GameAction::TakeDamage { dmg: 80 }),
                             (e1, GameAction::spawn(|_, pos, cmd|{
                                 cmd.push((
-                                    pos + ggez::glam::Vec2::new(0., -30.),
+                                    pos + glam::Vec2::new(0., -30.),
                                     components::LifeDuration::new(Duration::from_secs(6)),
                                     components::Graphics::new(
-                                        "/sprites/spells/blackhole",
+                                        "./sprites/spells/blackhole_8_8.png",
                                         Duration::from_secs_f32(0.1),
                                     ),
                                     components::Actions::new()
@@ -158,7 +175,7 @@ pub(super) fn construct_blackhole(sprite_pool: &SpritePool) -> Spell {
                                         .with_effect(ActionEffect::on_death(
                                             ActionEffectTarget::new_only_self(),
                                             RemoveSource::TimedOut,
-                                            GameAction::play_sound("/audio/sounds/spells/blackhole_explosion"),
+                                            GameAction::play_sound("./audio/sounds/spells/blackhole_explosion.wav"),
                                         )),
                                 ));
                             }),)
@@ -169,29 +186,33 @@ pub(super) fn construct_blackhole(sprite_pool: &SpritePool) -> Spell {
     )
 }
 
-pub(super) fn construct_mind_wipe(sprite_pool: &SpritePool) -> Spell {
+pub(super) fn construct_mind_wipe(
+    sprite_pool: &SpritePool,
+    ctx: &mut good_web_game::Context,
+    gfx_ctx: &mut good_web_game::event::GraphicsContext,
+) -> Spell {
     Spell::new(
         "Mind wipe",
         "Launch a bolt of dark energy that deals a medium amount of damage to the first enemy hit. After a short delay, deal the same damage again and silence the target for 15 seconds.",
-        sprite_pool.init_sprite_unchecked("/sprites/spells/icons/mindwipe_icon", Duration::ZERO),
-        "/audio/sounds/spells/mindwipe_cast",
+        sprite_pool.init_sprite_fmt_unchecked("./sprites/spells/icons/mindwipe_icon_8_8.png", ctx, gfx_ctx, Duration::ZERO),
+        "./audio/sounds/spells/mindwipe_cast.wav",
         GameAction::spawn(|_, pos, cmd| {
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(10)),
                 components::Graphics::new(
-                    "/sprites/spells/mindwipe",
+                    "./sprites/spells/mindwipe_3_8.png",
                     Duration::from_secs_f32(0.2),
                 ),
                 components::Velocity::new(0., -250.),
                 components::Collision::new(32., 32., true, |e1, e2| vec![
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
-                            (e1, GameAction::play_sound("/audio/sounds/spells/mindwipe_hit")),
+                            (e1, GameAction::play_sound("./audio/sounds/spells/mindwipe_hit.wav")),
                             (e2, GameAction::TakeDamage { dmg: 42 }),
                             (e2, ActionEffect::once(ActionEffectTarget::new_only_self(), vec![
                                 GameAction::TakeDamage { dmg: 42 },
                                 GameAction::Silence(Duration::new(15, 0)),
-                                GameAction::play_sound("/audio/sounds/spells/mindwipe_hit"),
+                                GameAction::play_sound("./audio/sounds/spells/mindwipe_hit.wav"),
                             ]).with_duration(Duration::new(2, 0)).into()),
                         ],),
             ));
@@ -200,12 +221,16 @@ pub(super) fn construct_mind_wipe(sprite_pool: &SpritePool) -> Spell {
     )
 }
 
-pub(super) fn construct_arcane_missiles(sprite_pool: &SpritePool) -> Spell {
+pub(super) fn construct_arcane_missiles(
+    sprite_pool: &SpritePool,
+    ctx: &mut good_web_game::Context,
+    gfx_ctx: &mut good_web_game::event::GraphicsContext,
+) -> Spell {
     Spell::new(
         "Arcane Missiles",
         "Infuse your self with arcane power. Every second for the next 10 seconds, launch an arcane missile towards a nearby enemy, dealing moderate damage.",
-        sprite_pool.init_sprite_unchecked("/sprites/spells/icons/arcane_bolt_icon", Duration::ZERO),
-        "/audio/sounds/spells/amissiles_cast",
+        sprite_pool.init_sprite_fmt_unchecked("./sprites/spells/icons/arcane_bolt_icon_8_8.png", ctx, gfx_ctx, Duration::ZERO),
+        "./audio/sounds/spells/amissiles_cast.wav",
         ActionEffect::repeat(
             ActionEffectTarget::new_only_self(),
             GameAction::spawn(|_, pos_src, cmd|{
@@ -229,20 +254,20 @@ pub(super) fn construct_arcane_missiles(sprite_pool: &SpritePool) -> Spell {
                     if let Some(&target) = pos_list.get(rand::random::<usize>() % pos_list.len().min(4).max(1)){
 
                         // get sprite pool
-                        let sp = res.get::<mooeye::sprite::SpritePool>().expect("Could not find sprite pool when spawning arcane missile.");
+                        let sp = res.get_mut::<mooeye::sprite::SpritePool>().expect("Could not find sprite pool when spawning arcane missile.");
 
                         // push the missile
                         world.push((
                             pos_src,
                             components::LifeDuration::new(Duration::from_secs(10)),
-                            components::Graphics::from(sp.init_sprite_unchecked(
-                                "/sprites/spells/arcane_bolt_mini",
+                            components::Graphics::new(
+                                "./sprites/spells/arcane_bolt_mini_4_4.png",
                                 Duration::from_secs_f32(0.2),
-                            )),
+                            ),
                             components::Velocity::from((target - pos_src).clamp_length(240., 240.)),
                             components::Collision::new(32., 32., true, |e1, e2| vec![
                                         (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
-                                        (e1, GameAction::play_sound("/audio/sounds/spells/amissiles_hit")),
+                                        (e1, GameAction::play_sound("./audio/sounds/spells/amissiles_hit.wav")),
                                         (e2, GameAction::TakeDamage { dmg: 25 }),
                                     ],),
                         ));
@@ -254,39 +279,43 @@ pub(super) fn construct_arcane_missiles(sprite_pool: &SpritePool) -> Spell {
         tiny_vec!([f32; MAX_SPELL_SLOTS] => 2., 2., 2., 2., 10., 10.))
 }
 
-pub(super) fn construct_arcane_blast(sprite_pool: &SpritePool) -> Spell {
+pub(super) fn construct_arcane_blast(
+    sprite_pool: &SpritePool,
+    ctx: &mut good_web_game::Context,
+    gfx_ctx: &mut good_web_game::event::GraphicsContext,
+) -> Spell {
     Spell::new(
         "Arcane Blast",
         "Launch an orb of arcane energy dealing medium damage. On hitting an enemy, 8 smaller orbs are created centered on the target hit and striking inwards for the same amount of damage.",
-        sprite_pool.init_sprite_unchecked("/sprites/spells/arcane_bolt_mini", Duration::ZERO),
-        "/audio/sounds/spells/ablast_cast",
+        sprite_pool.init_sprite_fmt_unchecked("./sprites/spells/arcane_bolt_mini_4_4.png", ctx, gfx_ctx, Duration::ZERO),
+        "./audio/sounds/spells/ablast_cast.wav",
         GameAction::spawn(|_, pos, cmd|{
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(10)),
                 components::Graphics::new(
-                    "/sprites/spells/arcane_bolt",
+                    "./sprites/spells/arcane_bolt_8_8.png",
                     Duration::from_secs_f32(0.2),
                 ),
                 components::Velocity::new(0., -360.),
                 components::Collision::new(32., 32., true, |e1, e2| vec![
                             (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
-                            (e1, GameAction::play_sound("/audio/sounds/spells/ablast_hit1")),
+                            (e1, GameAction::play_sound("./audio/sounds/spells/ablast_hit1.wav")),
                             (e2, GameAction::TakeDamage { dmg: 30 }),
                             (e2, GameAction::spawn(|_, pos,cmd|{
                                 for i in 0..8{
-                                    let rel = ggez::glam::Vec2::new(64. * (PI/4. * i as f32).cos(), 64. * (PI/4. * i as f32).sin());
+                                    let rel = glam::Vec2::new(64. * (PI/4. * i as f32).cos(), 64. * (PI/4. * i as f32).sin());
                                     cmd.push((
                                         pos + rel,
                                         components::LifeDuration::new(Duration::from_secs(10)),
                                         components::Graphics::new(
-                                            "/sprites/spells/arcane_bolt_mini",
+                                            "./sprites/spells/arcane_bolt_mini_4_4.png",
                                             Duration::from_secs_f32(0.2),
                                         ),
                                         components::Velocity::from(rel.clamp_length(240., 240.) * -1.),
                                         components::Collision::new(8., 8., true, |e1, e2| vec![
                                                     (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
-                                                    (e1, GameAction::play_sound("/audio/sounds/spells/ablast_hit2")),
+                                                    (e1, GameAction::play_sound("./audio/sounds/spells/ablast_hit2.wav")),
                                                     (e2, GameAction::TakeDamage { dmg: 30 }),
                                                 ],),
                                     ));

@@ -1,3 +1,4 @@
+use good_web_game::event::GraphicsContext;
 use good_web_game::graphics;
 use legion::system;
 use mooeye::{ui, ui::UiContent};
@@ -28,43 +29,75 @@ pub const MAX_SPELL_SLOTS: usize = 8;
 pub fn init_spell_pool(
     sprite_pool: &mooeye::sprite::SpritePool,
     achievements: &achievements::AchievementSet,
+    ctx: &mut good_web_game::Context,
+    gfx_ctx: &mut GraphicsContext,
 ) -> SpellPool {
     (
         None,
         vec![
-            SpellTemplate::new(fire::construct_fireball(sprite_pool), 50).purchased(),
-            SpellTemplate::new(fire::construct_scorch(sprite_pool), 90),
-            SpellTemplate::new(fire::construct_mortar(sprite_pool), 145).guild_condition(1),
-            SpellTemplate::new(fire::construct_flameorb(sprite_pool), 50).guild_condition(2),
-            SpellTemplate::new(fire::construct_conflagrate(sprite_pool), 150)
-                .guild_condition(3)
-                .achievement_condition(achievements.list.get(8), sprite_pool),
-            SpellTemplate::new(fire::construct_phoenix(sprite_pool), 200)
-                .guild_condition(4)
-                .achievement_condition(achievements.list.get(5), sprite_pool),
-            SpellTemplate::new(iceligthning::construct_ice_bomb(sprite_pool), 75).purchased(),
-            SpellTemplate::new(iceligthning::construct_shard(sprite_pool), 60).guild_condition(1),
-            SpellTemplate::new(iceligthning::construct_ice_lance(sprite_pool), 80)
-                .guild_condition(2)
-                .achievement_condition(achievements.list.get(9), sprite_pool),
-            SpellTemplate::new(iceligthning::construct_lightning_orb(sprite_pool), 90),
-            SpellTemplate::new(iceligthning::construct_overload(sprite_pool), 120)
+            SpellTemplate::new(fire::construct_fireball(sprite_pool, ctx, gfx_ctx), 50).purchased(),
+            SpellTemplate::new(fire::construct_scorch(sprite_pool, ctx, gfx_ctx), 90),
+            SpellTemplate::new(fire::construct_mortar(sprite_pool, ctx, gfx_ctx), 145)
                 .guild_condition(1),
-            SpellTemplate::new(iceligthning::construct_lightning_ball(sprite_pool), 145)
-                .guild_condition(2)
-                .achievement_condition(achievements.list.get(1), sprite_pool),
-            SpellTemplate::new(misc::construct_gale_force(sprite_pool), 120).guild_condition(3),
-            SpellTemplate::new(misc::construct_airburst(sprite_pool), 170)
+            SpellTemplate::new(fire::construct_flameorb(sprite_pool, ctx, gfx_ctx), 50)
+                .guild_condition(2),
+            SpellTemplate::new(fire::construct_conflagrate(sprite_pool, ctx, gfx_ctx), 150)
+                .guild_condition(3)
+                .achievement_condition(achievements.list.get(8), sprite_pool, ctx, gfx_ctx),
+            SpellTemplate::new(fire::construct_phoenix(sprite_pool, ctx, gfx_ctx), 200)
                 .guild_condition(4)
-                .achievement_condition(achievements.list.get(10), sprite_pool),
-            SpellTemplate::new(misc::construct_mind_wipe(sprite_pool), 200).guild_condition(3),
-            SpellTemplate::new(misc::construct_blackhole(sprite_pool), 200)
+                .achievement_condition(achievements.list.get(5), sprite_pool, ctx, gfx_ctx),
+            SpellTemplate::new(
+                iceligthning::construct_ice_bomb(sprite_pool, ctx, gfx_ctx),
+                75,
+            )
+            .purchased(),
+            SpellTemplate::new(iceligthning::construct_shard(sprite_pool, ctx, gfx_ctx), 60)
+                .guild_condition(1),
+            SpellTemplate::new(
+                iceligthning::construct_ice_lance(sprite_pool, ctx, gfx_ctx),
+                80,
+            )
+            .guild_condition(2)
+            .achievement_condition(achievements.list.get(9), sprite_pool, ctx, gfx_ctx),
+            SpellTemplate::new(
+                iceligthning::construct_lightning_orb(sprite_pool, ctx, gfx_ctx),
+                90,
+            ),
+            SpellTemplate::new(
+                iceligthning::construct_overload(sprite_pool, ctx, gfx_ctx),
+                120,
+            )
+            .guild_condition(1),
+            SpellTemplate::new(
+                iceligthning::construct_lightning_ball(sprite_pool, ctx, gfx_ctx),
+                145,
+            )
+            .guild_condition(2)
+            .achievement_condition(achievements.list.get(1), sprite_pool, ctx, gfx_ctx),
+            SpellTemplate::new(misc::construct_gale_force(sprite_pool, ctx, gfx_ctx), 120)
+                .guild_condition(3),
+            SpellTemplate::new(misc::construct_airburst(sprite_pool, ctx, gfx_ctx), 170)
                 .guild_condition(4)
-                .achievement_condition(achievements.list.get(11), sprite_pool),
-            SpellTemplate::new(misc::construct_arcane_blast(sprite_pool), 140).guild_condition(3),
-            SpellTemplate::new(misc::construct_arcane_missiles(sprite_pool), 150)
+                .achievement_condition(achievements.list.get(10), sprite_pool, ctx, gfx_ctx),
+            SpellTemplate::new(misc::construct_mind_wipe(sprite_pool, ctx, gfx_ctx), 200)
+                .guild_condition(3),
+            SpellTemplate::new(misc::construct_blackhole(sprite_pool, ctx, gfx_ctx), 200)
                 .guild_condition(4)
-                .achievement_condition(achievements.list.get(14), sprite_pool),
+                .achievement_condition(achievements.list.get(11), sprite_pool, ctx, gfx_ctx),
+            SpellTemplate::new(misc::construct_arcane_blast(sprite_pool, ctx, gfx_ctx), 140)
+                .guild_condition(3),
+            SpellTemplate::new(
+                misc::construct_arcane_missiles(sprite_pool, ctx, gfx_ctx),
+                150,
+            )
+            .guild_condition(4)
+            .achievement_condition(
+                achievements.list.get(14),
+                sprite_pool,
+                ctx,
+                gfx_ctx,
+            ),
         ],
     )
 }
@@ -73,12 +106,19 @@ pub fn init_base_spells(
     spell_pool: &SpellPool,
     sprite_pool: &mooeye::sprite::SpritePool,
     spells: &[usize],
+    ctx: &mut good_web_game::Context,
+    gfx_ctx: &mut GraphicsContext,
 ) -> Vec<Spell> {
     spells
         .iter()
         .map(|&index| {
             if index == 0 || index > spell_pool.1.len() {
-                Spell::not_available(sprite_pool, "Purchase & equip more spells between waves!")
+                Spell::not_available(
+                    sprite_pool,
+                    "Purchase & equip more spells between waves!",
+                    ctx,
+                    gfx_ctx,
+                )
             } else {
                 spell_pool.1[index - 1].spell.clone()
             }
@@ -270,6 +310,8 @@ impl SpellTemplate {
         mut self,
         ach: Option<&achievements::Achievement>,
         sprite_pool: &mooeye::sprite::SpritePool,
+        ctx: &mut good_web_game::Context,
+        gfx_ctx: &mut GraphicsContext,
     ) -> Self {
         if let Some(ach) = ach {
             if !ach.is_achieved() {
@@ -279,6 +321,8 @@ impl SpellTemplate {
                         "Complete the achievement '{}' to unlock this spell for future games.",
                         ach.get_name()
                     ),
+                    ctx,
+                    gfx_ctx,
                 );
                 self.level = 0;
                 self.cost = 0;
@@ -304,10 +348,10 @@ impl SpellTemplate {
 
         let cost = graphics::Text::new(
             graphics::TextFragment::new(format!("{}", self.cost))
-                .color(graphics::Color::from_rgb_u32(PALETTE[14])),
+                .color(graphics::Color::from_rgb_u32(PALETTE[14]))
+                .scale(16.)
+                .font(crate::RETRO.with(|f| f.borrow().unwrap())),
         )
-        .set_scale(16.)
-        .set_font("Retro")
         .to_owned()
         .to_element_builder(0, ctx)
         .with_padding((2., 2., 2., 2.))
@@ -323,10 +367,10 @@ impl SpellTemplate {
 
         let guild = graphics::Text::new(
             graphics::TextFragment::new(format!(" {} ", self.guild_condition))
-                .color(graphics::Color::from_rgb_u32(PALETTE[14])),
+                .color(graphics::Color::from_rgb_u32(PALETTE[14]))
+                .scale(16.)
+                .font(crate::RETRO.with(|f| f.borrow().unwrap())),
         )
-        .set_scale(16.)
-        .set_font("Retro")
         .to_owned()
         .to_element_builder(0, ctx)
         .with_padding((2., 2., 2., 2.))
@@ -408,12 +452,17 @@ impl Spell {
         }
     }
 
-    fn not_available(sprite_pool: &mooeye::sprite::SpritePool, reason: &str) -> Self {
+    fn not_available(
+        sprite_pool: &mooeye::sprite::SpritePool,
+        reason: &str,
+        ctx: &mut good_web_game::Context,
+        gfx_ctx: &mut GraphicsContext,
+    ) -> Self {
         Self {
             name: "Spell not available".to_owned(),
             description: reason.to_owned(),
             icon: sprite_pool
-                .init_sprite("/sprites/ui/lock", Duration::ZERO)
+                .init_sprite_fmt("./sprites/ui/lock_16_16.png", ctx, gfx_ctx, Duration::ZERO)
                 .unwrap_or_default(),
             spell_: GameAction::None.into(),
             spell_slots: TinyVec::new(),
@@ -434,13 +483,13 @@ impl Spell {
             .with_size(ui::Size::Fixed(48.), ui::Size::Fixed(48.))
             .with_tooltip(
                 graphics::Text::new(
-                    graphics::TextFragment::new(&self.name)
+                    graphics::TextFragment::new(self.name.as_str())
                         .color(graphics::Color::from_rgb_u32(PALETTE[7]))
                         .scale(28.),
                 )
                 .add("\n")
                 .add(
-                    graphics::TextFragment::new(&self.description)
+                    graphics::TextFragment::new(self.description.as_str())
                         .color(graphics::Color::from_rgb_u32(PALETTE[6]))
                         .scale(20.),
                 )
@@ -462,11 +511,10 @@ impl Spell {
                         },
                     ))
                     .color(graphics::Color::from_rgb_u32(PALETTE[4]))
-                    .scale(20.),
+                    .scale(20.)
+                    .font(crate::RETRO.with(|f| f.borrow().unwrap())),
                 )
-                .set_font("Retro")
-                .set_wrap(true)
-                .set_bounds(good_web_game::glam::Vec2::new(400., 200.))
+                .set_bounds(graphics::Point2::new(400., 200.), graphics::Align::Left)
                 .to_owned()
                 .to_element_builder(0, ctx)
                 .with_visuals(crate::scenes::BUTTON_VIS)
