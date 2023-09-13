@@ -1,4 +1,4 @@
-use ggez::graphics;
+use good_web_game::graphics;
 use legion::system;
 use mooeye::{ui, ui::UiContent};
 use std::time::Duration;
@@ -297,7 +297,7 @@ impl SpellTemplate {
     pub fn info_element_small<T: Copy + Eq + std::hash::Hash + 'static>(
         &self,
         id: u32,
-        ctx: &ggez::Context,
+        ctx: &good_web_game::Context,
         buildings: &super::buildings::Buildings,
     ) -> ui::UiElement<T> {
         let icon = self.spell.info_element_small(0, ctx);
@@ -425,7 +425,7 @@ impl Spell {
     pub fn info_element_small<T: Copy + Eq + std::hash::Hash + 'static>(
         &self,
         id: u32,
-        ctx: &ggez::Context,
+        ctx: &good_web_game::Context,
     ) -> ui::UiElement<T> {
         self.icon
             .clone()
@@ -466,7 +466,7 @@ impl Spell {
                 )
                 .set_font("Retro")
                 .set_wrap(true)
-                .set_bounds(ggez::glam::Vec2::new(400., 200.))
+                .set_bounds(good_web_game::glam::Vec2::new(400., 200.))
                 .to_owned()
                 .to_element_builder(0, ctx)
                 .with_visuals(crate::scenes::BUTTON_VIS)

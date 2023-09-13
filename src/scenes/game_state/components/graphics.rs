@@ -1,11 +1,11 @@
-use std::time::Duration;
-
-use ggez::{
-    glam::Vec2,
-    graphics::{self, Canvas, DrawParam, MeshBuilder, Rect},
+use glam::Vec2;
+use good_web_game::{
+    event::GraphicsContext,
+    graphics::{self, DrawParam, Drawable, MeshBuilder, Rect},
     Context,
 };
 use mooeye::sprite;
+use std::time::Duration;
 
 use legion::{system, IntoQuery};
 use tinyvec::TinyVec;
@@ -96,11 +96,13 @@ impl SpriteWrapper {
     /// Checks if the sprite wrapper needs to be initialized and does so.
     fn init(
         &mut self,
-        ctx: &ggez::Context,
+        ctx: &mut good_web_game::Context,
+        gfx_ctx: &mut GraphicsContext,
         sprite_pool: &mut sprite::SpritePool,
-    ) -> Result<&mut sprite::Sprite, ggez::GameError> {
+    ) -> Result<&mut sprite::Sprite, good_web_game::GameError> {
         if let Self::PreInit(path, pre_init) = self {
-            let mut sprite = sprite_pool.init_sprite_lazy(ctx, path, pre_init.get_frame_time())?;
+            let mut sprite =
+                sprite_pool.init_sprite_fmt(path, ctx, gfx_ctx, pre_init.get_frame_time())?;
             sprite.set_variant(pre_init.get_variant());
             *self = Self::Initialized(sprite);
         }
@@ -121,28 +123,30 @@ impl Default for SpriteWrapper {
 pub fn draw_sprites(
     world: &mut legion::World,
     resources: &mut legion::Resources,
-    ctx: &Context,
+    ctx: &mut Context,
+    gfx_ctx: &mut GraphicsContext,
     animate: bool,
     camera_offset: &mut (f32, f32),
-) -> Result<(), ggez::GameError> {
+) -> Result<(), good_web_game::GameError> {
     // get boundaries for relative moving
-    let boundaries = *resources
-        .get::<Rect>()
-        .ok_or_else(|| ggez::GameError::CustomError("Could not unpack boundaries.".to_owned()))?;
-    let (screen_w, screen_h) = ctx.gfx.drawable_size();
+    let boundaries = *resources.get::<Rect>().ok_or_else(|| {
+        good_web_game::GameError::CustomError("Could not unpack boundaries.".to_owned())
+    })?;
+    let (screen_w, screen_h) = gfx_ctx.screen_size();
 
-    camera_offset.0 = 0_f32.max(camera_offset.0 - 256. * ctx.time.delta().as_secs_f32());
+    camera_offset.0 =
+        0_f32.max(camera_offset.0 - 256. * good_web_game::timer::delta(ctx).as_secs_f32());
 
     // get sprite pool for inits
-    let mut sprite_pool = resources
-        .get_mut::<sprite::SpritePool>()
-        .ok_or_else(|| ggez::GameError::CustomError("Could not unpack boundaries.".to_owned()))?;
+    let mut sprite_pool = resources.get_mut::<sprite::SpritePool>().ok_or_else(|| {
+        good_web_game::GameError::CustomError("Could not unpack boundaries.".to_owned())
+    })?;
 
     for (pos, gfx, vel, health) in
         <(&Position, &mut Graphics, Option<&Velocity>, Option<&Health>)>::query().iter_mut(world)
     {
         // get sprite
-        let sprite = gfx.sprite.init(ctx, &mut sprite_pool)?;
+        let sprite = gfx.sprite.init(ctx, gfx_ctx, &mut sprite_pool)?;
 
         // get factors/position for image mirrogin
         let factor = if match vel {
@@ -171,18 +175,19 @@ pub fn draw_sprites(
         if animate {
             sprite.draw_sprite(
                 ctx,
-                canvas,
+                gfx_ctx,
                 DrawParam::default()
-                    .dest(n_pos)
-                    .scale(Vec2::new(PIXEL_SIZE * factor, PIXEL_SIZE)),
+                    .dest(graphics::Point2::new(n_pos.x, n_pos.y))
+                    .scale(graphics::Vector2::new(PIXEL_SIZE * factor, PIXEL_SIZE)),
             );
         } else {
             graphics::Drawable::draw(
                 sprite,
-                canvas,
+                ctx,
+                gfx_ctx,
                 DrawParam::default()
-                    .dest(n_pos)
-                    .scale(Vec2::new(PIXEL_SIZE * factor, PIXEL_SIZE)),
+                    .dest(graphics::Point2::new(n_pos.x, n_pos.y))
+                    .scale(graphics::Vector2::new(PIXEL_SIZE * factor, PIXEL_SIZE)),
             );
         }
 
@@ -240,29 +245,30 @@ pub fn draw_sprites(
                 graphics::Color::from_rgb_u32(PALETTE[6]),
             )?;
 
-            canvas.draw(
-                &graphics::Mesh::from_data(ctx, health_bar_builder.build()),
-                DrawParam::default(),
-            );
+            health_bar_builder
+                .build(ctx, gfx_ctx)?
+                .draw(ctx, gfx_ctx, DrawParam::default());
         }
 
         // draw the sprites particles
 
         for part in gfx.particles.iter_mut() {
-            let part_sprite = part.sprite.init(ctx, &mut sprite_pool)?;
+            let part_sprite = part.sprite.init(ctx, gfx_ctx, &mut sprite_pool)?;
             part_sprite.draw_sprite(
                 ctx,
-                canvas,
+                gfx_ctx,
                 DrawParam::default()
-                    .dest(
-                        *pos + part.rel_pos
-                            - Vec2::from(part_sprite.get_dimensions()) * PIXEL_SIZE / 2.
-                            + Vec2::new(
-                                (screen_w - boundaries.w) / 2.,
-                                (screen_h - boundaries.h) / 2.,
-                            ),
-                    )
-                    .scale(Vec2::new(PIXEL_SIZE, PIXEL_SIZE)),
+                    .dest(graphics::Point2::new(
+                        pos.x + part.rel_pos.x + (screen_w - boundaries.w) / 2.
+                            - part_sprite.get_dimensions().0 * PIXEL_SIZE / 2.,
+                        pos.y
+                            + part.rel_pos.y
+                            + (screen_h - boundaries.h) / 2.
+                                * part_sprite.get_dimensions().1
+                                * PIXEL_SIZE
+                                / 2.,
+                    ))
+                    .scale(graphics::Vector2::new(PIXEL_SIZE, PIXEL_SIZE)),
             );
         }
     }

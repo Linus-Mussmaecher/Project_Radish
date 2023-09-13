@@ -99,10 +99,9 @@ impl MainMenu {
                 )
                 .color(graphics::Color::from_rgb_u32(PALETTE[6])),
             )
-            .set_scale(24.)
             .set_font(
                 crate::RETRO.with(|f| f.borrow().unwrap()),
-                graphics::PxScale { x: 32., y: 32. },
+                graphics::PxScale { x: 24., y: 24. },
             )
             .to_element_builder(0, ctx)
             .with_visuals(super::BUTTON_VIS)
@@ -256,7 +255,7 @@ impl MainMenu {
         let mut music_player = music::MusicPlayer::from_folder(ctx, "/audio/music/main_menu");
         music_player.poll_options();
         music_player.next_song(ctx);
-        let sprite_pool = sprite::SpritePool::new().with_folder(ctx, "/sprites", true);
+        let sprite_pool = sprite::SpritePool::new();
 
         // -----------------------------------
         // Create backgorund sprites
@@ -272,8 +271,12 @@ impl MainMenu {
         for _i in 0..48 {
             background_sprites.push(MainMenuSprite {
                 sprite: {
-                    let mut cobble =
-                        sprite_pool.init_sprite("/sprites/environment/cobble", Duration::ZERO)?;
+                    let mut cobble = sprite_pool.init_sprite_fmt(
+                        "/sprites/environment/cobble_4_4.png",
+                        ctx,
+                        gfx_ctx,
+                        Duration::ZERO,
+                    )?;
                     cobble.set_variant(rand::random::<u32>());
                     cobble
                 },
@@ -290,8 +293,12 @@ impl MainMenu {
             let rand_x = (rand::random::<f32>() * 2. - 1.) * 32. * 4. * 4.;
             background_sprites.push(MainMenuSprite {
                 sprite: {
-                    let mut tree =
-                        sprite_pool.init_sprite("/sprites/environment/tree", Duration::ZERO)?;
+                    let mut tree = sprite_pool.init_sprite_fmt(
+                        "/sprites/environment/tree_8_16.png",
+                        ctx,
+                        gfx_ctx,
+                        Duration::ZERO,
+                    )?;
                     tree.set_variant(rand::random::<u32>());
                     tree
                 },
@@ -330,8 +337,10 @@ impl MainMenu {
             );
             for j in 0..count {
                 background_sprites.push(MainMenuSprite {
-                    sprite: sprite_pool.init_sprite(
+                    sprite: sprite_pool.init_sprite_fmt(
                         &sprite_path,
+                        ctx,
+                        gfx_ctx,
                         Duration::from_secs_f32(rand::random::<f32>() * 0.2 + 0.3),
                     )?,
                     pos: Vec2::new(
@@ -430,7 +439,7 @@ impl scene_manager::Scene for MainMenu {
             Some((dur, config)) => {
                 // continuously speed up camera
                 for sprite in &mut self.background_sprites {
-                    sprite.vel.y -= ctx.time.delta().as_secs_f32() * 96.;
+                    sprite.vel.y -= good_web_game::timer::delta(ctx).as_secs_f32() * 96.;
                 }
                 // if in a transitioning state: reduce duration and, if its has lapsed, switch the scene
                 if dur.is_zero() {
@@ -440,7 +449,8 @@ impl scene_manager::Scene for MainMenu {
                         1,
                     );
                 } else {
-                    self.state = Some((dur.saturating_sub(ctx.time.delta()), config));
+                    self.state =
+                        Some((dur.saturating_sub(good_web_game::timer::delta(ctx)), config));
                 }
             }
         }
@@ -459,11 +469,11 @@ impl scene_manager::Scene for MainMenu {
         self.music_player.poll_options();
 
         // graphics
-        let (screen_w, screen_h) = ctx.gfx.drawable_size();
+        let (screen_w, screen_h) = gfx_ctx.screen_size();
 
         // move sprites
         for sprite in self.background_sprites.iter_mut() {
-            sprite.pos += sprite.vel * ctx.time.delta().as_secs_f32();
+            sprite.pos += sprite.vel * good_web_game::timer::delta(ctx).as_secs_f32();
             //if self.state.is_none() {
             // reset sprites that have left the screen
             if sprite.pos.y < game_state::BOUNDARIES.y - 256. {

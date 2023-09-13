@@ -77,7 +77,7 @@ pub fn get_building_info(building: usize) -> &'static BuildingInfo {
 pub fn create_buildings(
     #[resource] data: &mut game_data::GameData,
     #[resource] message_set: &mut super::super::game_message::MessageSet,
-    #[resource] boundaries: &ggez::graphics::Rect,
+    #[resource] boundaries: &good_web_game::graphics::Rect,
     cmd: &mut CommandBuffer,
 ) {
     // if 'target' is not 'current', spawn the appropriate building and send a message

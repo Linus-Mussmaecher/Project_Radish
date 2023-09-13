@@ -1,5 +1,5 @@
 use super::super::controller;
-use ggez::glam::Vec2;
+use glam::Vec2;
 use legion::system;
 
 use super::Actions;

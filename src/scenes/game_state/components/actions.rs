@@ -1,6 +1,6 @@
 use std::{fmt::Debug, sync::Arc, time::Duration};
 
-use ggez::glam::Vec2;
+use glam::Vec2;
 use legion::{system, systems::CommandBuffer, Entity, EntityStore, IntoQuery};
 use tinyvec::TinyVec;
 

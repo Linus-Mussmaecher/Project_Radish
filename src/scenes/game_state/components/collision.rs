@@ -1,5 +1,7 @@
-use ggez::{glam::Vec2, graphics::Rect};
-use legion::{system, Entity, EntityStore, IntoQuery};
+use glam::Vec2;
+use good_web_game::graphics::Rect;
+use legion::IntoQuery;
+use legion::{system, Entity, EntityStore};
 
 use super::actions::Actions;
 

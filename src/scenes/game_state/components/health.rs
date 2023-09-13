@@ -175,7 +175,7 @@ pub fn enemy(
     enemy: &Enemy,
     pos: Option<&Position>,
     actions: &mut Actions,
-    #[resource] boundaries: &ggez::graphics::Rect,
+    #[resource] boundaries: &good_web_game::graphics::Rect,
 ) {
     // if enemy reaches the city border, damage the city and remove the enemy
     if match pos {

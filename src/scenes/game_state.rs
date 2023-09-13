@@ -486,6 +486,7 @@ impl scene_manager::Scene for GameState {
             &mut self.world,
             &mut self.resources,
             ctx,
+            gfx_ctx,
             mouse_listen && !self.tutorial.is_active(),
             &mut self.camera_offset,
         )?;
