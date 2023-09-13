@@ -1,4 +1,4 @@
-use std::{cell::RefCell, fs};
+use std::cell::RefCell;
 
 use good_web_game::graphics;
 use mooeye::{ui, ui::UiContainer, ui::UiContent};
@@ -14,46 +14,9 @@ use super::{
 };
 
 thread_local! {
-    pub static ACHIEVEMENTS: RefCell<AchievementProgress> = RefCell::new(
-        toml::from_str(&fs::read_to_string("./data/achievements.toml")
-            .unwrap_or_else(|_| "".to_owned()))
-            .unwrap_or_default()
-            //TODO: Change reads to resources
-    );
+    pub static ACHIEVEMENTS: RefCell<AchievementProgress> = RefCell::new(AchievementProgress::default());
 
-    pub static HIGHSCORES: RefCell<Vec<(u32, u32)>> = RefCell::new(
-            toml::from_str::<ScoreList>(&fs::read_to_string("./data/highscores.toml")
-                .unwrap_or_else(|_| "".to_owned()))
-                .unwrap_or_default().scores
-    )
-}
-
-pub fn save_data_to_file() {
-    crate::scenes::game_state::achievements::ACHIEVEMENTS.with(|ach| {
-        if std::fs::write(
-            "./data/achievements.toml",
-            toml::to_string(ach).unwrap_or_default(),
-        )
-        .is_err()
-        {
-            println!("[ERROR/Radish] Could not save achievements.");
-        };
-    });
-
-    // Save highscores
-    crate::scenes::game_state::achievements::HIGHSCORES.with(|scores| {
-        if std::fs::write(
-            "./data/highscores.toml",
-            toml::to_string(&ScoreList {
-                scores: scores.take(),
-            })
-            .unwrap_or_default(),
-        )
-        .is_err()
-        {
-            println!("[ERROR/Radish] Could not save highscores.")
-        }
-    });
+    pub static HIGHSCORES: RefCell<Vec<(u32, u32)>> = RefCell::new(Vec::new())
 }
 
 /// A struct that represents a list of scores. Allows Serde to .toml.

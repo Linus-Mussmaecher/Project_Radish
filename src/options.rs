@@ -3,7 +3,7 @@ use std::{cell::RefCell, fs, path::Path};
 use serde::{Deserialize, Serialize};
 
 thread_local! {
-    pub static OPTIONS: RefCell<OptionsConfig> = RefCell::new(OptionsConfig::from_path("./data/options.toml").unwrap_or_default());
+    pub static OPTIONS: RefCell<OptionsConfig> = RefCell::new(OptionsConfig::default());
 }
 
 /// A struct that represents the game options.
@@ -46,13 +46,4 @@ impl Default for OptionsConfig {
             tutorial: true,
         }
     }
-}
-
-pub fn save_options() {
-    // save options to file on game exit (when the main menu is dropped)
-    crate::options::OPTIONS.with(|opt| {
-        if opt.borrow().save_to_file("./data/options.toml").is_err() {
-            println!("[ERROR/Radish] Could not save options.")
-        };
-    });
 }

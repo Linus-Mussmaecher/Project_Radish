@@ -431,8 +431,6 @@ impl scene_manager::Scene for MainMenu {
 
                 if messages.contains(&ui::UiMessage::Triggered(8)) {
                     self.music_player.stop(ctx);
-                    crate::options::save_options();
-                    game_state::achievements::save_data_to_file();
                     res = mooeye::scene_manager::SceneSwitch::Pop(1);
                 }
             }
