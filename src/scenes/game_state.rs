@@ -189,7 +189,7 @@ impl GameState {
             achievements: achievement_set,
             tutorial,
             resources,
-            controller: Controller::from_path("./data/keymap.toml").unwrap_or_default(),
+            controller: Controller::default(),
         })
     }
 

@@ -1,8 +1,7 @@
-use good_web_game::{event::ScanCode, winit::event::VirtualKeyCode, Context};
-use std::{collections::HashMap, fs, path::Path, time::Duration};
+use good_web_game::{input::keyboard::KeyCode, Context};
+use std::{collections::HashMap, time::Duration};
 
 use serde::{Deserialize, Serialize};
-use toml;
 
 #[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, Serialize, Deserialize)]
 /// An enum containing all possible commands the user can give to the game.
@@ -36,40 +35,19 @@ impl Command {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Eq, Hash, PartialEq)]
+#[derive(Debug, Eq, Hash, PartialEq)]
 struct Mapping {
-    keycode: VirtualKeyCode,
-    scancode: ScanCode,
-    held: bool,
+    keycode: KeyCode,
     command: Command,
 }
 
 impl Mapping {
-    pub fn new(keycode: VirtualKeyCode, held: bool, command: Command) -> Self {
-        Self {
-            keycode,
-            scancode: 0,
-            held,
-            command,
-        }
-    }
-
-    pub fn new_with_scancode(
-        keycode: VirtualKeyCode,
-        held: bool,
-        command: Command,
-        scancode: ScanCode,
-    ) -> Self {
-        Self {
-            keycode,
-            scancode,
-            held,
-            command,
-        }
+    pub fn new(keycode: KeyCode, command: Command) -> Self {
+        Self { keycode, command }
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug)]
 /// A struct that serves as the interface between the user and the game state.
 pub struct Controller {
     /// Manages which keys are mapped to which in-game commands.
@@ -77,47 +55,15 @@ pub struct Controller {
 }
 
 impl Controller {
-    /// Loads a keymap from the given path and constructs a controller.
-    pub fn from_path(path: impl AsRef<Path>) -> Result<Self, Box<dyn std::error::Error>> {
-        let string = fs::read_to_string(
-            path.as_ref()
-                .to_str()
-                .ok_or_else(|| ggez::GameError::CustomError("Could not read path.".to_owned()))?,
-        )?;
-        Ok(toml::from_str(&string)?)
-    }
-
-    /// Saves this controllers keymap to the given path.
-    pub fn save_to_file(&self, path: impl AsRef<Path>) -> Result<(), Box<dyn std::error::Error>> {
-        fs::write(
-            path.as_ref()
-                .to_str()
-                .ok_or_else(|| ggez::GameError::CustomError("Could not read path.".to_owned()))?,
-            toml::to_string(&self)?,
-        )?;
-        Ok(())
-    }
-
     /// Listens to all key presses in the context of the last frame and converts it to a list of commands given by the user as well as the time spent in the frame.
     pub fn get_interactions(&self, ctx: &Context) -> Interactions {
         let mut inter = Interactions {
             commands: HashMap::new(),
-            delta: ctx.time.delta(),
+            delta: good_web_game::timer::delta(ctx),
         };
 
-        for &Mapping {
-            keycode,
-            scancode,
-            held,
-            command,
-        } in self.command_map.iter()
-        {
-            if (ctx.keyboard.is_key_pressed(keycode) || ctx.keyboard.is_scancode_pressed(scancode))
-                && held
-                || (ctx.keyboard.is_key_just_released(keycode)
-                    || ctx.keyboard.is_scancode_just_released(scancode))
-                    && !held
-            {
+        for &Mapping { keycode, command } in self.command_map.iter() {
+            if good_web_game::input::keyboard::is_key_pressed(ctx, keycode) {
                 inter.commands.insert(command, true);
             }
         }
@@ -130,19 +76,19 @@ impl Default for Controller {
     fn default() -> Self {
         Self {
             command_map: Vec::from([
-                Mapping::new(VirtualKeyCode::A, true, Command::MoveLeft),
-                Mapping::new(VirtualKeyCode::D, true, Command::MoveRight),
-                Mapping::new(VirtualKeyCode::Left, true, Command::MoveLeft),
-                Mapping::new(VirtualKeyCode::Right, true, Command::MoveRight),
-                Mapping::new(VirtualKeyCode::Y, false, Command::Spell0),
-                Mapping::new(VirtualKeyCode::Z, false, Command::Spell0),
-                Mapping::new(VirtualKeyCode::J, false, Command::Spell0),
-                Mapping::new(VirtualKeyCode::X, false, Command::Spell1),
-                Mapping::new(VirtualKeyCode::K, false, Command::Spell1),
-                Mapping::new(VirtualKeyCode::C, false, Command::Spell2),
-                Mapping::new(VirtualKeyCode::L, false, Command::Spell2),
-                Mapping::new(VirtualKeyCode::V, false, Command::Spell3),
-                Mapping::new_with_scancode(VirtualKeyCode::Semicolon, false, Command::Spell3, 39),
+                Mapping::new(KeyCode::A, Command::MoveLeft),
+                Mapping::new(KeyCode::D, Command::MoveRight),
+                Mapping::new(KeyCode::Left, Command::MoveLeft),
+                Mapping::new(KeyCode::Right, Command::MoveRight),
+                Mapping::new(KeyCode::Y, Command::Spell0),
+                Mapping::new(KeyCode::Z, Command::Spell0),
+                Mapping::new(KeyCode::J, Command::Spell0),
+                Mapping::new(KeyCode::X, Command::Spell1),
+                Mapping::new(KeyCode::K, Command::Spell1),
+                Mapping::new(KeyCode::C, Command::Spell2),
+                Mapping::new(KeyCode::L, Command::Spell2),
+                Mapping::new(KeyCode::V, Command::Spell3),
+                Mapping::new(KeyCode::Semicolon, Command::Spell3),
             ]),
         }
     }
