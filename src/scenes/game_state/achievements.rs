@@ -18,6 +18,7 @@ thread_local! {
         toml::from_str(&fs::read_to_string("./data/achievements.toml")
             .unwrap_or_else(|_| "".to_owned()))
             .unwrap_or_default()
+            //TODO: Change reads to resources
     );
 
     pub static HIGHSCORES: RefCell<Vec<(u32, u32)>> = RefCell::new(
