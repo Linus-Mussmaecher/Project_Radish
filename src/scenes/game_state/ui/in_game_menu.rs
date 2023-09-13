@@ -8,10 +8,7 @@ pub struct InGameMenu {
 }
 
 impl InGameMenu {
-    pub fn new(
-        ctx: &mut good_web_game::Context,
-        gfx_ctx: &mut good_web_game::event::GraphicsContext,
-    ) -> Result<Self, GameError> {
+    pub fn new(ctx: &mut good_web_game::Context) -> Result<Self, GameError> {
         // title
         let pause = graphics::Text::new(
             graphics::TextFragment::new("PAUSED")
@@ -122,7 +119,7 @@ impl scene_manager::Scene for InGameMenu {
 
         if messages.contains(&ui::UiMessage::Triggered(2)) {
             res = mooeye::scene_manager::SceneSwitch::push(
-                crate::scenes::main_menu::achievement_menu::AchievementMenu::new(ctx)?,
+                crate::scenes::main_menu::achievement_menu::AchievementMenu::new(ctx, gfx_ctx)?,
             );
         }
 

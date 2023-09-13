@@ -10,7 +10,7 @@ use crate::scenes::game_state::components::{
 use super::Spell;
 
 pub(super) fn construct_fireball(
-    sprite_pool: &SpritePool,
+    sprite_pool: &mut SpritePool,
     ctx: &mut good_web_game::Context,
     gfx_ctx: &mut good_web_game::event::GraphicsContext,
 ) -> Spell {
@@ -50,7 +50,7 @@ pub(super) fn construct_fireball(
 }
 
 pub(super) fn construct_scorch(
-    sprite_pool: &SpritePool,
+    sprite_pool: &mut SpritePool,
     ctx: &mut good_web_game::Context,
     gfx_ctx: &mut good_web_game::event::GraphicsContext,
 ) -> Spell {
@@ -94,7 +94,7 @@ pub(super) fn construct_scorch(
 }
 
 pub(super) fn construct_mortar(
-    sprite_pool: &SpritePool,
+    sprite_pool: &mut SpritePool,
     ctx: &mut good_web_game::Context,
     gfx_ctx: &mut good_web_game::event::GraphicsContext,
 ) -> Spell {
@@ -138,7 +138,7 @@ pub(super) fn construct_mortar(
 }
 
 pub(super) fn construct_flameorb(
-    sprite_pool: &SpritePool,
+    sprite_pool: &mut SpritePool,
     ctx: &mut good_web_game::Context,
     gfx_ctx: &mut good_web_game::event::GraphicsContext,
 ) -> Spell {
@@ -190,7 +190,7 @@ pub(super) fn construct_flameorb(
 }
 
 pub(super) fn construct_conflagrate(
-    sprite_pool: &SpritePool,
+    sprite_pool: &mut SpritePool,
     ctx: &mut good_web_game::Context,
     gfx_ctx: &mut good_web_game::event::GraphicsContext,
 ) -> Spell {
@@ -230,7 +230,7 @@ pub(super) fn construct_conflagrate(
 }
 
 pub(super) fn construct_phoenix(
-    sprite_pool: &SpritePool,
+    sprite_pool: &mut SpritePool,
     ctx: &mut good_web_game::Context,
     gfx_ctx: &mut good_web_game::event::GraphicsContext,
 ) -> Spell {

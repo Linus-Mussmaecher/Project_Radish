@@ -194,7 +194,7 @@ impl MessageReceiver for TutorialManager {
         message: &ui::UiMessage<super::GameMessage>,
         gui: &mut ui::UiElement<super::GameMessage>,
         ctx: &mut good_web_game::Context,
-        gfx_ctx: &mut good_web_game::event::GraphicsContext,
+        _gfx_ctx: &mut good_web_game::event::GraphicsContext,
     ) {
         for tut_message in self.messages.iter_mut().filter(|tm| !tm.shown) {
             if tut_message.condition.check(message) {

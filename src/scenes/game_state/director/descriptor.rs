@@ -7,7 +7,7 @@ use super::EnemyDescriptor;
 
 /// Generates all standard enemy templates.
 pub(super) fn generate_descriptors(
-    sprite_pool: &mooeye::sprite::SpritePool,
+    sprite_pool: &mut mooeye::sprite::SpritePool,
     ctx: &mut good_web_game::Context,
     gfx_ctx: &mut good_web_game::event::GraphicsContext,
 ) -> Result<Vec<EnemyDescriptor>, GameError> {

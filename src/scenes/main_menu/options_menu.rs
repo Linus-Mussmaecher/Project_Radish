@@ -1,5 +1,5 @@
 use crate::options;
-use ggez::{graphics, GameError};
+use good_web_game::{graphics, GameError};
 use mooeye::{scene_manager, ui, ui::UiContent};
 
 use crate::PALETTE;
@@ -16,78 +16,71 @@ pub struct OptionsMenu {
 }
 
 impl OptionsMenu {
-    pub fn new(ctx: &ggez::Context) -> Result<Self, GameError> {
+    pub fn new(ctx: &mut good_web_game::Context) -> Result<Self, GameError> {
         // title
+        let retro = crate::RETRO.with(|f| f.borrow().unwrap());
 
         let title = graphics::Text::new(
-            graphics::TextFragment::new("Options").color(graphics::Color::from_rgb_u32(PALETTE[8])),
+            graphics::TextFragment::new("Options")
+                .color(graphics::Color::from_rgb_u32(PALETTE[8]))
+                .font(retro)
+                .scale(48.),
         )
-        .set_font("Retro")
-        .set_scale(48.)
         .to_owned()
         .to_element(0, ctx);
 
-        let reset_bindings = graphics::Text::new(
-            graphics::TextFragment::new("Reset Keybindings")
-                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
-        )
-        .set_font("Retro")
-        .set_scale(28.)
-        .to_owned()
-        .to_element_builder(1, ctx)
-        .with_visuals(super::BUTTON_VIS)
-        .with_hover_visuals(super::BUTTON_HOVER_VIS)
-        .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::R)
-        .build();
-
         let sound = graphics::Text::new(
             graphics::TextFragment::new("Sound Volume")
-                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                .font(retro)
+                .scale(28.),
         )
-        .set_font("Retro")
-        .set_scale(28.)
         .to_owned()
         .to_element_builder(0, ctx)
         .build();
 
         let music = graphics::Text::new(
             graphics::TextFragment::new("Music Volume")
-                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                .font(retro)
+                .scale(28.),
         )
-        .set_font("Retro")
-        .set_scale(28.)
         .to_owned()
         .to_element_builder(0, ctx)
         .build();
 
         let back = graphics::Text::new(
-            graphics::TextFragment::new("Close").color(graphics::Color::from_rgb_u32(PALETTE[6])),
+            graphics::TextFragment::new("Close")
+                .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                .font(retro)
+                .scale(32.),
         )
-        .set_font("Retro")
-        .set_scale(32.)
         .to_owned()
         .to_element_builder(3, ctx)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::C)
+        .with_trigger_key(good_web_game::input::keyboard::KeyCode::C)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
-        .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
+        .with_trigger_sound(
+            good_web_game::audio::Source::new(ctx, "./audio/sounds/ui/blipSelect.wav").ok(),
+        )
         .build();
 
         let options = options::OPTIONS.with(|opt| *opt.borrow());
 
         let tutorial = graphics::Text::new(
             graphics::TextFragment::new("Re-enable Tutorial Hints")
-                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                .font(retro)
+                .scale(28.),
         )
-        .set_font("Retro")
-        .set_scale(28.)
         .to_owned()
         .to_element_builder(2, ctx)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
-        .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::R)
+        .with_trigger_sound(
+            good_web_game::audio::Source::new(ctx, "./audio/sounds/ui/blipSelect.wav").ok(),
+        )
+        .with_trigger_key(good_web_game::input::keyboard::KeyCode::R)
         .build();
 
         // Container
@@ -125,7 +118,6 @@ impl OptionsMenu {
                     .with_size(None, ui::Size::Fixed(20.))
                     .build(),
             )
-            .with_child(reset_bindings)
             .with_child(
                 ().to_element_builder(0, ctx)
                     .with_size(None, ui::Size::Fixed(20.))
@@ -146,8 +138,7 @@ impl OptionsMenu {
 
         Ok(Self {
             gui: options_box,
-            controller: super::game_state::Controller::from_path("./data/keymap.toml")
-                .unwrap_or_default(),
+            controller: super::game_state::Controller::default(),
             options,
         })
     }
@@ -156,7 +147,8 @@ impl OptionsMenu {
 impl scene_manager::Scene for OptionsMenu {
     fn update(
         &mut self,
-        ctx: &mut ggez::Context,
+        ctx: &mut good_web_game::Context,
+        _gfx_ctx: &mut good_web_game::event::GraphicsContext,
     ) -> Result<mooeye::scene_manager::SceneSwitch, GameError> {
         let messages = self.gui.manage_messages(ctx, None);
 
@@ -240,9 +232,6 @@ impl scene_manager::Scene for OptionsMenu {
         // Exit options
 
         if messages.contains(&ui::UiMessage::Triggered(3)) {
-            if self.controller.save_to_file("./data/keymap.toml").is_err() {
-                println!("[WARNING] Could not save keybindings.")
-            }
             // save internally
             options::OPTIONS.with(|opt| *opt.borrow_mut() = self.options);
 
@@ -252,26 +241,32 @@ impl scene_manager::Scene for OptionsMenu {
         }
     }
 
-    fn draw(&mut self, ctx: &mut ggez::Context, mouse_listen: bool) -> Result<(), GameError> {
-        let mut canvas = graphics::Canvas::from_frame(ctx, None);
-        canvas.set_sampler(graphics::Sampler::nearest_clamp());
-
-        self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);
-
-        canvas.finish(ctx)?;
+    fn draw(
+        &mut self,
+        ctx: &mut good_web_game::Context,
+        gfx_ctx: &mut good_web_game::event::GraphicsContext,
+        mouse_listen: bool,
+    ) -> Result<(), GameError> {
+        self.gui.draw_to_screen(ctx, gfx_ctx, mouse_listen);
         Ok(())
     }
 }
 
-fn create_sound_adjuster(ctx: &ggez::Context, id_start: u32, value: u8) -> ui::UiElement<()> {
+fn create_sound_adjuster(
+    ctx: &mut good_web_game::Context,
+    id_start: u32,
+    value: u8,
+) -> ui::UiElement<()> {
+    let retro = crate::RETRO.with(|f| f.borrow().unwrap());
     ui::containers::HorizontalBox::new_spaced(0.)
         .to_element_builder(id_start, ctx)
         .with_child(
             graphics::Text::new(
-                graphics::TextFragment::new("<<").color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                graphics::TextFragment::new("<<")
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                    .font(retro)
+                    .scale(28.),
             )
-            .set_font("Retro")
-            .set_scale(28.)
             .to_owned()
             .to_element_builder(id_start + 1, ctx)
             .with_visuals(ui::Visuals {
@@ -285,17 +280,18 @@ fn create_sound_adjuster(ctx: &ggez::Context, id_start: u32, value: u8) -> ui::U
                 ..super::BUTTON_HOVER_VIS
             })
             .with_trigger_sound(
-                ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok(),
+                good_web_game::audio::Source::new(ctx, "./audio/sounds/ui/blipSelect.wav").ok(),
             )
             .as_shrink()
             .build(),
         )
         .with_child(
             graphics::Text::new(
-                graphics::TextFragment::new("< ").color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                graphics::TextFragment::new("< ")
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                    .font(retro)
+                    .scale(28.),
             )
-            .set_font("Retro")
-            .set_scale(28.)
             .to_owned()
             .to_element_builder(id_start + 2, ctx)
             .with_visuals(ui::Visuals {
@@ -309,7 +305,7 @@ fn create_sound_adjuster(ctx: &ggez::Context, id_start: u32, value: u8) -> ui::U
                 ..super::BUTTON_HOVER_VIS
             })
             .with_trigger_sound(
-                ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok(),
+                good_web_game::audio::Source::new(ctx, "./audio/sounds/ui/blipSelect.wav").ok(),
             )
             .as_shrink()
             .build(),
@@ -317,10 +313,10 @@ fn create_sound_adjuster(ctx: &ggez::Context, id_start: u32, value: u8) -> ui::U
         .with_child(
             graphics::Text::new(
                 graphics::TextFragment::new(format!("{}", value))
-                    .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                    .font(retro)
+                    .scale(24.),
             )
-            .set_font("Retro")
-            .set_scale(24.)
             .to_owned()
             .to_element_builder(0, ctx)
             .with_visuals(ui::Visuals {
@@ -329,17 +325,18 @@ fn create_sound_adjuster(ctx: &ggez::Context, id_start: u32, value: u8) -> ui::U
                 ..super::BUTTON_VIS
             })
             .with_trigger_sound(
-                ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok(),
+                good_web_game::audio::Source::new(ctx, "./audio/sounds/ui/blipSelect.wav").ok(),
             )
             .as_fill()
             .build(),
         )
         .with_child(
             graphics::Text::new(
-                graphics::TextFragment::new(" >").color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                graphics::TextFragment::new(" >")
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                    .font(retro)
+                    .scale(28.),
             )
-            .set_font("Retro")
-            .set_scale(28.)
             .to_owned()
             .to_element_builder(id_start + 3, ctx)
             .with_visuals(ui::Visuals {
@@ -353,17 +350,18 @@ fn create_sound_adjuster(ctx: &ggez::Context, id_start: u32, value: u8) -> ui::U
                 ..super::BUTTON_HOVER_VIS
             })
             .with_trigger_sound(
-                ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok(),
+                good_web_game::audio::Source::new(ctx, "./audio/sounds/ui/blipSelect.wav").ok(),
             )
             .as_shrink()
             .build(),
         )
         .with_child(
             graphics::Text::new(
-                graphics::TextFragment::new(">>").color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                graphics::TextFragment::new(">>")
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                    .font(retro)
+                    .scale(28.),
             )
-            .set_font("Retro")
-            .set_scale(28.)
             .to_owned()
             .to_element_builder(id_start + 4, ctx)
             .with_visuals(ui::Visuals {

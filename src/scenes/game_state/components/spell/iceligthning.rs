@@ -10,7 +10,7 @@ use crate::scenes::game_state::components::{
 use super::Spell;
 
 pub(super) fn construct_ice_bomb(
-    sprite_pool: &SpritePool,
+    sprite_pool: &mut SpritePool,
     ctx: &mut good_web_game::Context,
     gfx_ctx: &mut good_web_game::event::GraphicsContext,
 ) -> Spell {
@@ -72,7 +72,7 @@ pub(super) fn construct_ice_bomb(
 }
 
 pub(super) fn construct_shard(
-    sprite_pool: &SpritePool,
+    sprite_pool: &mut SpritePool,
     ctx: &mut good_web_game::Context,
     gfx_ctx: &mut good_web_game::event::GraphicsContext,
 ) -> Spell {
@@ -122,7 +122,7 @@ pub(super) fn construct_shard(
 }
 
 pub(super) fn construct_ice_lance(
-    sprite_pool: &SpritePool,
+    sprite_pool: &mut SpritePool,
     ctx: &mut good_web_game::Context,
     gfx_ctx: &mut good_web_game::event::GraphicsContext,
 ) -> Spell {
@@ -168,7 +168,7 @@ pub(super) fn construct_ice_lance(
 }
 
 pub(super) fn construct_lightning_orb(
-    sprite_pool: &SpritePool,
+    sprite_pool: &mut SpritePool,
     ctx: &mut good_web_game::Context,
     gfx_ctx: &mut good_web_game::event::GraphicsContext,
 ) -> Spell {
@@ -209,7 +209,7 @@ pub(super) fn construct_lightning_orb(
 }
 
 pub(super) fn construct_overload(
-    sprite_pool: &SpritePool,
+    sprite_pool: &mut SpritePool,
     ctx: &mut good_web_game::Context,
     gfx_ctx: &mut good_web_game::event::GraphicsContext,
 ) -> Spell {
@@ -252,7 +252,7 @@ pub(super) fn construct_overload(
 }
 
 pub(super) fn construct_lightning_ball(
-    sprite_pool: &SpritePool,
+    sprite_pool: &mut SpritePool,
     ctx: &mut good_web_game::Context,
     gfx_ctx: &mut good_web_game::event::GraphicsContext,
 ) -> Spell {

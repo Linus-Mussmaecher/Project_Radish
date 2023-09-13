@@ -6,18 +6,21 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+
+getrandom = {version = "0.2", features = ["js"]}
+uuid = {version = "1.4", features = ["v4", "wasm-bindgen"]}
 # Framework
 good-web-game = "0.6"
 glam = "0.24"
 # UI
 mooeye = {git = "https://github.com/Linus-Mussmaecher/mooeye-web"}
 # ECS
-legion = "^0.4"
+legion = {verison = "^0.4", features = ["wasm-bindgen"]}
 # Serialization
 serde = "^1.0"
-toml = "^0.7"
+toml = "^0.8"
 # Random
-rand = "^0.8"
+rand = {version = "^0.8"}
 # other
 tinyvec = "^1.6"
 if_chain = "1.0.2"

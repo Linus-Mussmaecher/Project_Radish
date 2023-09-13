@@ -27,7 +27,7 @@ mod misc;
 pub const MAX_SPELL_SLOTS: usize = 8;
 
 pub fn init_spell_pool(
-    sprite_pool: &mooeye::sprite::SpritePool,
+    sprite_pool: &mut mooeye::sprite::SpritePool,
     achievements: &achievements::AchievementSet,
     ctx: &mut good_web_game::Context,
     gfx_ctx: &mut GraphicsContext,
@@ -104,7 +104,7 @@ pub fn init_spell_pool(
 
 pub fn init_base_spells(
     spell_pool: &SpellPool,
-    sprite_pool: &mooeye::sprite::SpritePool,
+    sprite_pool: &mut mooeye::sprite::SpritePool,
     spells: &[usize],
     ctx: &mut good_web_game::Context,
     gfx_ctx: &mut GraphicsContext,
@@ -309,7 +309,7 @@ impl SpellTemplate {
     pub fn achievement_condition(
         mut self,
         ach: Option<&achievements::Achievement>,
-        sprite_pool: &mooeye::sprite::SpritePool,
+        sprite_pool: &mut mooeye::sprite::SpritePool,
         ctx: &mut good_web_game::Context,
         gfx_ctx: &mut GraphicsContext,
     ) -> Self {
@@ -453,7 +453,7 @@ impl Spell {
     }
 
     fn not_available(
-        sprite_pool: &mooeye::sprite::SpritePool,
+        sprite_pool: &mut mooeye::sprite::SpritePool,
         reason: &str,
         ctx: &mut good_web_game::Context,
         gfx_ctx: &mut GraphicsContext,

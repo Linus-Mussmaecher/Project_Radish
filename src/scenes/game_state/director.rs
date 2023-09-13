@@ -43,7 +43,7 @@ pub struct Director {
 impl Director {
     /// Spawns a new director with default parameters.
     pub fn new(
-        sprite_pool: &sprite::SpritePool,
+        sprite_pool: &mut sprite::SpritePool,
         ctx: &mut good_web_game::Context,
         gfx_ctx: &mut good_web_game::event::GraphicsContext,
         config: &super::GameConfig,

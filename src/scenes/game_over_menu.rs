@@ -17,12 +17,7 @@ pub struct GameOverMenu {
 impl GameOverMenu {
     /// Creates a new GameOverMenu displaying the passed score and adding it (if good enough) to the highscore list.
     /// Also displays the highscore list and marks the newly achieved score (it it shows up).
-    pub fn new(
-        ctx: &mut good_web_game::Context,
-        gfx_ctx: &mut GraphicsContext,
-        wave: u32,
-        score: u32,
-    ) -> Result<Self, GameError> {
+    pub fn new(ctx: &mut good_web_game::Context, wave: u32, score: u32) -> Result<Self, GameError> {
         // load highscores
 
         let own_index = achievements::HIGHSCORES.with(|scores| {
@@ -188,7 +183,7 @@ impl GameOverMenu {
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .with_trigger_sound(
-            good_web_game::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok(),
+            good_web_game::audio::Source::new(ctx, "./audio/sounds/ui/blipSelect.wav").ok(),
         )
         .build();
         main_box.add(main_menu);
@@ -200,7 +195,7 @@ impl GameOverMenu {
             .with_padding((25., 25., 25., 25.))
             .build();
 
-        let mut music_player = music::MusicPlayer::from_folder(ctx, "/audio/music/in_game");
+        let mut music_player = music::MusicPlayer::from_folder(ctx, "./audio/music/in_game");
         music_player.poll_options();
         music_player.next_song(ctx);
 

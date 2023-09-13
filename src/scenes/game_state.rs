@@ -86,20 +86,19 @@ impl GameState {
         let achievement_set =
             achievements::AchievementSet::load(ctx, gfx_ctx, config.achievements_unlocked.clone());
         let mut sprite_pool = sprite::SpritePool::new();
-        let audio_pool =
-            components::audio::AudioPool::new(options).with_folder(ctx, "/audio", true);
+        let audio_pool = components::audio::AudioPool::new(options);
 
         let boundaries = BOUNDARIES;
         let spell_pool =
-            components::spell::init_spell_pool(&sprite_pool, &achievement_set, ctx, gfx_ctx);
+            components::spell::init_spell_pool(&mut sprite_pool, &achievement_set, ctx, gfx_ctx);
         let game_data = game_data::GameData::new(config.starting_gold, config.starting_city_health);
-        let director = director::Director::new(&sprite_pool, ctx, gfx_ctx, &config);
+        let director = director::Director::new(&mut sprite_pool, ctx, gfx_ctx, &config);
 
-        let mut music_player = music::MusicPlayer::from_folder(ctx, "/audio/music/in_game");
+        let mut music_player = music::MusicPlayer::from_folder(ctx, "./audio/music/in_game");
         music_player.poll_options();
         music_player.next_song(ctx);
 
-        Self::initalize_environment(&boundaries, &sprite_pool, &mut world, ctx, gfx_ctx)?;
+        Self::initalize_environment(&boundaries, &mut sprite_pool, &mut world, ctx, gfx_ctx)?;
 
         // Add player
 
@@ -116,7 +115,7 @@ impl GameState {
             components::SpellCaster::new(
                 components::spell::init_base_spells(
                     &spell_pool,
-                    &sprite_pool,
+                    &mut sprite_pool,
                     &config.base_spells,
                     ctx,
                     gfx_ctx,
@@ -196,7 +195,7 @@ impl GameState {
     /// Initializes the environment by spawning house and brush sprites.
     fn initalize_environment(
         boundaries: &graphics::Rect,
-        sprite_pool: &sprite::SpritePool,
+        sprite_pool: &mut sprite::SpritePool,
         world: &mut World,
         ctx: &mut good_web_game::Context,
         gfx_ctx: &mut GraphicsContext,
@@ -294,7 +293,7 @@ impl GameState {
         boundaries: &graphics::Rect,
         ctx: &mut good_web_game::Context,
         gfx_ctx: &mut GraphicsContext,
-    ) {
+    ) -> Result<(), GameError> {
         let (screen_w, screen_h) = gfx_ctx.screen_size();
 
         let mut mesh = graphics::MeshBuilder::new();
@@ -308,7 +307,7 @@ impl GameState {
                 y: 0.,
             },
             graphics::Color::from_rgb_u32(crate::PALETTE[10]),
-        );
+        )?;
         // street edges
         mesh.rectangle(
             graphics::DrawMode::Fill(FillOptions::DEFAULT),
@@ -319,7 +318,7 @@ impl GameState {
                 y: 0.,
             },
             graphics::Color::from_rgb_u32(crate::PALETTE[12]),
-        );
+        )?;
 
         mesh.rectangle(
             graphics::DrawMode::Fill(FillOptions::DEFAULT),
@@ -330,11 +329,13 @@ impl GameState {
                 y: 0.,
             },
             graphics::Color::from_rgb_u32(crate::PALETTE[12]),
-        );
+        )?;
 
         if let Ok(mesh) = mesh.build(ctx, gfx_ctx) {
-            mesh.draw(ctx, gfx_ctx, graphics::DrawParam::default());
+            mesh.draw(ctx, gfx_ctx, graphics::DrawParam::default())?;
         }
+
+        Ok(())
     }
 
     /// A helper function that ensures every entity in the world has a certain component subset
@@ -427,8 +428,7 @@ impl scene_manager::Scene for GameState {
         // Escape menu
         if total_messages.contains(&mui::UiMessage::Triggered(1)) {
             self.achievements.save();
-            switch =
-                scene_manager::SceneSwitch::push(ui::in_game_menu::InGameMenu::new(ctx, gfx_ctx)?);
+            switch = scene_manager::SceneSwitch::push(ui::in_game_menu::InGameMenu::new(ctx)?);
         }
 
         if total_messages.contains(&mui::UiMessage::Triggered(tutorial::TUTORIAL_CLOSE)) {
@@ -448,7 +448,6 @@ impl scene_manager::Scene for GameState {
                     switch = scene_manager::SceneSwitch::push(
                         crate::scenes::game_over_menu::GameOverMenu::new(
                             ctx,
-                            gfx_ctx,
                             director.get_wave(),
                             game_data.get_score() as u32,
                         )?,
@@ -488,7 +487,7 @@ impl scene_manager::Scene for GameState {
                 .unwrap_or_default(),
             ctx,
             gfx_ctx,
-        );
+        )?;
 
         // Draw world
 
@@ -519,7 +518,7 @@ impl scene_manager::Scene for GameState {
                     graphics::Color::new(0., 0., 0., ratio),
                 )?
                 .build(ctx, gfx_ctx)?
-                .draw(ctx, gfx_ctx, graphics::DrawParam::default());
+                .draw(ctx, gfx_ctx, graphics::DrawParam::default())?;
         }
         // Sounds
 

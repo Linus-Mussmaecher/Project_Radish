@@ -53,7 +53,7 @@ impl MusicPlayer {
     pub fn check_song(&mut self, ctx: &mut Context, wave: u32) {
         if let Some(song) = &mut self.current_song {
             if song.volume() != self.volume {
-                song.set_volume(ctx, self.volume);
+                song.set_volume(ctx, self.volume).unwrap();
             }
             if self.wave != wave {
                 self.wave = wave;
@@ -68,7 +68,7 @@ impl MusicPlayer {
         self.current_song = self.playlist.pop_front();
         if let Some(song) = &mut self.current_song {
             song.set_repeat(true);
-            song.set_volume(ctx, self.volume);
+            song.set_volume(ctx, self.volume).unwrap();
             song.play(ctx).unwrap();
         }
     }

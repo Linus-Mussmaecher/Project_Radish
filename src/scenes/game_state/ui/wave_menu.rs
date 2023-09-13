@@ -205,9 +205,9 @@ fn construct_wave_menu(
     wave_survived: u32,
 ) -> ui::UiElement<game_state::GameMessage> {
     // play happy sound
-    let mut wave_done = good_web_game::audio::Source::new(ctx, "./audio/sounds/ui/wave_done.wav")
+    let wave_done = good_web_game::audio::Source::new(ctx, "./audio/sounds/ui/wave_done.wav")
         .expect("Could not load wave end sound.");
-    good_web_game::audio::Source::play(&mut wave_done, ctx)
+    good_web_game::audio::Source::play(&wave_done, ctx)
         .expect("[ERROR/Radish] Could not find wave_done.wav.");
 
     let enemies = graphics::Image::new(ctx, gfx_ctx, "./sprites/ui/enemies.png")

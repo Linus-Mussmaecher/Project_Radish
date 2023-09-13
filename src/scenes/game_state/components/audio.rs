@@ -26,9 +26,15 @@ pub fn audio_play_system(
     audio_pool.poll_options();
 
     for sound in audio_pool.sound_queue.iter().take(SOUNDS_PER_FRAME) {
+        if !audio_pool.sources.contains_key(sound) {
+            audio_pool
+                .sources
+                .insert(sound.clone(), audio::Source::new(ctx, sound)?);
+        }
+
         // play the sound
         if let Some(sound) = audio_pool.sources.get_mut(sound) {
-            sound.set_volume(ctx, audio_pool.options.volume as f32 / 100. * 0.2);
+            sound.set_volume(ctx, audio_pool.options.volume as f32 / 100. * 0.2)?;
             sound.play(ctx)?;
         };
     }
@@ -55,37 +61,6 @@ impl AudioPool {
             sound_queue: Vec::new(),
             options,
         }
-    }
-
-    /// Loads all sources within the given folder (relative to the good_web_game resource directory, see [good_web_game::context::ContextBuilder]) into the audio pool.
-    /// Can also search all subfolders.
-    pub fn with_folder(
-        mut self,
-        ctx: &good_web_game::Context,
-        path: impl AsRef<std::path::Path>,
-        search_subfolders: bool,
-    ) -> Self {
-        // let paths = ctx
-        //     .fs
-        //     .read_dir(path.as_ref())
-        //     .expect("Could not find specified path.");
-
-        // TODO: Reading
-
-        // for sub_path in paths {
-        //     let path_string = sub_path.to_string_lossy().to_string();
-        //     let len = path_string.len();
-        //     if path_string[len - 4..] == *".wav" || path_string[len - 4..] == *".ogg" {
-        //         if let Ok(source) = audio::Source::new(ctx, sub_path) {
-        //             self.sources
-        //                 .insert(path_string.replace('\\', "/")[..len - 4].to_owned(), source);
-        //         }
-        //     } else if search_subfolders {
-        //         self = self.with_folder(ctx, sub_path, search_subfolders);
-        //     }
-        // }
-        //println!("Now containing {} files.", self.sources.len());
-        self
     }
 
     /// Checks for changes in the options file to change music volume if neccessary.

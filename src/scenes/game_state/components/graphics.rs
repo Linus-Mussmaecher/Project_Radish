@@ -188,7 +188,7 @@ pub fn draw_sprites(
                 DrawParam::default()
                     .dest(graphics::Point2::new(n_pos.x, n_pos.y))
                     .scale(graphics::Vector2::new(PIXEL_SIZE * factor, PIXEL_SIZE)),
-            );
+            )?;
         }
 
         // draw the health bar
@@ -247,7 +247,7 @@ pub fn draw_sprites(
 
             health_bar_builder
                 .build(ctx, gfx_ctx)?
-                .draw(ctx, gfx_ctx, DrawParam::default());
+                .draw(ctx, gfx_ctx, DrawParam::default())?;
         }
 
         // draw the sprites particles

@@ -71,7 +71,7 @@ impl MainMenu {
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .with_trigger_sound(
-            good_web_game::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok(),
+            good_web_game::audio::Source::new(ctx, "./audio/sounds/ui/blipSelect.wav").ok(),
         )
         .build();
 
@@ -90,7 +90,7 @@ impl MainMenu {
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .with_trigger_sound(
-            good_web_game::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok(),
+            good_web_game::audio::Source::new(ctx, "./audio/sounds/ui/blipSelect.wav").ok(),
         )
         .with_tooltip(
             graphics::Text::new(
@@ -103,6 +103,7 @@ impl MainMenu {
                 crate::RETRO.with(|f| f.borrow().unwrap()),
                 graphics::PxScale { x: 24., y: 24. },
             )
+            .to_owned()
             .to_element_builder(0, ctx)
             .with_visuals(super::BUTTON_VIS)
             .build(),
@@ -122,7 +123,7 @@ impl MainMenu {
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .with_trigger_sound(
-            good_web_game::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok(),
+            good_web_game::audio::Source::new(ctx, "./audio/sounds/ui/blipSelect.wav").ok(),
         )
         .build();
 
@@ -142,7 +143,7 @@ impl MainMenu {
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .with_trigger_sound(
-            good_web_game::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok(),
+            good_web_game::audio::Source::new(ctx, "./audio/sounds/ui/blipSelect.wav").ok(),
         )
         .build();
 
@@ -162,7 +163,7 @@ impl MainMenu {
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .with_trigger_sound(
-            good_web_game::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok(),
+            good_web_game::audio::Source::new(ctx, "./audio/sounds/ui/blipSelect.wav").ok(),
         )
         .build();
 
@@ -179,7 +180,7 @@ impl MainMenu {
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .with_trigger_sound(
-            good_web_game::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok(),
+            good_web_game::audio::Source::new(ctx, "./audio/sounds/ui/blipSelect.wav").ok(),
         )
         .build();
 
@@ -196,7 +197,7 @@ impl MainMenu {
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .with_trigger_sound(
-            good_web_game::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").unwrap(),
+            good_web_game::audio::Source::new(ctx, "./audio/sounds/ui/blipSelect.wav").unwrap(),
         )
         .build();
 
@@ -213,7 +214,7 @@ impl MainMenu {
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .with_trigger_sound(
-            good_web_game::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok(),
+            good_web_game::audio::Source::new(ctx, "./audio/sounds/ui/blipSelect.wav").ok(),
         )
         .build();
 
@@ -252,10 +253,10 @@ impl MainMenu {
             .with_padding((25., 25., 25., 25.))
             .build();
 
-        let mut music_player = music::MusicPlayer::from_folder(ctx, "/audio/music/main_menu");
+        let mut music_player = music::MusicPlayer::from_folder(ctx, "./audio/music/main_menu");
         music_player.poll_options();
         music_player.next_song(ctx);
-        let sprite_pool = sprite::SpritePool::new();
+        let mut sprite_pool = sprite::SpritePool::new();
 
         // -----------------------------------
         // Create backgorund sprites
@@ -417,7 +418,7 @@ impl scene_manager::Scene for MainMenu {
 
                 if messages.contains(&ui::UiMessage::Triggered(5)) {
                     res = scene_manager::SceneSwitch::push(achievement_menu::AchievementMenu::new(
-                        ctx,
+                        ctx, gfx_ctx,
                     )?);
                 }
 
@@ -485,7 +486,7 @@ impl scene_manager::Scene for MainMenu {
             &good_web_game::graphics::Rect::new(0., 0., 600., 900.),
             ctx,
             gfx_ctx,
-        );
+        )?;
 
         for b_sprite in self.background_sprites.iter_mut() {
             b_sprite.sprite.draw_sprite(
@@ -517,7 +518,7 @@ impl scene_manager::Scene for MainMenu {
                     graphics::Color::new(0., 0., 0., ratio),
                 )?
                 .build(ctx, gfx_ctx)?
-                .draw(ctx, gfx_ctx, graphics::DrawParam::default());
+                .draw(ctx, gfx_ctx, graphics::DrawParam::default())?;
 
             graphics::Text::new(
                 graphics::TextFragment::new("Loading...")
@@ -530,7 +531,7 @@ impl scene_manager::Scene for MainMenu {
                 gfx_ctx,
                 graphics::DrawParam::default()
                     .dest(graphics::Point2::new(16., screen_h - 16. - 28.)),
-            );
+            )?;
         }
 
         Ok(())

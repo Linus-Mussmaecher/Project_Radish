@@ -1,4 +1,4 @@
-use ggez::{graphics, GameError};
+use good_web_game::{graphics, GameError};
 use mooeye::{scene_manager, ui, ui::UiContainer, ui::UiContent};
 
 use crate::PALETTE;
@@ -10,34 +10,36 @@ pub struct HighscoreMenu {
 }
 
 impl HighscoreMenu {
-    pub fn new(ctx: &ggez::Context) -> Result<Self, GameError> {
+    pub fn new(ctx: &mut good_web_game::Context) -> Result<Self, GameError> {
         // title
 
         let title = graphics::Text::new(
             graphics::TextFragment::new("Highscores")
-                .color(graphics::Color::from_rgb_u32(PALETTE[8])),
+                .color(graphics::Color::from_rgb_u32(PALETTE[8]))
+                .font(crate::RETRO.with(|f| f.borrow().unwrap()))
+                .scale(48.),
         )
-        .set_font("Retro")
-        .set_scale(48.)
         .to_owned()
         .to_element(0, ctx);
 
         // Score display
 
         let mut highscore_disp = graphics::Text::default();
+        let retro = crate::RETRO.with(|f| f.borrow().unwrap());
+        let retro_m = crate::RETRO_M.with(|f| f.borrow().unwrap());
 
         game_state::achievements::HIGHSCORES.with(|scores| {
             for (index, (_, score)) in scores.borrow().iter().enumerate().take(10) {
                 highscore_disp.add(
                     graphics::TextFragment::new(format!("{:02}.{:>7}\n", index + 1, *score))
                         .color(graphics::Color::from_rgb_u32(PALETTE[6]))
-                        .scale(32.),
+                        .scale(32.)
+                        .font(retro_m),
                 );
             }
         });
 
         let highscore_disp = highscore_disp
-            .set_font("Retro_M")
             .to_owned()
             .to_element_builder(0, ctx)
             .with_alignment(ui::Alignment::Center, ui::Alignment::Min)
@@ -45,10 +47,10 @@ impl HighscoreMenu {
 
         let reset_scores = graphics::Text::new(
             graphics::TextFragment::new("Reset Highscores")
-                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                .scale(28.)
+                .font(retro),
         )
-        .set_font("Retro")
-        .set_scale(28.)
         .to_owned()
         .to_element_builder(1, ctx)
         .with_tooltip(
@@ -56,32 +58,37 @@ impl HighscoreMenu {
                 graphics::TextFragment::new(
                     "Clears the highscore list.\nAlso resets your quick advance progress.",
                 )
-                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                .scale(24.)
+                .font(retro),
             )
-            .set_scale(24.)
-            .set_font("Retro")
             .to_owned()
             .to_element_builder(0, ctx)
             .with_visuals(super::BUTTON_VIS)
             .build(),
         )
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::R)
+        .with_trigger_key(good_web_game::input::keyboard::KeyCode::R)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
-        .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
+        .with_trigger_sound(
+            good_web_game::audio::Source::new(ctx, "./audio/sounds/ui/blipSelect.wav").ok(),
+        )
         .build();
 
         let back = graphics::Text::new(
-            graphics::TextFragment::new("Close").color(graphics::Color::from_rgb_u32(PALETTE[6])),
+            graphics::TextFragment::new("Close")
+                .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                .scale(32.)
+                .font(retro),
         )
-        .set_font("Retro")
-        .set_scale(32.)
         .to_owned()
         .to_element_builder(2, ctx)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::C)
+        .with_trigger_key(good_web_game::input::keyboard::KeyCode::C)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
-        .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
+        .with_trigger_sound(
+            good_web_game::audio::Source::new(ctx, "./audio/sounds/ui/blipSelect.wav").ok(),
+        )
         .build();
 
         // Container
@@ -107,8 +114,9 @@ impl HighscoreMenu {
 impl scene_manager::Scene for HighscoreMenu {
     fn update(
         &mut self,
-        ctx: &mut ggez::Context,
-    ) -> Result<scene_manager::SceneSwitch, ggez::GameError> {
+        ctx: &mut good_web_game::Context,
+        _gfx_ctx: &mut good_web_game::event::GraphicsContext,
+    ) -> Result<scene_manager::SceneSwitch, good_web_game::GameError> {
         let messages = self.gui.manage_messages(ctx, None);
 
         if messages.contains(&ui::UiMessage::Triggered(1)) {
@@ -123,13 +131,14 @@ impl scene_manager::Scene for HighscoreMenu {
         }
     }
 
-    fn draw(&mut self, ctx: &mut ggez::Context, mouse_listen: bool) -> Result<(), ggez::GameError> {
-        let mut canvas = graphics::Canvas::from_frame(ctx, None);
-        canvas.set_sampler(graphics::Sampler::nearest_clamp());
+    fn draw(
+        &mut self,
+        ctx: &mut good_web_game::Context,
+        gfx_ctx: &mut good_web_game::event::GraphicsContext,
+        mouse_listen: bool,
+    ) -> Result<(), good_web_game::GameError> {
+        self.gui.draw_to_screen(ctx, gfx_ctx, mouse_listen);
 
-        self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);
-
-        canvas.finish(ctx)?;
         Ok(())
     }
 }

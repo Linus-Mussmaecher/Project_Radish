@@ -289,7 +289,7 @@ impl<T: Copy + Eq + Hash> ui::UiContent<T> for Covering {
         let mut target_mod = param.target;
         target_mod.y += (1. - self.covering) * target_mod.h;
         target_mod.h *= self.covering;
-        graphics::Drawable::draw(
+        match graphics::Drawable::draw(
             &graphics::MeshBuilder::new()
                 .ellipse(
                     graphics::DrawMode::Fill(graphics::FillOptions::DEFAULT),
@@ -308,6 +308,9 @@ impl<T: Copy + Eq + Hash> ui::UiContent<T> for Covering {
             ctx,
             gfx_ctx,
             graphics::DrawParam::default(),
-        );
+        ) {
+            Ok(_) => {}
+            Err(e) => println!("[ERROR/Radish] {}", e),
+        }
     }
 }

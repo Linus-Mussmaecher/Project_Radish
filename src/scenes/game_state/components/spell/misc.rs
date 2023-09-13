@@ -9,7 +9,7 @@ use crate::scenes::game_state::components::{self, actions::*, spell::MAX_SPELL_S
 use super::Spell;
 
 pub(super) fn construct_gale_force(
-    sprite_pool: &SpritePool,
+    sprite_pool: &mut SpritePool,
     ctx: &mut good_web_game::Context,
     gfx_ctx: &mut good_web_game::event::GraphicsContext,
 ) -> Spell {
@@ -58,7 +58,7 @@ pub(super) fn construct_gale_force(
 }
 
 pub(super) fn construct_airburst(
-    sprite_pool: &SpritePool,
+    sprite_pool: &mut SpritePool,
     ctx: &mut good_web_game::Context,
     gfx_ctx: &mut good_web_game::event::GraphicsContext,
 ) -> Spell {
@@ -115,7 +115,7 @@ pub(super) fn construct_airburst(
 }
 
 pub(super) fn construct_blackhole(
-    sprite_pool: &SpritePool,
+    sprite_pool: &mut SpritePool,
     ctx: &mut good_web_game::Context,
     gfx_ctx: &mut good_web_game::event::GraphicsContext,
 ) -> Spell {
@@ -187,7 +187,7 @@ pub(super) fn construct_blackhole(
 }
 
 pub(super) fn construct_mind_wipe(
-    sprite_pool: &SpritePool,
+    sprite_pool: &mut SpritePool,
     ctx: &mut good_web_game::Context,
     gfx_ctx: &mut good_web_game::event::GraphicsContext,
 ) -> Spell {
@@ -222,7 +222,7 @@ pub(super) fn construct_mind_wipe(
 }
 
 pub(super) fn construct_arcane_missiles(
-    sprite_pool: &SpritePool,
+    sprite_pool: &mut SpritePool,
     ctx: &mut good_web_game::Context,
     gfx_ctx: &mut good_web_game::event::GraphicsContext,
 ) -> Spell {
@@ -235,7 +235,7 @@ pub(super) fn construct_arcane_missiles(
             ActionEffectTarget::new_only_self(),
             GameAction::spawn(|_, pos_src, cmd|{
                 // execute the following every seconds:
-                cmd.exec_mut(move |world, res|{
+                cmd.exec_mut(move |world, _res|{
                     // get an iterator overall enemies:
                     let mut query = <(&components::Enemy, &components::Position)>::query();
                     let iter = query.iter(world);
@@ -253,8 +253,6 @@ pub(super) fn construct_arcane_missiles(
                     // get closest vector
                     if let Some(&target) = pos_list.get(rand::random::<usize>() % pos_list.len().min(4).max(1)){
 
-                        // get sprite pool
-                        let sp = res.get_mut::<mooeye::sprite::SpritePool>().expect("Could not find sprite pool when spawning arcane missile.");
 
                         // push the missile
                         world.push((
@@ -280,7 +278,7 @@ pub(super) fn construct_arcane_missiles(
 }
 
 pub(super) fn construct_arcane_blast(
-    sprite_pool: &SpritePool,
+    sprite_pool: &mut SpritePool,
     ctx: &mut good_web_game::Context,
     gfx_ctx: &mut good_web_game::event::GraphicsContext,
 ) -> Spell {
