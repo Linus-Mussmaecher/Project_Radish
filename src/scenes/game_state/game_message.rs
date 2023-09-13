@@ -80,6 +80,7 @@ pub trait MessageReceiver {
         &mut self,
         message: &ui::UiMessage<GameMessage>,
         gui: &mut ui::UiElement<GameMessage>,
-        ctx: &ggez::Context,
+        ctx: &mut good_web_game::Context,
+        gfx_ctx: &mut good_web_game::event::GraphicsContext,
     );
 }

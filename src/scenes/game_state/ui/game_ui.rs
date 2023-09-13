@@ -1,4 +1,4 @@
-use ggez::{graphics, GameError};
+use good_web_game::{graphics, GameError};
 
 use mooeye::*;
 use mooeye::{ui, ui::UiContainer, ui::UiContent};
@@ -22,13 +22,14 @@ pub const ID_MANA_SLOT: u32 = 51;
 ///  - Indicator for currently equipped spells
 ///  - Vertical box to display messages (achievements etc.)
 pub fn construct_game_ui(
-    ctx: &ggez::Context,
+    ctx: &mut good_web_game::Context,
+    gfx_ctx: &mut good_web_game::event::GraphicsContext,
     config: super::game_state::GameConfig,
 ) -> Result<ui::UiElement<super::super::GameMessage>, GameError> {
     // options icon
-    let cog_icon = graphics::Image::from_path(ctx, "/sprites/ui/cog.png")?
+    let cog_icon = graphics::Image::new(ctx, gfx_ctx, "./sprites/ui/cog.png")?
         .to_element_builder(1, ctx)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::F10)
+        .with_trigger_key(good_web_game::input::keyboard::KeyCode::F10)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .with_alignment(ui::Alignment::Max, ui::Alignment::Max)
@@ -39,8 +40,9 @@ pub fn construct_game_ui(
 
     // gold display
     let gold_icon = sprite::Sprite::from_path_fmt(
-        "/sprites/ui/coin_16_16.png",
+        "./sprites/ui/coin_16_16.png",
         ctx,
+        gfx_ctx,
         Duration::from_secs_f32(0.25),
     )?
     .to_element_builder(0, ctx)
@@ -48,19 +50,20 @@ pub fn construct_game_ui(
     .build();
 
     let gold_text = graphics::Text::new(
-        graphics::TextFragment::new("0000").color(graphics::Color::from_rgb_u32(PALETTE[6])),
+        graphics::TextFragment::new("0000")
+            .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+            .font(crate::RETRO.with(|f| f.borrow().unwrap()))
+            .scale(32.),
     )
-    .set_scale(32.)
-    .set_font("Retro")
     .to_owned()
     .to_element_builder(0, ctx)
     .with_tooltip(
         graphics::Text::new(
             graphics::TextFragment::new("Your current amount of gold.")
-                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                .font(crate::RETRO.with(|f| f.borrow().unwrap()))
+                .scale(24.),
         )
-        .set_scale(24.)
-        .set_font("Retro")
         .to_owned()
         .to_element_builder(0, ctx)
         .with_visuals(super::BUTTON_VIS)
@@ -73,10 +76,10 @@ pub fn construct_game_ui(
                     ui::Transition::new(Duration::ZERO).with_new_content(
                         graphics::Text::new(
                             graphics::TextFragment::new(format!("{:04}", *new_gold))
-                                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                                .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                                .scale(32.)
+                                .font(crate::RETRO.with(|f| f.borrow().unwrap())),
                         )
-                        .set_scale(32.)
-                        .set_font("Retro")
                         .to_owned(),
                     ),
                 );
@@ -88,8 +91,9 @@ pub fn construct_game_ui(
     // city health display
 
     let city_display = sprite::Sprite::from_path_fmt(
-        "/sprites/ui/city_16_16.png",
+        "./sprites/ui/city_16_16.png",
         ctx,
+        gfx_ctx,
         Duration::from_secs_f32(0.25),
     )?
     .to_element_builder(0, ctx)
@@ -97,19 +101,20 @@ pub fn construct_game_ui(
     .build();
 
     let city_text = graphics::Text::new(
-        graphics::TextFragment::new("100").color(graphics::Color::from_rgb_u32(PALETTE[6])),
+        graphics::TextFragment::new("100")
+            .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+            .scale(32.)
+            .font(crate::RETRO.with(|f| f.borrow().unwrap())),
     )
-    .set_scale(32.)
-    .set_font("Retro")
     .to_owned()
     .to_element_builder(0, ctx)
     .with_tooltip(
         graphics::Text::new(
             graphics::TextFragment::new("The health your town currently has left.")
-                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                .scale(24.)
+                .font(crate::RETRO.with(|f| f.borrow().unwrap())),
         )
-        .set_scale(24.)
-        .set_font("Retro")
         .to_owned()
         .to_element_builder(0, ctx)
         .with_visuals(super::BUTTON_VIS)
@@ -124,10 +129,10 @@ pub fn construct_game_ui(
                     ui::Transition::new(Duration::ZERO).with_new_content(
                         graphics::Text::new(
                             graphics::TextFragment::new(format!("{:03}", *new_health))
-                                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                                .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                                .scale(32.)
+                                .font(crate::RETRO.with(|f| f.borrow().unwrap())),
                         )
-                        .set_scale(32.)
-                        .set_font("Retro")
                         .to_owned(),
                     ),
                 );
@@ -154,7 +159,7 @@ pub fn construct_game_ui(
     let mut slot_box = ui::containers::HorizontalBox::new();
 
     for i in 0..config.base_slots {
-        slot_box.add(create_spellslot(ctx, i));
+        slot_box.add(create_spellslot(ctx, gfx_ctx, i));
     }
 
     let slot_box = slot_box
@@ -212,8 +217,12 @@ pub fn construct_game_ui(
         .build())
 }
 
-pub fn create_spellslot(ctx: &ggez::Context, i: usize) -> ui::UiElement<game_state::GameMessage> {
-    let mana = graphics::Image::from_path(ctx, "/sprites/spells/mana.png")
+pub fn create_spellslot(
+    ctx: &mut good_web_game::Context,
+    gfx_ctx: &mut good_web_game::event::GraphicsContext,
+    i: usize,
+) -> ui::UiElement<game_state::GameMessage> {
+    let mana = graphics::Image::new(ctx, gfx_ctx, "./sprites/spells/mana.png")
         .expect("[ERROR/Radish] Could not unpack mana symbol. Aborting.")
         .to_element_builder(0, ctx)
         .scaled(2., 2.)
@@ -273,16 +282,32 @@ impl Covering {
 impl<T: Copy + Eq + Hash> ui::UiContent<T> for Covering {
     fn draw_content(
         &mut self,
-        _ctx: &mut ggez::Context,
-        canvas: &mut graphics::Canvas,
+        ctx: &mut good_web_game::Context,
+        gfx_ctx: &mut good_web_game::event::GraphicsContext,
         param: ui::UiDrawParam,
     ) {
         let mut target_mod = param.target;
         target_mod.y += (1. - self.covering) * target_mod.h;
         target_mod.h *= self.covering;
-        canvas.draw(
-            &graphics::Quad,
-            param.param.dest_rect(target_mod).color(self.color),
+        graphics::Drawable::draw(
+            &graphics::MeshBuilder::new()
+                .ellipse(
+                    graphics::DrawMode::Fill(graphics::FillOptions::DEFAULT),
+                    graphics::Point2::new(
+                        param.target.x + param.target.w / 2.,
+                        param.target.y + param.target.h / 2.,
+                    ),
+                    self.covering * param.target.w / 2.,
+                    self.covering * param.target.h / 2.,
+                    1.0,
+                    self.color,
+                )
+                .unwrap()
+                .build(ctx, gfx_ctx)
+                .unwrap(),
+            ctx,
+            gfx_ctx,
+            graphics::DrawParam::default(),
         );
     }
 }

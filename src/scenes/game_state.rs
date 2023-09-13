@@ -84,8 +84,8 @@ impl GameState {
         }
 
         let achievement_set =
-            achievements::AchievementSet::load(ctx, config.achievements_unlocked.clone());
-        let sprite_pool = sprite::SpritePool::new();
+            achievements::AchievementSet::load(ctx, gfx_ctx, config.achievements_unlocked.clone());
+        let mut sprite_pool = sprite::SpritePool::new();
         let audio_pool =
             components::audio::AudioPool::new(options).with_folder(ctx, "/audio", true);
 
@@ -93,7 +93,7 @@ impl GameState {
         let spell_pool =
             components::spell::init_spell_pool(&sprite_pool, &achievement_set, ctx, gfx_ctx);
         let game_data = game_data::GameData::new(config.starting_gold, config.starting_city_health);
-        let director = director::Director::new(&sprite_pool, &config);
+        let director = director::Director::new(&sprite_pool, ctx, gfx_ctx, &config);
 
         let mut music_player = music::MusicPlayer::from_folder(ctx, "/audio/music/in_game");
         music_player.poll_options();
@@ -145,8 +145,8 @@ impl GameState {
 
         // --- UI CREATION ---
 
-        let mut gui = ui::game_ui::construct_game_ui(ctx, config.clone())?;
-        ui::wave_menu::sync_ui(ctx, &mut gui, &mut world, &mut resources);
+        let mut gui = ui::game_ui::construct_game_ui(ctx, gfx_ctx, config.clone())?;
+        ui::wave_menu::sync_ui(ctx, gfx_ctx, &mut gui, &mut world, &mut resources);
 
         // --- SYSTEM REGISTRY / UI CONSTRUCTION / CONTROLLER INITIALIZATION ---
         Ok(Self {
@@ -412,20 +412,23 @@ impl scene_manager::Scene for GameState {
             &total_messages,
             &mut self.gui,
             ctx,
+            gfx_ctx,
             &mut self.world,
             &mut self.resources,
         );
 
         // handle listeners
         for message in total_messages.iter() {
-            self.achievements.receive(message, &mut self.gui, ctx);
-            self.tutorial.receive(message, &mut self.gui, ctx);
+            self.achievements
+                .receive(message, &mut self.gui, ctx, gfx_ctx);
+            self.tutorial.receive(message, &mut self.gui, ctx, gfx_ctx);
         }
 
         // Escape menu
         if total_messages.contains(&mui::UiMessage::Triggered(1)) {
             self.achievements.save();
-            switch = scene_manager::SceneSwitch::push(ui::in_game_menu::InGameMenu::new(ctx)?);
+            switch =
+                scene_manager::SceneSwitch::push(ui::in_game_menu::InGameMenu::new(ctx, gfx_ctx)?);
         }
 
         if total_messages.contains(&mui::UiMessage::Triggered(tutorial::TUTORIAL_CLOSE)) {

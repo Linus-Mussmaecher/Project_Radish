@@ -1,4 +1,4 @@
-use ggez::{glam::Vec2, graphics};
+use good_web_game::graphics;
 use mooeye::{ui, ui::UiContent};
 
 use crate::PALETTE;
@@ -27,7 +27,10 @@ impl TutorialMessage {
         }
     }
 
-    fn to_ui_element(&self, ctx: &ggez::Context) -> ui::UiElement<game_message::GameMessage> {
+    fn to_ui_element(
+        &self,
+        ctx: &mut good_web_game::Context,
+    ) -> ui::UiElement<game_message::GameMessage> {
         ui::containers::VerticalBox::new_spaced(15.)
             .to_element_builder(TUTORIAL_INNER, ctx)
             .with_visuals(super::super::BUTTON_VIS)
@@ -37,20 +40,19 @@ impl TutorialMessage {
             .with_child({
                 graphics::Text::new("")
                     .add(
-                        graphics::TextFragment::new(&self.title)
-                            .font("Retro")
+                        graphics::TextFragment::new(self.title.as_str())
+                            .font(crate::RETRO.with(|f| f.borrow().unwrap()))
                             .scale(28.)
                             .color(graphics::Color::from_rgb_u32(PALETTE[7])),
                     )
                     .add(graphics::TextFragment::new("\n"))
                     .add(
-                        graphics::TextFragment::new(&self.message)
-                            .font("Retro")
+                        graphics::TextFragment::new(self.message.as_str())
+                            .font(crate::RETRO.with(|f| f.borrow().unwrap()))
                             .scale(20.)
                             .color(graphics::Color::from_rgb_u32(PALETTE[6])),
                     )
-                    .set_wrap(true)
-                    .set_bounds(Vec2::new(350., 1000.))
+                    .set_bounds(graphics::Point2::new(350., 1000.), graphics::Align::Left)
                     .to_owned()
                     .to_element_builder(0, ctx)
                     .build()
@@ -59,11 +61,11 @@ impl TutorialMessage {
                 graphics::Text::new(
                     graphics::TextFragment::new("Continue")
                         .color(graphics::Color::from_rgb_u32(PALETTE[6]))
-                        .font("Retro")
+                        .font(crate::RETRO.with(|f| f.borrow().unwrap()))
                         .scale(28.),
                 )
                 .to_element_builder(TUTORIAL_CLOSE, ctx)
-                .with_trigger_key(ggez::winit::event::VirtualKeyCode::C)
+                .with_trigger_key(good_web_game::input::keyboard::KeyCode::C)
                 .with_visuals(super::super::BUTTON_VIS)
                 .with_hover_visuals(super::super::BUTTON_HOVER_VIS)
                 .build(),
@@ -191,7 +193,8 @@ impl MessageReceiver for TutorialManager {
         &mut self,
         message: &ui::UiMessage<super::GameMessage>,
         gui: &mut ui::UiElement<super::GameMessage>,
-        ctx: &ggez::Context,
+        ctx: &mut good_web_game::Context,
+        gfx_ctx: &mut good_web_game::event::GraphicsContext,
     ) {
         for tut_message in self.messages.iter_mut().filter(|tm| !tm.shown) {
             if tut_message.condition.check(message) {

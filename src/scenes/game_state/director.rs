@@ -42,7 +42,12 @@ pub struct Director {
 
 impl Director {
     /// Spawns a new director with default parameters.
-    pub fn new(sprite_pool: &sprite::SpritePool, config: &super::GameConfig) -> Self {
+    pub fn new(
+        sprite_pool: &sprite::SpritePool,
+        ctx: &mut good_web_game::Context,
+        gfx_ctx: &mut good_web_game::event::GraphicsContext,
+        config: &super::GameConfig,
+    ) -> Self {
         Self {
             wave: (config.starting_wave - 1).max(1),
             state: if config.starting_wave <= 1 {
@@ -55,7 +60,8 @@ impl Director {
             credits: 0,
 
             wave_enemies: config.wave_enemies,
-            enemies: descriptor::generate_descriptors(sprite_pool).unwrap_or_default(),
+            enemies: descriptor::generate_descriptors(sprite_pool, ctx, gfx_ctx)
+                .unwrap_or_default(),
             reroll_cost: 30,
 
             base_credits: config.base_credits,
@@ -160,7 +166,7 @@ pub fn direct(
                         // spawn
                         (enemy_descriptor.spawner._spawner)(
                             cmd,
-                            ggez::glam::Vec2::new(rand::random::<f32>() * boundaries.w, -20.),
+                            glam::Vec2::new(rand::random::<f32>() * boundaries.w, -20.),
                         );
 
                         // reduce available credits

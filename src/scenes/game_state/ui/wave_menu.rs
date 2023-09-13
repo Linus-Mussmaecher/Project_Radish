@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use ggez::graphics::{self, TextFragment};
+use good_web_game::graphics::{self, TextFragment};
 use if_chain::if_chain;
 use legion::EntityStore;
 use mooeye::{ui, ui::UiContainer, ui::UiContent};
@@ -27,7 +27,8 @@ const ID_SPELL_AVAIL_START: u32 = 240;
 pub fn handle_wave_menu(
     messages: &game_state::MessageSet,
     gui: &mut ui::UiElement<game_state::GameMessage>,
-    ctx: &ggez::Context,
+    ctx: &mut good_web_game::Context,
+    gfx_ctx: &mut good_web_game::event::GraphicsContext,
     world: &mut legion::World,
     resources: &mut legion::Resources,
 ) {
@@ -35,7 +36,7 @@ pub fn handle_wave_menu(
     let mut player_sync_needed = false;
     for message in messages {
         if let ui::UiMessage::Extern(game_state::GameMessage::NextWave(wave)) = message {
-            gui.add_element(0, construct_wave_menu(ctx, (wave - 1) as u32));
+            gui.add_element(0, construct_wave_menu(ctx, gfx_ctx, (wave - 1) as u32));
             player_sync_needed = true;
             break;
         }
@@ -55,7 +56,7 @@ pub fn handle_wave_menu(
             gui.remove_elements(ID_WAVE_SUBMENU);
             gui.add_element(
                 ID_WAVE_SUBMENU_CONT,
-                construct_enemies_menu(ctx, &director, &mut data.buildings),
+                construct_enemies_menu(ctx, gfx_ctx, &director, &mut data.buildings),
             );
         }
 
@@ -73,7 +74,7 @@ pub fn handle_wave_menu(
             gui.remove_elements(ID_WAVE_SUBMENU);
             gui.add_element(
                 ID_WAVE_SUBMENU_CONT,
-                construct_buildings_menu(ctx, &mut data.buildings),
+                construct_buildings_menu(ctx, gfx_ctx, &mut data.buildings),
             );
         }
 
@@ -152,7 +153,7 @@ pub fn handle_wave_menu(
             gui.remove_elements(ID_WAVE_SUBMENU);
             gui.add_element(
                 ID_WAVE_SUBMENU_CONT,
-                construct_enemies_menu(ctx, &director, &mut data.buildings),
+                construct_enemies_menu(ctx, gfx_ctx, &director, &mut data.buildings),
             );
         }
 
@@ -176,7 +177,7 @@ pub fn handle_wave_menu(
                 gui.remove_elements(ID_WAVE_SUBMENU);
                 gui.add_element(
                     ID_WAVE_SUBMENU_CONT,
-                    construct_buildings_menu(ctx, &mut data.buildings),
+                    construct_buildings_menu(ctx, gfx_ctx, &mut data.buildings),
                 );
             }
         }
@@ -193,36 +194,37 @@ pub fn handle_wave_menu(
     }
 
     if player_sync_needed {
-        sync_ui(ctx, gui, world, resources);
+        sync_ui(ctx, gfx_ctx, gui, world, resources);
     }
 }
 
 /// Construct the last row all three submenus share
 fn construct_wave_menu(
-    ctx: &ggez::Context,
+    ctx: &mut good_web_game::Context,
+    gfx_ctx: &mut good_web_game::event::GraphicsContext,
     wave_survived: u32,
 ) -> ui::UiElement<game_state::GameMessage> {
     // play happy sound
-    let mut wave_done = ggez::audio::Source::new(ctx, "/audio/sounds/ui/wave_done.wav")
+    let mut wave_done = good_web_game::audio::Source::new(ctx, "./audio/sounds/ui/wave_done.wav")
         .expect("Could not load wave end sound.");
-    ggez::audio::SoundSource::play(&mut wave_done, ctx)
+    good_web_game::audio::Source::play(&mut wave_done, ctx)
         .expect("[ERROR/Radish] Could not find wave_done.wav.");
 
-    let enemies = graphics::Image::from_path(ctx, "/sprites/ui/enemies.png")
+    let enemies = graphics::Image::new(ctx, gfx_ctx, "./sprites/ui/enemies.png")
         .expect("[ERROR/Radish] Missing enemies menu sprite.")
         .to_element_builder(ID_ENEMIES, ctx)
         .as_shrink()
         .scaled(4., 4.)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::U)
+        .with_trigger_key(good_web_game::input::keyboard::KeyCode::U)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .with_tooltip(
             graphics::Text::new(
                 graphics::TextFragment::new("Look at approaching enemies.\n[U]")
-                    .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                    .scale(24.)
+                    .font(crate::RETRO.with(|f| f.borrow().unwrap())),
             )
-            .set_scale(24.)
-            .set_font("Retro")
             .to_owned()
             .to_element_builder(0, ctx)
             .with_visuals(super::BUTTON_VIS)
@@ -252,21 +254,21 @@ fn construct_wave_menu(
         })
         .build();
 
-    let spellbook = graphics::Image::from_path(ctx, "/sprites/ui/book.png")
+    let spellbook = graphics::Image::new(ctx, gfx_ctx, "./sprites/ui/book.png")
         .expect("[ERROR/Radish] Missing spellbook sprite.")
         .to_element_builder(ID_SPELLS, ctx)
         .as_shrink()
         .scaled(4., 4.)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::I)
+        .with_trigger_key(good_web_game::input::keyboard::KeyCode::I)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .with_tooltip(
             graphics::Text::new(
                 graphics::TextFragment::new("Look at your spellbook.\n[I]")
-                    .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                    .font(crate::RETRO.with(|f| f.borrow().unwrap()))
+                    .scale(24.),
             )
-            .set_scale(24.)
-            .set_font("Retro")
             .to_owned()
             .to_element_builder(0, ctx)
             .with_visuals(super::BUTTON_VIS)
@@ -296,21 +298,21 @@ fn construct_wave_menu(
         })
         .build();
 
-    let house = graphics::Image::from_path(ctx, "/sprites/ui/house_add.png")
+    let house = graphics::Image::new(ctx, gfx_ctx, "./sprites/ui/house_add.png")
         .expect("[ERROR/Radish] Missing house sprite.")
         .to_element_builder(ID_HOUSE, ctx)
         .as_shrink()
         .scaled(4., 4.)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::O)
+        .with_trigger_key(good_web_game::input::keyboard::KeyCode::O)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .with_tooltip(
             graphics::Text::new(
                 graphics::TextFragment::new("Construct town buildings.\n[O]")
-                    .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                    .scale(24.)
+                    .font(crate::RETRO.with(|f| f.borrow().unwrap())),
             )
-            .set_scale(24.)
-            .set_font("Retro")
             .to_owned()
             .to_element_builder(0, ctx)
             .with_visuals(super::BUTTON_VIS)
@@ -340,21 +342,21 @@ fn construct_wave_menu(
         })
         .build();
 
-    let next = graphics::Image::from_path(ctx, "/sprites/ui/next.png")
+    let next = graphics::Image::new(ctx, gfx_ctx, "./sprites/ui/next.png")
         .expect("[ERROR/Radish] Missing next sprite.")
         .to_element_builder(ID_NEXT_WAVE, ctx)
         .as_shrink()
         .scaled(4., 4.)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::P)
+        .with_trigger_key(good_web_game::input::keyboard::KeyCode::P)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
         .with_tooltip(
             graphics::Text::new(
                 graphics::TextFragment::new("Start the next wave!\n[P]")
-                    .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                    .scale(24.)
+                    .font(crate::RETRO.with(|f| f.borrow().unwrap())),
             )
-            .set_scale(24.)
-            .set_font("Retro")
             .to_owned()
             .to_element_builder(0, ctx)
             .with_visuals(super::BUTTON_VIS)
@@ -383,20 +385,20 @@ fn construct_wave_menu(
 
     let title = graphics::Text::new(
         graphics::TextFragment::new("Brief Respite")
-            .color(graphics::Color::from_rgb_u32(PALETTE[8])),
+            .color(graphics::Color::from_rgb_u32(PALETTE[8]))
+            .scale(24.)
+            .font(crate::RETRO.with(|f| f.borrow().unwrap())),
     )
-    .set_font("Retro")
-    .set_scale(48.)
     .to_owned()
     .to_element_builder(0, ctx)
     .build();
 
     let wave_info = graphics::Text::new(
         graphics::TextFragment::new(format!("You have survived wave {}.", wave_survived))
-            .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+            .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+            .scale(32.)
+            .font(crate::RETRO.with(|f| f.borrow().unwrap())),
     )
-    .set_font("Retro")
-    .set_scale(32.)
     .to_owned()
     .to_element_builder(0, ctx)
     .build();
@@ -427,7 +429,8 @@ fn construct_wave_menu(
 }
 
 fn construct_enemies_menu(
-    ctx: &ggez::Context,
+    ctx: &mut good_web_game::Context,
+    gfx_ctx: &mut good_web_game::event::GraphicsContext,
     director: &super::game_state::director::Director,
     buildings: &mut game_state::components::buildings::Buildings,
 ) -> ui::UiElement<game_state::GameMessage> {
@@ -435,10 +438,10 @@ fn construct_enemies_menu(
 
     let title = graphics::Text::new(
         graphics::TextFragment::new("Approaching Enemies")
-            .color(graphics::Color::from_rgb_u32(PALETTE[8])),
+            .color(graphics::Color::from_rgb_u32(PALETTE[8]))
+            .scale(40.)
+            .font(crate::RETRO.with(|f| f.borrow().unwrap())),
     )
-    .set_font("Retro")
-    .set_scale(40.)
     .to_owned()
     .to_element_builder(0, ctx)
     .build();
@@ -454,19 +457,25 @@ fn construct_enemies_menu(
                 .scaled(4., 4.)
                 .with_tooltip(
                     graphics::Text::new(
-                        graphics::TextFragment::new(&template.name)
+                        graphics::TextFragment::new(template.name.as_str())
                             .color(graphics::Color::from_rgb_u32(PALETTE[8]))
+                            .font(crate::RETRO.with(|f| f.borrow().unwrap()))
                             .scale(36.),
                     )
-                    .add(graphics::TextFragment::new("\n"))
                     .add(
-                        graphics::TextFragment::new(&template.description)
+                        graphics::TextFragment::new("\n")
+                            .font(crate::RETRO.with(|f| f.borrow().unwrap())),
+                    )
+                    .add(
+                        graphics::TextFragment::new(template.description.as_str())
                             .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                            .font(crate::RETRO.with(|f| f.borrow().unwrap()))
                             .scale(24.),
                     )
-                    .set_bounds(ggez::glam::Vec2::new(300., 200.))
-                    .set_wrap(true)
-                    .set_font("Retro")
+                    .set_bounds(
+                        good_web_game::graphics::Point2::new(300., 200.),
+                        graphics::Align::Left,
+                    )
                     .to_owned()
                     .to_element_builder(0, ctx)
                     .with_visuals(super::BUTTON_VIS)
@@ -487,13 +496,13 @@ fn construct_enemies_menu(
     let reroll = if buildings.target[buildings::BuildingType::Watchtower as usize] == 0 {
         ().to_element(0, ctx)
     } else {
-        graphics::Image::from_path(ctx, "/sprites/ui/reroll.png")
+        graphics::Image::new(ctx, gfx_ctx, "./sprites/ui/reroll.png")
             .expect("[ERROR/Radish] Missing reroll sprite.")
             .to_element_builder(ID_REROLL, ctx)
             .as_shrink()
             .scaled(4., 4.)
             .with_padding((10., 10., 10., 10.))
-            .with_trigger_key(ggez::winit::event::VirtualKeyCode::M)
+            .with_trigger_key(good_web_game::input::keyboard::KeyCode::M)
             .with_visuals(super::BUTTON_VIS)
             .with_hover_visuals(super::BUTTON_HOVER_VIS)
             .with_tooltip(
@@ -506,10 +515,10 @@ fn construct_enemies_menu(
                             director.get_reroll_cost()
                         )
                     })
-                    .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                    .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                    .font(crate::RETRO.with(|f| f.borrow().unwrap()))
+                    .scale(24.),
                 )
-                .set_scale(24.)
-                .set_font("Retro")
                 .to_owned()
                 .to_element_builder(0, ctx)
                 .with_visuals(super::BUTTON_VIS)
@@ -536,7 +545,7 @@ fn construct_enemies_menu(
 }
 
 fn construct_spell_menu(
-    ctx: &ggez::Context,
+    ctx: &good_web_game::Context,
     caster: &mut game_state::components::SpellCaster,
     spell_pool: &game_state::components::spell::SpellPool,
     buildings: &game_state::components::buildings::Buildings,
@@ -545,10 +554,10 @@ fn construct_spell_menu(
 
     let title = graphics::Text::new(
         graphics::TextFragment::new("Book of Spells")
-            .color(graphics::Color::from_rgb_u32(PALETTE[8])),
+            .color(graphics::Color::from_rgb_u32(PALETTE[8]))
+            .font(crate::RETRO.with(|f| f.borrow().unwrap()))
+            .scale(40.),
     )
-    .set_font("Retro")
-    .set_scale(40.)
     .to_owned()
     .to_element_builder(0, ctx)
     .build();
@@ -556,10 +565,11 @@ fn construct_spell_menu(
     // available spells
 
     let available_title = graphics::Text::new(
-        graphics::TextFragment::new("Available:").color(graphics::Color::from_rgb_u32(PALETTE[6])),
+        graphics::TextFragment::new("Available:")
+            .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+            .scale(24.)
+            .font(crate::RETRO.with(|f| f.borrow().unwrap())),
     )
-    .set_font("Retro")
-    .set_scale(24.)
     .to_owned()
     .to_element_builder(0, ctx)
     .build();
@@ -584,10 +594,11 @@ fn construct_spell_menu(
         .build();
 
     let loadout_title = graphics::Text::new(
-        graphics::TextFragment::new("Loadout:").color(graphics::Color::from_rgb_u32(PALETTE[6])),
+        graphics::TextFragment::new("Loadout:")
+            .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+            .font(crate::RETRO.with(|f| f.borrow().unwrap()))
+            .scale(24.),
     )
-    .set_font("Retro")
-    .set_scale(24.)
     .to_owned()
     .to_element_builder(0, ctx)
     .build();
@@ -622,17 +633,18 @@ fn construct_spell_menu(
 }
 
 fn construct_buildings_menu(
-    ctx: &ggez::Context,
+    ctx: &mut good_web_game::Context,
+    gfx_ctx: &mut good_web_game::event::GraphicsContext,
     buildings: &mut game_state::components::buildings::Buildings,
 ) -> ui::UiElement<game_state::GameMessage> {
     // ---- Enemy display and reroll ----
 
     let title = graphics::Text::new(
         graphics::TextFragment::new("Construct Buildings")
-            .color(graphics::Color::from_rgb_u32(PALETTE[8])),
+            .color(graphics::Color::from_rgb_u32(PALETTE[8]))
+            .scale(40.)
+            .font(crate::RETRO.with(|f| f.borrow().unwrap())),
     )
-    .set_font("Retro")
-    .set_scale(40.)
     .to_owned()
     .to_element_builder(0, ctx)
     .build();
@@ -646,14 +658,14 @@ fn construct_buildings_menu(
         "/sprites/ui/mana_add.png",
     ];
     let keycodes = [
-        ("B", ggez::winit::event::VirtualKeyCode::B),
-        ("N", ggez::winit::event::VirtualKeyCode::N),
-        ("M", ggez::winit::event::VirtualKeyCode::M),
+        ("B", good_web_game::input::keyboard::KeyCode::B),
+        ("N", good_web_game::input::keyboard::KeyCode::N),
+        ("M", good_web_game::input::keyboard::KeyCode::M),
     ];
 
     for i in 0..buildings::BUILDING_TYPES {
         let info = buildings::get_building_info(i);
-        let build = graphics::Image::from_path(ctx, icons[i])
+        let build = graphics::Image::new(ctx, gfx_ctx, icons[i])
             .expect("[ERROR/Radish] Missing building sprite.")
             .to_element_builder(ID_BUILDINGS_START + i as u32, ctx)
             .as_shrink()
@@ -705,7 +717,8 @@ fn construct_buildings_menu(
                     text.add(
                         TextFragment::new("Cost: ")
                             .scale(20.)
-                            .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                            .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                            .font(crate::RETRO.with(|f| f.borrow().unwrap())),
                     );
 
                     text.add(
@@ -714,17 +727,18 @@ fn construct_buildings_menu(
                             info.level_costs[buildings.target[i] as usize]
                         ))
                         .scale(20.)
-                        .color(graphics::Color::from_rgb_u32(PALETTE[7])),
+                        .color(graphics::Color::from_rgb_u32(PALETTE[7]))
+                        .font(crate::RETRO.with(|f| f.borrow().unwrap())),
                     );
 
                     text.add(
                         TextFragment::new(format!("[{}]\n", keycodes[i].0))
                             .scale(20.)
-                            .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                            .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                            .font(crate::RETRO.with(|f| f.borrow().unwrap())),
                     );
                 }
 
-                text.set_font("Retro");
                 text.to_element_builder(0, ctx)
                     .with_visuals(super::BUTTON_VIS)
                     .build()
@@ -733,10 +747,10 @@ fn construct_buildings_menu(
 
         let level = graphics::Text::new(
             graphics::TextFragment::new(format!(" {} ", buildings.target[i]))
-                .color(graphics::Color::from_rgb_u32(PALETTE[14])),
+                .color(graphics::Color::from_rgb_u32(PALETTE[14]))
+                .font(crate::RETRO.with(|f| f.borrow().unwrap()))
+                .scale(24.),
         )
-        .set_scale(24.)
-        .set_font("Retro")
         .to_owned()
         .to_element_builder(0, ctx)
         .with_padding((2., 2., 2., 2.))
@@ -770,17 +784,17 @@ fn construct_buildings_menu(
 }
 
 fn construct_wave_announcer(
-    ctx: &ggez::Context,
+    ctx: &good_web_game::Context,
     wave: u32,
 ) -> ui::UiElement<game_state::GameMessage> {
     let mut dur = ui::containers::DurationBox::new(
         Duration::from_secs(5),
         graphics::Text::new(
             graphics::TextFragment::new(format!("Wave {}", wave))
-                .color(graphics::Color::from_rgb_u32(PALETTE[14])),
+                .color(graphics::Color::from_rgb_u32(PALETTE[14]))
+                .scale(48.)
+                .font(crate::RETRO.with(|f| f.borrow().unwrap())),
         )
-        .set_scale(48.)
-        .set_font("Retro")
         .to_owned()
         .to_element_builder(0, ctx)
         .as_shrink()
@@ -806,7 +820,8 @@ fn construct_wave_announcer(
 }
 
 pub fn sync_ui(
-    ctx: &ggez::Context,
+    ctx: &mut good_web_game::Context,
+    gfx_ctx: &mut good_web_game::event::GraphicsContext,
     gui: &mut ui::UiElement<game_state::GameMessage>,
     world: &mut legion::World,
     resources: &mut legion::Resources,
@@ -827,7 +842,7 @@ pub fn sync_ui(
                 for i in 0..caster.get_slots() {
                     gui.add_element(
                         super::game_ui::ID_MANA_BAR,
-                        super::game_ui::create_spellslot(ctx, i),
+                        super::game_ui::create_spellslot(ctx, gfx_ctx, i),
                     );
                 }
 

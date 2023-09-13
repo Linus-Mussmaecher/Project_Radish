@@ -1,4 +1,4 @@
-use ggez::{graphics, GameError};
+use good_web_game::{graphics, GameError};
 use mooeye::{scene_manager, ui, ui::UiContent};
 
 use crate::PALETTE;
@@ -8,70 +8,84 @@ pub struct InGameMenu {
 }
 
 impl InGameMenu {
-    pub fn new(ctx: &ggez::Context) -> Result<Self, GameError> {
+    pub fn new(
+        ctx: &mut good_web_game::Context,
+        gfx_ctx: &mut good_web_game::event::GraphicsContext,
+    ) -> Result<Self, GameError> {
         // title
         let pause = graphics::Text::new(
-            graphics::TextFragment::new("PAUSED").color(graphics::Color::from_rgb_u32(PALETTE[6])),
+            graphics::TextFragment::new("PAUSED")
+                .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                .scale(32.)
+                .font(crate::RETRO.with(|f| f.borrow().unwrap())),
         )
-        .set_font("Retro")
-        .set_scale(32.)
         .to_owned()
         .to_element_builder(0, ctx)
         .build();
 
         let resume = graphics::Text::new(
-            graphics::TextFragment::new("Resume").color(graphics::Color::from_rgb_u32(PALETTE[6])),
+            graphics::TextFragment::new("Resume")
+                .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                .scale(32.)
+                .font(crate::RETRO.with(|f| f.borrow().unwrap())),
         )
-        .set_font("Retro")
-        .set_scale(32.)
         .to_owned()
         .to_element_builder(1, ctx)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::F10)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::R)
+        .with_trigger_key(good_web_game::input::keyboard::KeyCode::F10)
+        .with_trigger_key(good_web_game::input::keyboard::KeyCode::R)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
-        .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
+        .with_trigger_sound(
+            good_web_game::audio::Source::new(ctx, "./audio/sounds/ui/blipSelect.wav").ok(),
+        )
         .build();
 
         let achievements = graphics::Text::new(
             graphics::TextFragment::new("Achievements")
-                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                .scale(32.)
+                .font(crate::RETRO.with(|f| f.borrow().unwrap())),
         )
-        .set_font("Retro")
-        .set_scale(32.)
         .to_owned()
         .to_element_builder(2, ctx)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::A)
+        .with_trigger_key(good_web_game::input::keyboard::KeyCode::A)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
-        .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
+        .with_trigger_sound(
+            good_web_game::audio::Source::new(ctx, "./audio/sounds/ui/blipSelect.wav").ok(),
+        )
         .build();
 
         let options = graphics::Text::new(
-            graphics::TextFragment::new("Options").color(graphics::Color::from_rgb_u32(PALETTE[6])),
+            graphics::TextFragment::new("Options")
+                .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                .scale(32.)
+                .font(crate::RETRO.with(|f| f.borrow().unwrap())),
         )
-        .set_font("Retro")
-        .set_scale(32.)
         .to_owned()
         .to_element_builder(3, ctx)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::O)
+        .with_trigger_key(good_web_game::input::keyboard::KeyCode::O)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
-        .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
+        .with_trigger_sound(
+            good_web_game::audio::Source::new(ctx, "./audio/sounds/ui/blipSelect.wav").ok(),
+        )
         .build();
 
         let main_menu = graphics::Text::new(
             graphics::TextFragment::new("Return to Main Menu")
-                .color(graphics::Color::from_rgb_u32(PALETTE[6])),
+                .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                .scale(32.)
+                .font(crate::RETRO.with(|f| f.borrow().unwrap())),
         )
-        .set_font("Retro")
-        .set_scale(32.)
         .to_owned()
         .to_element_builder(4, ctx)
-        .with_trigger_key(ggez::winit::event::VirtualKeyCode::M)
+        .with_trigger_key(good_web_game::input::keyboard::KeyCode::M)
         .with_visuals(super::BUTTON_VIS)
         .with_hover_visuals(super::BUTTON_HOVER_VIS)
-        .with_trigger_sound(ggez::audio::Source::new(ctx, "/audio/sounds/ui/blipSelect.wav").ok())
+        .with_trigger_sound(
+            good_web_game::audio::Source::new(ctx, "./audio/sounds/ui/blipSelect.wav").ok(),
+        )
         .build();
 
         // Container
@@ -95,8 +109,9 @@ impl InGameMenu {
 impl scene_manager::Scene for InGameMenu {
     fn update(
         &mut self,
-        ctx: &mut ggez::Context,
-    ) -> Result<scene_manager::SceneSwitch, ggez::GameError> {
+        ctx: &mut good_web_game::Context,
+        gfx_ctx: &mut good_web_game::event::GraphicsContext,
+    ) -> Result<scene_manager::SceneSwitch, good_web_game::GameError> {
         let messages = self.gui.manage_messages(ctx, None);
 
         let mut res = scene_manager::SceneSwitch::None;
@@ -119,7 +134,7 @@ impl scene_manager::Scene for InGameMenu {
 
         if messages.contains(&ui::UiMessage::Triggered(4)) {
             res = scene_manager::SceneSwitch::replace(
-                crate::scenes::main_menu::MainMenu::new(ctx)?,
+                crate::scenes::main_menu::MainMenu::new(ctx, gfx_ctx)?,
                 2,
             );
         }
@@ -127,13 +142,13 @@ impl scene_manager::Scene for InGameMenu {
         Ok(res)
     }
 
-    fn draw(&mut self, ctx: &mut ggez::Context, mouse_listen: bool) -> Result<(), ggez::GameError> {
-        let mut canvas = graphics::Canvas::from_frame(ctx, None);
-        canvas.set_sampler(graphics::Sampler::nearest_clamp());
-
-        self.gui.draw_to_screen(ctx, &mut canvas, mouse_listen);
-
-        canvas.finish(ctx)?;
+    fn draw(
+        &mut self,
+        ctx: &mut good_web_game::Context,
+        gfx_ctx: &mut good_web_game::event::GraphicsContext,
+        mouse_listen: bool,
+    ) -> Result<(), good_web_game::GameError> {
+        self.gui.draw_to_screen(ctx, gfx_ctx, mouse_listen);
         Ok(())
     }
 }

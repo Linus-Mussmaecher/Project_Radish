@@ -53,11 +53,9 @@ impl GameConfig {
     pub fn from_path(
         path: impl AsRef<std::path::Path>,
     ) -> Result<Self, Box<dyn std::error::Error>> {
-        let string = std::fs::read_to_string(
-            path.as_ref()
-                .to_str()
-                .ok_or_else(|| ggez::GameError::CustomError("Could not read path.".to_owned()))?,
-        )?;
+        let string = std::fs::read_to_string(path.as_ref().to_str().ok_or_else(|| {
+            good_web_game::GameError::CustomError("Could not read path.".to_owned())
+        })?)?;
         Ok(toml::from_str(&string)?)
     }
 
@@ -68,9 +66,9 @@ impl GameConfig {
         path: impl AsRef<std::path::Path>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         std::fs::write(
-            path.as_ref()
-                .to_str()
-                .ok_or_else(|| ggez::GameError::CustomError("Could not read path.".to_owned()))?,
+            path.as_ref().to_str().ok_or_else(|| {
+                good_web_game::GameError::CustomError("Could not read path.".to_owned())
+            })?,
             toml::to_string(&self)?,
         )?;
         Ok(())
