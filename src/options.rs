@@ -1,13 +1,11 @@
 use std::cell::RefCell;
 
-use serde::{Deserialize, Serialize};
-
 thread_local! {
     pub static OPTIONS: RefCell<OptionsConfig> = RefCell::new(OptionsConfig::default());
 }
 
 /// A struct that represents the game options.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy)]
 pub struct OptionsConfig {
     /// The volume of sound effects played by the game.
     pub volume: u8,

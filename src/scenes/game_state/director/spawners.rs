@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use super::{components, components::actions};
+use good_web_game::cgmath::MetricSpace;
 use legion::systems::CommandBuffer;
 
 /// # Basic skeleton
@@ -148,7 +149,7 @@ pub fn spawn_dynamite_skeleton(cmd: &mut CommandBuffer, pos: components::Positio
 /// It has lots of health and despawns after a set time, but drops lots of gold on death.
 pub fn spawn_loot_skeleton(cmd: &mut CommandBuffer, pos: components::Position) {
     cmd.push((
-        pos + glam::Vec2::new(0., 120.),
+        pos + good_web_game::graphics::Vector2::new(0., 120.),
         components::Velocity::new(50., 0.),
         components::BoundaryCollision::new(true, false, true),
         components::Graphics::new(
@@ -167,7 +168,7 @@ pub fn spawn_loot_skeleton(cmd: &mut CommandBuffer, pos: components::Position) {
 /// An enemy that stays put, but regularly accelerates other enemies passing over it.
 pub fn spawn_catapult(cmd: &mut CommandBuffer, pos: components::Position) {
     cmd.push((
-        pos + glam::Vec2::new(0., 180.),
+        pos + good_web_game::graphics::Vector2::new(0., 180.),
         components::Graphics::new(
             "./sprites/enemies/catapult_16_16.png",
             Duration::from_secs_f32(0.20),
@@ -186,7 +187,14 @@ pub fn spawn_catapult(cmd: &mut CommandBuffer, pos: components::Position) {
                         |action| {
                             //  set allies x-speed to 0
                             if let actions::GameAction::Move { delta } = action {
-                                *delta = glam::Vec2::new(0., (delta.length() + 1.) * 3.0)
+                                *delta = good_web_game::graphics::Vector2::new(
+                                    0.,
+                                    (delta.distance2(good_web_game::cgmath::Vector2 {
+                                        x: 0.,
+                                        y: 0.,
+                                    }) + 1.)
+                                        * 3.0,
+                                )
                             }
                         },
                     )
@@ -475,7 +483,7 @@ pub fn spawn_wizard_skeleton3(cmd: &mut CommandBuffer, pos: components::Position
                 actions::GameAction::spawn(|_, pos, cmd| {
                     spawn_basic_skeleton(
                         cmd,
-                        pos + glam::Vec2 {
+                        pos + good_web_game::graphics::Vector2 {
                             x: -16. + 32. * rand::random::<f32>(),
                             y: 32.,
                         },
@@ -540,7 +548,7 @@ pub fn spawn_splitter(cmd: &mut CommandBuffer, pos: components::Position) {
                 for _ in 0..3 {
                     spawn_basic_skeleton(
                         cmd,
-                        vec + glam::Vec2::new(
+                        vec + good_web_game::graphics::Vector2::new(
                             (rand::random::<f32>() - 0.5) * 64.,
                             (rand::random::<f32>() - 0.5) * 64.,
                         ),

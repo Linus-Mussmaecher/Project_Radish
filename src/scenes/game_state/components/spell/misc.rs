@@ -1,5 +1,6 @@
 use std::{f32::consts::PI, time::Duration, vec};
 
+use good_web_game::{cgmath::MetricSpace, graphics::Vector2};
 use legion::IntoQuery;
 use mooeye::sprite::SpritePool;
 use tinyvec::tiny_vec;
@@ -42,7 +43,7 @@ pub(super) fn construct_gale_force(
                                 ActionEffect::repeat(
                                     ActionEffectTarget::new_only_self(),
                                     GameAction::Move {
-                                        delta: glam::Vec2::new(0., -7.),
+                                        delta: good_web_game::graphics::Vector2::new(0., -7.),
                                     },
                                     Duration::from_secs_f32(0.02),
                                 )
@@ -83,7 +84,7 @@ pub(super) fn construct_airburst(
                         (e2, GameAction::TakeDamage { dmg: 45 }),
                         (e2, GameAction::spawn(|_, pos, cmd|{
                             cmd.push((
-                                pos + glam::Vec2::new(0., -64.),
+                                pos + good_web_game::graphics::Vector2::new(0., -64.),
                                 components::LifeDuration::new(Duration::from_secs_f32(0.3)),
                                 components::Actions::new()
                                     .with_effect(
@@ -95,9 +96,9 @@ pub(super) fn construct_airburst(
                                                     // iterator over all (close) enemies
                                                     for (_, pos_tar, act_tar) in <(&components::Velocity, &components::Position, &mut Actions)>::query()
                                                         .iter_mut(world)
-                                                        .filter(|(_, pos, _)| pos.distance(pos_src) < 175.)
+                                                        .filter(|(_, pos, _)| pos.distance2(pos_src) < 175.)
                                                     {
-                                                        act_tar.push(GameAction::Move { delta: (pos_src - *pos_tar).clamp_length_max(3.) })
+                                                        act_tar.push(GameAction::Move { delta: (pos_src - *pos_tar) * (3. / pos_src.distance2(*pos_tar).max(0.1)).min(1.) })
                                                     }
                                                 });
                                             }),
@@ -139,7 +140,7 @@ pub(super) fn construct_blackhole(
                             (e2, GameAction::TakeDamage { dmg: 80 }),
                             (e1, GameAction::spawn(|_, pos, cmd|{
                                 cmd.push((
-                                    pos + glam::Vec2::new(0., -30.),
+                                    pos + good_web_game::graphics::Vector2::new(0., -30.),
                                     components::LifeDuration::new(Duration::from_secs(6)),
                                     components::Graphics::new(
                                         "./sprites/spells/blackhole_8_8.png",
@@ -157,7 +158,7 @@ pub(super) fn construct_blackhole(
                                                             .iter_mut(world)
                                                             .filter(|(_, pos, _)| pos.distance(pos_src) < 175.)
                                                         {
-                                                            act_tar.push(GameAction::Move { delta: (pos_src - *pos_tar).clamp_length_max(1.) })
+                                                            act_tar.push(GameAction::Move { delta: (pos_src - *pos_tar)* (1. / pos_src.distance2(*pos_tar).max(0.1)).min(1.) })
                                                         }
                                                     });
                                                 }),
@@ -262,7 +263,7 @@ pub(super) fn construct_arcane_missiles(
                                 "./sprites/spells/arcane_bolt_mini_4_4.png",
                                 Duration::from_secs_f32(0.2),
                             ),
-                            components::Velocity::from((target - pos_src).clamp_length(240., 240.)),
+                            components::Velocity::from((target - pos_src)* (240. / pos_src.distance2(target).max(0.1))),
                             components::Collision::new(32., 32., true, |e1, e2| vec![
                                         (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                                         (e1, GameAction::play_sound("./audio/sounds/spells/amissiles_hit.wav")),
@@ -302,7 +303,7 @@ pub(super) fn construct_arcane_blast(
                             (e2, GameAction::TakeDamage { dmg: 30 }),
                             (e2, GameAction::spawn(|_, pos,cmd|{
                                 for i in 0..8{
-                                    let rel = glam::Vec2::new(64. * (PI/4. * i as f32).cos(), 64. * (PI/4. * i as f32).sin());
+                                    let rel = good_web_game::graphics::Vector2::new(64. * (PI/4. * i as f32).cos(), 64. * (PI/4. * i as f32).sin());
                                     cmd.push((
                                         pos + rel,
                                         components::LifeDuration::new(Duration::from_secs(10)),
@@ -310,7 +311,7 @@ pub(super) fn construct_arcane_blast(
                                             "./sprites/spells/arcane_bolt_mini_4_4.png",
                                             Duration::from_secs_f32(0.2),
                                         ),
-                                        components::Velocity::from(rel.clamp_length(240., 240.) * -1.),
+                                        components::Velocity::from(rel* (240. / rel.distance2(Vector2::new(0.,0.)).max(f32::EPSILON)) * -1.),
                                         components::Collision::new(8., 8., true, |e1, e2| vec![
                                                     (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                                                     (e1, GameAction::play_sound("./audio/sounds/spells/ablast_hit2.wav")),

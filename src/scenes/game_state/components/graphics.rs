@@ -1,4 +1,4 @@
-use glam::Vec2;
+use good_web_game::graphics::Vector2;
 use good_web_game::{
     event::GraphicsContext,
     graphics::{self, DrawParam, Drawable, MeshBuilder, Rect},
@@ -161,12 +161,12 @@ pub fn draw_sprites(
         // position within the world
         let n_pos = *pos
             // move as the world is positioned on screen
-            + Vec2::new(
+            + Vector2::new(
                 ((screen_w - boundaries.w)/2.).floor(),
                 ((screen_h - boundaries.h)/2. + camera_offset.0).floor(),
             )
             // move to draw to correct position based on flip
-            + Vec2::new(
+            + Vector2::new(
                 -sprite.get_dimensions().0 * PIXEL_SIZE / 2. * factor,
                 -sprite.get_dimensions().1 * PIXEL_SIZE / 2.,
             );
@@ -276,17 +276,28 @@ pub fn draw_sprites(
     Ok(())
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 /// A struct that represents a Particle that can be added to a graphics component to be displayed on top of the main sprite.
 pub struct Particle {
     /// The drawable to be displayed.
     sprite: SpriteWrapper,
     /// Relative position of the sprites center to the center of the main sprite.
-    rel_pos: Vec2,
+    rel_pos: Vector2,
     /// Velocity this particle moves at (in pixels/s).
-    vel: Vec2,
+    vel: Vector2,
     /// The remaining duration of this particle. If None, it will stay indefinitely.
     duration: Option<Duration>,
+}
+
+impl Default for Particle {
+    fn default() -> Self {
+        Self {
+            sprite: Default::default(),
+            rel_pos: Vector2::new(0., 0.),
+            vel: Vector2::new(0., 0.),
+            duration: Default::default(),
+        }
+    }
 }
 
 impl Particle {
@@ -298,8 +309,8 @@ impl Particle {
                 sprite.set_frame_time(frame_time);
                 sprite
             }),
-            rel_pos: Vec2::ZERO,
-            vel: Vec2::ZERO,
+            rel_pos: Vector2::new(0., 0.),
+            vel: Vector2::new(0., 0.),
             duration: None,
         }
     }
@@ -325,26 +336,26 @@ impl Particle {
 
     /// Sets the relative position of this particle and returns it builder-pattern style.
     pub fn with_relative_position(mut self, rel_x: f32, rel_y: f32) -> Self {
-        self.rel_pos = Vec2::new(rel_x, rel_y);
+        self.rel_pos = Vector2::new(rel_x, rel_y);
         self
     }
 
     #[allow(dead_code)]
     /// Sets the relative position of this particle and returns it builder-pattern style.
-    pub fn with_relative_position_vec(mut self, rel_pos: Vec2) -> Self {
+    pub fn with_relative_position_vec(mut self, rel_pos: Vector2) -> Self {
         self.rel_pos = rel_pos;
         self
     }
 
     /// Sets the velocity of this particle and returns it builder-pattern style.
     pub fn with_velocity(mut self, dx: f32, dy: f32) -> Self {
-        self.vel = Vec2::new(dx, dy);
+        self.vel = Vector2::new(dx, dy);
         self
     }
 
     #[allow(dead_code)]
     /// Sets the velocity of this particle and returns it builder-pattern style.
-    pub fn with_velocity_vec(mut self, vel: Vec2) -> Self {
+    pub fn with_velocity_vec(mut self, vel: Vector2) -> Self {
         self.vel = vel;
         self
     }

@@ -10,7 +10,6 @@ use super::BUTTON_HOVER_VIS;
 use super::BUTTON_VIS;
 
 use crate::music;
-use glam::Vec2;
 use good_web_game::{event::GraphicsContext, graphics, graphics::Drawable, GameError};
 use mooeye::{scene_manager, sprite, ui, ui::UiContent};
 
@@ -38,9 +37,9 @@ struct MainMenuSprite {
     /// The sprite
     sprite: mooeye::sprite::Sprite,
     /// Its position on the screen
-    pos: Vec2,
+    pos: good_web_game::graphics::Vector2,
     /// The velocity its moving with
-    vel: Vec2,
+    vel: good_web_game::graphics::Vector2,
 }
 
 ///Different states of the main menu
@@ -281,11 +280,11 @@ impl MainMenu {
                     cobble.set_variant(rand::random::<u32>());
                     cobble
                 },
-                pos: Vec2::new(
+                pos: good_web_game::graphics::Vector2::new(
                     b_boundaries.w * rand::random::<f32>(),
                     b_boundaries.h * rand::random::<f32>(),
                 ),
-                vel: Vec2::new(0., CAMERA_SPEED),
+                vel: good_web_game::graphics::Vector2::new(0., CAMERA_SPEED),
             });
         }
 
@@ -303,11 +302,11 @@ impl MainMenu {
                     tree.set_variant(rand::random::<u32>());
                     tree
                 },
-                pos: Vec2::new(
+                pos: good_web_game::graphics::Vector2::new(
                     (rand_x) + if rand_x > 0. { b_boundaries.w } else { 0. },
                     rand::random::<f32>() * b_boundaries.h,
                 ),
-                vel: Vec2::new(0., CAMERA_SPEED),
+                vel: good_web_game::graphics::Vector2::new(0., CAMERA_SPEED),
             });
         }
 
@@ -344,11 +343,11 @@ impl MainMenu {
                         gfx_ctx,
                         Duration::from_secs_f32(rand::random::<f32>() * 0.2 + 0.3),
                     )?,
-                    pos: Vec2::new(
+                    pos: good_web_game::graphics::Vector2::new(
                         b_boundaries.w / 2. - count as f32 * 32. + 64. * j as f32,
                         b_boundaries.h / 12. * i as f32,
                     ),
-                    vel: Vec2::new(0., CAMERA_SPEED + REL_TROOP_SPEED),
+                    vel: good_web_game::graphics::Vector2::new(0., CAMERA_SPEED + REL_TROOP_SPEED),
                 })
             }
         }

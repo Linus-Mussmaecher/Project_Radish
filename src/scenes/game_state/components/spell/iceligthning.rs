@@ -99,7 +99,7 @@ pub(super) fn construct_shard(
                             (e2, GameAction::spawn(|enemy, pos, cmd| {
                                 for i in -1..2{
                                     cmd.push((
-                                        pos + glam::Vec2::new( 34. * i as f32, 0.),
+                                        pos + good_web_game::graphics::Vector2::new( 34. * i as f32, 0.),
                                         components::Velocity::new((30 * i) as f32, -250.),
                                         components::LifeDuration::new(Duration::from_secs_f32(0.4)),
                                         components::Graphics::new(
@@ -279,7 +279,7 @@ pub(super) fn construct_lightning_ball(
                             ActionEffectTarget::new_only_self(),
                             |act| {
                                 if let GameAction::Move { delta } = act {
-                                    *delta = glam::Vec2::ZERO;
+                                    *delta = good_web_game::graphics::Vector2::new(0.,0.);
                                 }
                             }
                         )

@@ -1,9 +1,7 @@
 use good_web_game::{input::keyboard::KeyCode, Context};
 use std::{collections::HashMap, time::Duration};
 
-use serde::{Deserialize, Serialize};
-
-#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq)]
 /// An enum containing all possible commands the user can give to the game.
 pub enum Command {
     /// Move player character to the left.

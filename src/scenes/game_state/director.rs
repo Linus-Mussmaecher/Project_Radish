@@ -166,7 +166,10 @@ pub fn direct(
                         // spawn
                         (enemy_descriptor.spawner._spawner)(
                             cmd,
-                            glam::Vec2::new(rand::random::<f32>() * boundaries.w, -20.),
+                            good_web_game::graphics::Vector2::new(
+                                rand::random::<f32>() * boundaries.w,
+                                -20.,
+                            ),
                         );
 
                         // reduce available credits

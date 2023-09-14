@@ -1,7 +1,7 @@
-use std::{fmt::Debug, sync::Arc, time::Duration};
-
-use glam::Vec2;
+use good_web_game::cgmath::num_traits::Pow;
+use good_web_game::graphics::Vector2;
 use legion::{system, systems::CommandBuffer, Entity, EntityStore, IntoQuery};
+use std::{fmt::Debug, sync::Arc, time::Duration};
 use tinyvec::TinyVec;
 
 use super::super::controller::Interactions;
@@ -16,7 +16,7 @@ pub enum GameAction {
     /// Removes the entity from the world.
     Remove(RemoveSource),
     /// Manipulates the entitiets position component.
-    Move { delta: Vec2 },
+    Move { delta: Vector2 },
 
     /// Reduces the value of the health component.
     TakeDamage { dmg: i32 },
@@ -433,7 +433,11 @@ pub fn resolve_executive_actions(
 ) {
     for action in actions.get_actions() {
         if let GameAction::Spawn(spawner) = action {
-            (spawner.spawner)(*ent, pos.copied().unwrap_or_default(), cmd);
+            (spawner.spawner)(
+                *ent,
+                pos.copied().unwrap_or_else(|| Vector2::new(0., 0.)),
+                cmd,
+            );
         }
     }
 }
@@ -462,11 +466,13 @@ pub fn handle_effects(world: &mut legion::world::SubWorld, #[resource] ix: &Inte
             for (tar_ent, tar_pos, tar_ene) in
                 <(Entity, &Position, Option<&Enemy>)>::query().iter(world)
             {
-                if src_pos.distance(*tar_pos) <= effect.target.range
+                let dist =
+                    ((src_pos.x - tar_pos.x).pow(2.) + (src_pos.y - tar_pos.y).pow(2.)).sqrt();
+                if dist <= effect.target.range
                     && (!effect.target.enemies_only || tar_ene.is_some())
                     && (effect.target.affect_self || *src_ent != *tar_ent)
                 {
-                    target_list.push((*tar_ent, src_pos.distance(*tar_pos)));
+                    target_list.push((*tar_ent, dist));
                 }
             }
 

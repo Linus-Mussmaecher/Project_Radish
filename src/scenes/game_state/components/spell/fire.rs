@@ -241,7 +241,7 @@ pub(super) fn construct_phoenix(
         "./audio/sounds/spells/phoenix_cast",
         GameAction::spawn(|_, pos, cmd| {
             cmd.push((
-                pos + glam::Vec2::new(0., -64.),
+                pos + good_web_game::graphics::Vector2::new(0., -64.),
                 components::LifeDuration::new(Duration::from_secs(20)),
                 components::Graphics::new(
                     "./sprites/spells/phoenix_16_16.png",

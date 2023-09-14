@@ -2,7 +2,6 @@ use std::cell::RefCell;
 
 use good_web_game::graphics;
 use mooeye::{ui, ui::UiContainer, ui::UiContent};
-use serde::{Deserialize, Serialize};
 
 use crate::PALETTE;
 
@@ -20,7 +19,7 @@ thread_local! {
 }
 
 /// A struct that represents a list of scores. Allows Serde to .toml.
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Default)]
 pub struct ScoreList {
     /// The scores
     pub scores: Vec<(u32, u32)>,
@@ -355,13 +354,13 @@ impl Drop for AchievementSet {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub enum AchievementProgressSource {
     Percentage(f32),
     Cache,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[derive(Debug, Clone, Default)]
 pub struct AchievementProgress {
     progress_vals: Vec<u32>,
 }

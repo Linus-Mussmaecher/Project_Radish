@@ -1,4 +1,3 @@
-use glam::Vec2;
 use good_web_game::graphics::Rect;
 use legion::IntoQuery;
 use legion::{system, Entity, EntityStore};
@@ -49,7 +48,7 @@ impl Collision {
     }
 
     /// Returns the collision bounds (x,y,w,h) of this component.
-    fn get_collider(&self, pos: Vec2) -> Rect {
+    fn get_collider(&self, pos: good_web_game::graphics::Vector2) -> Rect {
         Rect::new(pos.x - self.w / 2., pos.y - self.h / 2., self.w, self.h)
     }
 

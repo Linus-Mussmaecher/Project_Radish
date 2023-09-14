@@ -1,9 +1,8 @@
-use glam::Vec2;
 use legion::system;
 
 use super::Actions;
 
-pub type Position = Vec2;
+pub type Position = good_web_game::graphics::Vector2;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 /// A system that manages a fixed movement of an entity each second.
@@ -31,8 +30,8 @@ impl Velocity {
     }
 }
 
-impl From<Vec2> for Velocity {
-    fn from(value: Vec2) -> Self {
+impl From<good_web_game::graphics::Vector2> for Velocity {
+    fn from(value: good_web_game::graphics::Vector2) -> Self {
         Self {
             dx: value.x,
             dy: value.y,
@@ -40,7 +39,7 @@ impl From<Vec2> for Velocity {
     }
 }
 
-impl From<Velocity> for Vec2 {
+impl From<Velocity> for good_web_game::graphics::Vector2 {
     fn from(value: Velocity) -> Self {
         Self {
             x: value.dx,
@@ -57,7 +56,7 @@ pub fn velocity(
     #[resource] ix: &super::super::Interactions,
 ) {
     actions.push(super::actions::GameAction::Move {
-        delta: Vec2::from(*vel) * ix.delta.as_secs_f32(),
+        delta: good_web_game::graphics::Vector2::from(*vel) * ix.delta.as_secs_f32(),
     })
 }
 

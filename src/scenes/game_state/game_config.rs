@@ -1,6 +1,4 @@
-use serde::{Deserialize, Serialize};
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct GameConfig {
     // --- Director Config ---
     /// The base amounts of credits per second
@@ -46,32 +44,6 @@ impl GameConfig {
             achievements_unlocked: super::achievements::AchievementProgressSource::Percentage(1.),
             initial_camera_offset: 0.,
         }
-    }
-
-    #[allow(dead_code)]
-    /// Loads a game config from the given path and constructs a controller.
-    pub fn from_path(
-        path: impl AsRef<std::path::Path>,
-    ) -> Result<Self, Box<dyn std::error::Error>> {
-        let string = std::fs::read_to_string(path.as_ref().to_str().ok_or_else(|| {
-            good_web_game::GameError::CustomError("Could not read path.".to_owned())
-        })?)?;
-        Ok(toml::from_str(&string)?)
-    }
-
-    #[allow(dead_code)]
-    /// Saves this game config to the given path.
-    pub fn save_to_file(
-        &self,
-        path: impl AsRef<std::path::Path>,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        std::fs::write(
-            path.as_ref().to_str().ok_or_else(|| {
-                good_web_game::GameError::CustomError("Could not read path.".to_owned())
-            })?,
-            toml::to_string(&self)?,
-        )?;
-        Ok(())
     }
 }
 

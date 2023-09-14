@@ -1,5 +1,5 @@
 use super::super::controller;
-use glam::Vec2;
+use good_web_game::graphics::Vector2;
 use legion::system;
 
 use super::Actions;
@@ -31,7 +31,7 @@ pub fn control(
 ) {
     // Movement
 
-    let mut del = Vec2::ZERO;
+    let mut del = Vector2::new(0., 0.);
 
     let mut pref_state = 0;
 

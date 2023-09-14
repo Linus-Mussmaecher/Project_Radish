@@ -7,29 +7,15 @@ edition = "2021"
 
 [dependencies]
 
-getrandom = {version = "0.2", features = ["js"]}
-uuid = {version = "1.4", features = ["v4", "wasm-bindgen"]}
 # Framework
-good-web-game = "0.6"
-glam = "0.24"
+good-web-game = {version = "0.6"}
 # UI
 mooeye = {git = "https://github.com/Linus-Mussmaecher/mooeye-web"}
 # ECS
-legion = {verison = "^0.4", features = ["wasm-bindgen"]}
-# Serialization
-serde = "^1.0"
-toml = "^0.8"
+legion = {version = "^0.4", features = ["wasm-bindgen"]}
 # Random
-rand = {version = "^0.8"}
+rand = {version = "^0.7", features = ["wasm-bindgen"]}
 # other
 tinyvec = "^1.6"
-if_chain = "1.0.2"
-
-# Size-optimizations for release build
-
-[profile.release]
-opt-level = 'z'     # Optimize for size
-lto = true          # Enable link-time optimization
-codegen-units = 1   # Reduce number of codegen units to increase optimizations
-panic = 'abort'     # Abort on panic
-strip = true        # Strip symbols from binary*
+getrandom = {version = "0.2", features = ["js"]}
+uuid = {version = "1.4", features = ["v4", "wasm-bindgen"]}

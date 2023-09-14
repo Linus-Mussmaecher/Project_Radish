@@ -1,7 +1,6 @@
 use std::time::Duration;
 
 use good_web_game::graphics::{self, TextFragment};
-use if_chain::if_chain;
 use legion::EntityStore;
 use mooeye::{ui, ui::UiContainer, ui::UiContent};
 
@@ -42,155 +41,156 @@ pub fn handle_wave_menu(
         }
     }
 
-    if_chain! {
-            if let Some(mut director) = resources.get_mut::<game_state::director::Director>();
-            if let Some(mut data) = resources.get_mut::<game_state::game_data::GameData>();
-            if let Some(player_ent) = resources.get::<game_state::Entity>();
-            if let Ok(mut player) = world.entry_mut(*player_ent);
-            if let Ok(caster) = player.get_component_mut::<game_state::components::SpellCaster>();
-            if let Some(mut spell_pool) = resources.get_mut::<game_state::components::spell::SpellPool>();
-        then{
+    if let (Some(mut director), Some(mut data), Some(player_ent), Some(mut spell_pool)) = (
+        resources.get_mut::<game_state::director::Director>(),
+        resources.get_mut::<game_state::game_data::GameData>(),
+        resources.get::<game_state::Entity>(),
+        resources.get_mut::<game_state::components::spell::SpellPool>(),
+    ) {
+        if let Ok(mut player) = world.entry_mut(*player_ent) {
+            if let Ok(caster) = player.get_component_mut::<game_state::components::SpellCaster>() {
+                // enemies submenu
+                if messages.contains(&ui::UiMessage::Triggered(ID_ENEMIES)) {
+                    gui.remove_elements(ID_WAVE_SUBMENU);
+                    gui.add_element(
+                        ID_WAVE_SUBMENU_CONT,
+                        construct_enemies_menu(ctx, gfx_ctx, &director, &mut data.buildings),
+                    );
+                }
 
-        // enemies submenu
-        if messages.contains(&ui::UiMessage::Triggered(ID_ENEMIES)) {
-            gui.remove_elements(ID_WAVE_SUBMENU);
-            gui.add_element(
-                ID_WAVE_SUBMENU_CONT,
-                construct_enemies_menu(ctx, gfx_ctx, &director, &mut data.buildings),
-            );
-        }
+                // spells submenu
+                if messages.contains(&ui::UiMessage::Triggered(ID_SPELLS)) {
+                    gui.remove_elements(ID_WAVE_SUBMENU);
+                    gui.add_element(
+                        ID_WAVE_SUBMENU_CONT,
+                        construct_spell_menu(ctx, caster, &spell_pool, &data.buildings),
+                    );
+                }
 
-        // spells submenu
-        if messages.contains(&ui::UiMessage::Triggered(ID_SPELLS)) {
-            gui.remove_elements(ID_WAVE_SUBMENU);
-            gui.add_element(
-                ID_WAVE_SUBMENU_CONT,
-                construct_spell_menu(ctx, caster, &spell_pool, &data.buildings),
-            );
-        }
+                // build submenu
+                if messages.contains(&ui::UiMessage::Triggered(ID_HOUSE)) {
+                    gui.remove_elements(ID_WAVE_SUBMENU);
+                    gui.add_element(
+                        ID_WAVE_SUBMENU_CONT,
+                        construct_buildings_menu(ctx, gfx_ctx, &mut data.buildings),
+                    );
+                }
 
-        // build submenu
-        if messages.contains(&ui::UiMessage::Triggered(ID_HOUSE)) {
-            gui.remove_elements(ID_WAVE_SUBMENU);
-            gui.add_element(
-                ID_WAVE_SUBMENU_CONT,
-                construct_buildings_menu(ctx, gfx_ctx, &mut data.buildings),
-            );
-        }
-
-        // unlock and equip spells
-        for message in messages {
-            // remember if anything has changed
-            let mut triggered = false;
-            match message {
-                // check for clicks if a spell in the shop index-range
-                ui::UiMessage::Triggered(id)
-                    if *id >= ID_SPELL_AVAIL_START
-                        && *id < ID_SPELL_AVAIL_START + spell_pool.1.len() as u32 =>
-                {
-                    let mut purchased = false;
-                    // calculate index
-                    let index = (id - ID_SPELL_AVAIL_START) as usize;
-                    // check if a spell is at that index
-                    if let Some(template) = spell_pool.1.get_mut(index) {
-                        // if spell was not yet purchased, attempt to purchase it
-                        if template.level == 0
-                            && data.buildings.target[buildings::BuildingType::Mageguild as usize]
-                                >= template.guild_condition
-                            && data.spend(template.cost)
+                // unlock and equip spells
+                for message in messages {
+                    // remember if anything has changed
+                    let mut triggered = false;
+                    match message {
+                        // check for clicks if a spell in the shop index-range
+                        ui::UiMessage::Triggered(id)
+                            if *id >= ID_SPELL_AVAIL_START
+                                && *id < ID_SPELL_AVAIL_START + spell_pool.1.len() as u32 =>
                         {
-                            template.level = 1;
-                            purchased = true;
-                        }
-                        // if spell is (now) unlocked, store a copy
-                        if template.level > 0 {
-                            spell_pool.0 = Some(template.spell.clone());
-                            triggered = true;
-                        }
-                    }
-                    // if anything was purchased, increase cost of remaining spells
-                    if purchased {
-                        for spell in spell_pool.1.iter_mut() {
-                            if spell.cost > 0 {
-                                spell.cost += 20;
+                            let mut purchased = false;
+                            // calculate index
+                            let index = (id - ID_SPELL_AVAIL_START) as usize;
+                            // check if a spell is at that index
+                            if let Some(template) = spell_pool.1.get_mut(index) {
+                                // if spell was not yet purchased, attempt to purchase it
+                                if template.level == 0
+                                    && data.buildings.target
+                                        [buildings::BuildingType::Mageguild as usize]
+                                        >= template.guild_condition
+                                    && data.spend(template.cost)
+                                {
+                                    template.level = 1;
+                                    purchased = true;
+                                }
+                                // if spell is (now) unlocked, store a copy
+                                if template.level > 0 {
+                                    spell_pool.0 = Some(template.spell.clone());
+                                    triggered = true;
+                                }
+                            }
+                            // if anything was purchased, increase cost of remaining spells
+                            if purchased {
+                                for spell in spell_pool.1.iter_mut() {
+                                    if spell.cost > 0 {
+                                        spell.cost += 20;
+                                    }
+                                }
                             }
                         }
+
+                        // check for clicks if a spell in the equipped spell index-range
+                        ui::UiMessage::Triggered(id)
+                            if *id >= ID_SPELL_EQUIP_START && *id < ID_SPELL_EQUIP_START + 4 =>
+                        {
+                            // calculate index
+                            let index = (id - ID_SPELL_EQUIP_START) as usize;
+                            // check if a spell is stored and remove it
+                            if let Some(stored) = spell_pool.0.take() {
+                                // equip the spell
+                                caster.equip_spell(index, stored);
+                                triggered = true;
+                                player_sync_needed = true;
+                            }
+                        }
+                        _ => {}
+                    }
+                    // reload menu if neccessary
+                    if triggered {
+                        gui.remove_elements(ID_WAVE_SUBMENU);
+                        gui.add_element(
+                            ID_WAVE_SUBMENU_CONT,
+                            construct_spell_menu(ctx, caster, &spell_pool, &data.buildings),
+                        );
                     }
                 }
 
-                // check for clicks if a spell in the equipped spell index-range
-                ui::UiMessage::Triggered(id)
-                    if *id >= ID_SPELL_EQUIP_START && *id < ID_SPELL_EQUIP_START + 4 =>
+                // reroll
+                if messages.contains(&ui::UiMessage::Triggered(ID_REROLL))
+                    && data.spend(director.get_reroll_cost())
+                    && data.buildings.target[buildings::BuildingType::Watchtower as usize] > 0
                 {
-                    // calculate index
-                    let index = (id - ID_SPELL_EQUIP_START) as usize;
-                    // check if a spell is stored and remove it
-                    if let Some(stored) = spell_pool.0.take() {
-                        // equip the spell
-                        caster.equip_spell(index, stored);
-                        triggered = true;
-                        player_sync_needed = true;
+                    director.reroll_wave_enemies();
+                    gui.remove_elements(ID_WAVE_SUBMENU);
+                    gui.add_element(
+                        ID_WAVE_SUBMENU_CONT,
+                        construct_enemies_menu(ctx, gfx_ctx, &director, &mut data.buildings),
+                    );
+                }
+
+                // buildings
+                for i in 0..buildings::BUILDING_TYPES {
+                    let index = data.buildings.target[i] as usize;
+                    if messages.contains(&ui::UiMessage::Triggered(ID_BUILDINGS_START + i as u32))
+                        && index < buildings::BUILDING_MAX_LEVEL
+                        && data.spend(
+                            super::game_state::components::buildings::get_building_info(i)
+                                .level_costs[index] as i32,
+                        )
+                    {
+                        data.buildings.target[i] += 1;
+                        // if it is the mana well, sync spell slots
+                        // if it is the watchtower, sync speed
+                        if i == 2 && caster.can_add() || i == 0 {
+                            player_sync_needed = true;
+                        }
+                        // rebuild menu
+                        gui.remove_elements(ID_WAVE_SUBMENU);
+                        gui.add_element(
+                            ID_WAVE_SUBMENU_CONT,
+                            construct_buildings_menu(ctx, gfx_ctx, &mut data.buildings),
+                        );
                     }
                 }
-                _ => {}
-            }
-            // reload menu if neccessary
-            if triggered {
-                gui.remove_elements(ID_WAVE_SUBMENU);
-                gui.add_element(
-                    ID_WAVE_SUBMENU_CONT,
-                    construct_spell_menu(ctx, caster, &spell_pool, &data.buildings),
-                );
-            }
-        }
 
-        // reroll
-        if messages.contains(&ui::UiMessage::Triggered(ID_REROLL))
-            && data.spend(director.get_reroll_cost())
-            && data.buildings.target[buildings::BuildingType::Watchtower as usize] > 0
-        {
-            director.reroll_wave_enemies();
-            gui.remove_elements(ID_WAVE_SUBMENU);
-            gui.add_element(
-                ID_WAVE_SUBMENU_CONT,
-                construct_enemies_menu(ctx, gfx_ctx, &director, &mut data.buildings),
-            );
-        }
-
-        // buildings
-        for i in 0..buildings::BUILDING_TYPES {
-            let index = data.buildings.target[i] as usize;
-            if messages.contains(&ui::UiMessage::Triggered(ID_BUILDINGS_START + i as u32))
-                && index < buildings::BUILDING_MAX_LEVEL
-                && data.spend(
-                    super::game_state::components::buildings::get_building_info(i).level_costs[index]
-                        as i32,
-                )
-            {
-                data.buildings.target[i] += 1;
-                // if it is the mana well, sync spell slots
-                // if it is the watchtower, sync speed
-                if i == 2 && caster.can_add() || i == 0{
-                    player_sync_needed = true;
+                // close wave menu and activate next wave
+                if messages.contains(&ui::UiMessage::Triggered(ID_NEXT_WAVE)) {
+                    gui.remove_elements(ID_WAVE_MENU);
+                    // initialize next wave from director
+                    director.next_wave();
+                    // create wave announcer
+                    gui.add_element(0, construct_wave_announcer(ctx, director.get_wave()));
                 }
-                // rebuild menu
-                gui.remove_elements(ID_WAVE_SUBMENU);
-                gui.add_element(
-                    ID_WAVE_SUBMENU_CONT,
-                    construct_buildings_menu(ctx, gfx_ctx, &mut data.buildings),
-                );
             }
         }
-
-        // close wave menu and activate next wave
-        if messages.contains(&ui::UiMessage::Triggered(ID_NEXT_WAVE)) {
-            gui.remove_elements(ID_WAVE_MENU);
-            // initialize next wave from director
-            director.next_wave();
-            // create wave announcer
-            gui.add_element(0, construct_wave_announcer(ctx, director.get_wave()));
-        }
-    }
     }
 
     if player_sync_needed {
@@ -826,17 +826,18 @@ pub fn sync_ui(
     world: &mut legion::World,
     resources: &mut legion::Resources,
 ) {
-    if_chain! {
-    if let Some(data) = resources.get::<game_state::game_data::GameData>();
-    if let Some(player_ent) = resources.get::<game_state::Entity>();
-    if let Ok(mut player) = world.entry_mut(*player_ent);
-        then{
-
+    if let (Some(data), Some(player_ent)) = (
+        resources.get_mut::<game_state::game_data::GameData>(),
+        resources.get::<game_state::Entity>(),
+    ) {
+        if let Ok(mut player) = world.entry_mut(*player_ent) {
             // sync spell
 
-            if let Ok(caster) = player.get_component_mut::<game_state::components::SpellCaster>(){
+            if let Ok(caster) = player.get_component_mut::<game_state::components::SpellCaster>() {
                 // game sync
-                caster.set_extra_slots(data.buildings.target[buildings::BuildingType::Manawell as usize] as usize);
+                caster.set_extra_slots(
+                    data.buildings.target[buildings::BuildingType::Manawell as usize] as usize,
+                );
                 // ui sync
                 gui.remove_elements(super::game_ui::ID_MANA_SLOT);
                 for i in 0..caster.get_slots() {
@@ -862,12 +863,17 @@ pub fn sync_ui(
                 );
             }
 
-
             // sync move speed
 
-            if let Ok(control) = player.get_component_mut::<game_state::components::Control>(){
+            if let Ok(control) = player.get_component_mut::<game_state::components::Control>() {
                 // game sync
-                control.move_speed = control.base_speed * (1. + 0.25 * (data.buildings.target[buildings::BuildingType::Watchtower as usize] as f32 - 1.).max(0.));
+                control.move_speed = control.base_speed
+                    * (1.
+                        + 0.25
+                            * (data.buildings.target[buildings::BuildingType::Watchtower as usize]
+                                as f32
+                                - 1.)
+                                .max(0.));
             }
         }
     }
