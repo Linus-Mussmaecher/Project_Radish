@@ -272,7 +272,7 @@ impl MainMenu {
             background_sprites.push(MainMenuSprite {
                 sprite: {
                     let mut cobble = sprite_pool.init_sprite_fmt(
-                        "/sprites/environment/cobble_4_4.png",
+                        "./sprites/environment/cobble_4_4.png",
                         ctx,
                         gfx_ctx,
                         Duration::ZERO,
@@ -294,7 +294,7 @@ impl MainMenu {
             background_sprites.push(MainMenuSprite {
                 sprite: {
                     let mut tree = sprite_pool.init_sprite_fmt(
-                        "/sprites/environment/tree_8_16.png",
+                        "./sprites/environment/tree_8_16.png",
                         ctx,
                         gfx_ctx,
                         Duration::ZERO,
@@ -332,7 +332,7 @@ impl MainMenu {
         for i in 0..12 {
             let count = rand::random::<u32>() % 4 + 3;
             let sprite_path = format!(
-                "/sprites/enemies/{}",
+                "./sprites/enemies/{}_16_16.png",
                 troop_paths[rand::random::<usize>() % troop_paths.len()]
             );
             for j in 0..count {

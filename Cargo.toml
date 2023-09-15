@@ -14,8 +14,8 @@ mooeye = {git = "https://github.com/Linus-Mussmaecher/mooeye-web"}
 # ECS
 legion = {version = "^0.4", features = ["wasm-bindgen"]}
 # Random
-rand = {version = "^0.7", features = ["wasm-bindgen"]}
+getrandom = {version = "0.2", features = ["js"]}
+rand = {version = "^0.8"}
 # other
 tinyvec = "^1.6"
-getrandom = {version = "0.2", features = ["js"]}
 uuid = {version = "1.4", features = ["v4", "wasm-bindgen"]}

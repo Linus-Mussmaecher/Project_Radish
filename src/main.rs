@@ -42,19 +42,18 @@ pub fn main() -> GameResult {
 
     good_web_game::start(conf, |ctx, _gfx_ctx| {
         // Add fonts from the resource folder.
-        {
-            let bytes_retro = ctx
-                .filesystem
-                .open("./fonts/retro_gaming.ttf")
-                .unwrap()
-                .bytes
-                .into_inner();
 
-            RETRO.with(|bs| {
-                *bs.borrow_mut() =
-                    good_web_game::graphics::Font::new_glyph_font_bytes(ctx, &bytes_retro).ok();
-            });
-        }
+        let bytes_retro = ctx
+            .filesystem
+            .open("./fonts/retro_gaming.ttf")
+            .unwrap()
+            .bytes
+            .into_inner();
+
+        RETRO.with(|bs| {
+            *bs.borrow_mut() =
+                good_web_game::graphics::Font::new_glyph_font_bytes(ctx, &bytes_retro).ok();
+        });
 
         let bytes_retro_m = ctx
             .filesystem
