@@ -121,7 +121,7 @@ impl scene_manager::Scene for HighscoreMenu {
 
         if messages.contains(&ui::UiMessage::Triggered(1)) {
             // delete highscores
-            std::fs::write("./data/highscores.toml", "")?;
+            game_state::achievements::HIGHSCORES.with(|f| f.borrow_mut().clear());
         }
 
         if messages.contains(&ui::UiMessage::Triggered(2)) {
