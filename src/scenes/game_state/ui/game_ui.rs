@@ -286,31 +286,33 @@ impl<T: Copy + Eq + Hash> ui::UiContent<T> for Covering {
         gfx_ctx: &mut good_web_game::event::GraphicsContext,
         param: ui::UiDrawParam,
     ) {
-        let mut target_mod = param.target;
-        target_mod.y += (1. - self.covering) * target_mod.h;
-        target_mod.h *= self.covering;
-        match graphics::Drawable::draw(
-            &graphics::MeshBuilder::new()
-                .ellipse(
-                    graphics::DrawMode::Fill(graphics::FillOptions::DEFAULT),
-                    graphics::Point2::new(
-                        param.target.x + param.target.w / 2.,
-                        param.target.y + param.target.h / 2.,
-                    ),
-                    self.covering * param.target.w / 2.,
-                    self.covering * param.target.h / 2.,
-                    1.0,
-                    self.color,
-                )
-                .unwrap()
-                .build(ctx, gfx_ctx)
-                .unwrap(),
-            ctx,
-            gfx_ctx,
-            graphics::DrawParam::default(),
-        ) {
-            Ok(_) => {}
-            Err(e) => println!("[ERROR/Radish] {}", e),
+        if self.covering > 0. {
+            let mut target_mod = param.target;
+            target_mod.y += (1. - self.covering) * target_mod.h;
+            target_mod.h *= self.covering;
+            match graphics::Drawable::draw(
+                &graphics::MeshBuilder::new()
+                    .ellipse(
+                        graphics::DrawMode::Fill(graphics::FillOptions::DEFAULT),
+                        graphics::Point2::new(
+                            param.target.x + param.target.w / 2.,
+                            param.target.y + param.target.h / 2.,
+                        ),
+                        self.covering * param.target.w / 2.,
+                        self.covering * param.target.h / 2.,
+                        1.0,
+                        self.color,
+                    )
+                    .unwrap()
+                    .build(ctx, gfx_ctx)
+                    .unwrap(),
+                ctx,
+                gfx_ctx,
+                graphics::DrawParam::default(),
+            ) {
+                Ok(_) => {}
+                Err(e) => println!("[ERROR/Radish] {}", e),
+            }
         }
     }
 }

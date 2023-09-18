@@ -22,7 +22,7 @@ thread_local! {
 
 pub fn main() -> GameResult {
     // for debugging
-    // std::env::set_var("RUST_BACKTRACE", "full");
+    std::env::set_var("RUST_BACKTRACE", "full");
 
     // Fetch and set resource directory.
 
@@ -40,7 +40,7 @@ pub fn main() -> GameResult {
         .physical_root_dir(Some(resource_dir))
         .cache(Some(include_bytes!("../resources/resources.tar")));
 
-    good_web_game::start(conf, |ctx, _gfx_ctx| {
+    good_web_game::start(conf, |ctx, gfx_ctx| {
         // Add fonts from the resource folder.
 
         let bytes_retro = ctx
@@ -67,7 +67,7 @@ pub fn main() -> GameResult {
                 good_web_game::graphics::Font::new_glyph_font_bytes(ctx, &bytes_retro_m).ok();
         });
 
-        let start_scene = scenes::main_menu::credits_menu::CreditsMenu::new(ctx).unwrap(); //scenes::main_menu::MainMenu::new(ctx, gfx_ctx).unwrap();
+        let start_scene = scenes::main_menu::MainMenu::new(ctx, gfx_ctx).unwrap();
         let sm = mooeye::scene_manager::SceneManager::new(start_scene);
         Box::new(sm)
     })

@@ -57,7 +57,7 @@ pub(super) fn construct_scorch(
     Spell::new(
         "Scorch",
         "Hurl a short ranged fireball, dealing low impact damage but igniting the area hit for 10 seconds, dealing damage over time to all enemies inside.",
-        sprite_pool.init_sprite_fmt_unchecked("./sprites/spells/scorch_", ctx, gfx_ctx, Duration::ZERO),
+        sprite_pool.init_sprite_fmt_unchecked("./sprites/spells/scorch_12_12.png", ctx, gfx_ctx, Duration::ZERO),
         "./audio/sounds/spells/scorch_cast.wav",
         GameAction::spawn(|_, pos, cmd| {
             cmd.push((

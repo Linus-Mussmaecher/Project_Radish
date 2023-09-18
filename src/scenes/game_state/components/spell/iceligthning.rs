@@ -260,14 +260,14 @@ pub(super) fn construct_lightning_ball(
         "Lightning Ball",
         "Launch a small lightning ball that passes through enemies then deploying for 10 seconds in the middle of the field. Both in flight and while deployed, the orb regularly zaps nearby enemies and significantly reduces their healing.",
         sprite_pool
-            .init_sprite_fmt_unchecked("./sprites/spells/lightning_ball", ctx, gfx_ctx, Duration::ZERO),
+            .init_sprite_fmt_unchecked("./sprites/spells/lightning_ball_16_16.png", ctx, gfx_ctx, Duration::ZERO),
             None,
         GameAction::spawn(|_, pos, cmd| {
             cmd.push((
                 pos,
                 components::LifeDuration::new(Duration::from_secs(8)),
                 components::Graphics::new(
-                    "./sprites/spells/lightning_ball",
+                    "./sprites/spells/lightning_ball_16_16.png",
                     Duration::from_secs_f32(0.2),
                 ),
                 components::Velocity::new(0., -200.),
