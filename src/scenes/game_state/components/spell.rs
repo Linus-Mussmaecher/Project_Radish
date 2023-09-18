@@ -485,12 +485,14 @@ impl Spell {
                 graphics::Text::new(
                     graphics::TextFragment::new(self.name.as_str())
                         .color(graphics::Color::from_rgb_u32(PALETTE[7]))
+                        .font(crate::RETRO.with(|f| f.borrow().unwrap()))
                         .scale(28.),
                 )
                 .add("\n")
                 .add(
                     graphics::TextFragment::new(self.description.as_str())
                         .color(graphics::Color::from_rgb_u32(PALETTE[6]))
+                        .font(crate::RETRO.with(|f| f.borrow().unwrap()))
                         .scale(20.),
                 )
                 .add(
@@ -500,6 +502,7 @@ impl Spell {
                         ""
                     })
                     .color(graphics::Color::from_rgb_u32(PALETTE[3]))
+                    .font(crate::RETRO.with(|f| f.borrow().unwrap()))
                     .scale(20.),
                 )
                 .add(
@@ -511,8 +514,8 @@ impl Spell {
                         },
                     ))
                     .color(graphics::Color::from_rgb_u32(PALETTE[4]))
-                    .scale(20.)
-                    .font(crate::RETRO.with(|f| f.borrow().unwrap())),
+                    .font(crate::RETRO.with(|f| f.borrow().unwrap()))
+                    .scale(20.),
                 )
                 .set_bounds(graphics::Point2::new(400., 200.), graphics::Align::Left)
                 .to_owned()

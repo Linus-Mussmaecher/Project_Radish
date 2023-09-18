@@ -45,19 +45,19 @@ const BUILDING_INFO_LIST: [BuildingInfo; BUILDING_TYPES] = [
         name: "Watchtower",
         description:
             "Increases your movement speed. First level instead allows rerolling approaching enemies.",
-        sprite: "/sprites/environment/watchtower",
+        sprite: "./sprites/environment/watchtower_32_32.png",
     },
     BuildingInfo {
         level_costs: [100, 150, 200, 200],
         name: "Mage's Guild",
         description: "Allows you to purchase higher level spells.",
-        sprite: "/sprites/environment/mageguild",
+        sprite: "./sprites/environment/mageguild_32_32.png",
     },
     BuildingInfo {
         level_costs: [250, 300, 350, 400],
         name: "Mana Well",
         description: "Adds an additional spell slot per level.",
-        sprite: "/sprites/environment/manawell",
+        sprite: "./sprites/environment/manawell_32_32.png",
     },
 ];
 

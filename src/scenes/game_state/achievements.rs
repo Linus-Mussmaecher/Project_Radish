@@ -95,20 +95,22 @@ impl Achievement {
         .with_tooltip(
             graphics::Text::new(
                 graphics::TextFragment::new(self.name.as_str())
+                    .font(crate::RETRO.with(|f| f.borrow().unwrap()))
                     .color(graphics::Color::from_rgb_u32(PALETTE[7]))
                     .scale(28.),
             )
             .add("\n")
             .add(
                 graphics::TextFragment::new(self.description.as_str())
+                    .font(crate::RETRO.with(|f| f.borrow().unwrap()))
                     .color(graphics::Color::from_rgb_u32(PALETTE[6]))
                     .scale(20.),
             )
             .add(
                 graphics::TextFragment::new(format!("\n  {} / {}", self.progress, self.target))
+                    .font(crate::RETRO.with(|f| f.borrow().unwrap()))
                     .color(graphics::Color::from_rgb_u32(PALETTE[6]))
-                    .scale(20.)
-                    .font(crate::RETRO.with(|f| f.borrow().unwrap())),
+                    .scale(20.),
             )
             .set_bounds(
                 good_web_game::graphics::Point2::new(300., 200.),

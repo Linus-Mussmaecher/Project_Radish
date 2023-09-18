@@ -691,12 +691,14 @@ fn construct_buildings_menu(
                             format!("{} is fully upgraded.\n", info.name,)
                         },
                     )
+                    .font(crate::RETRO.with(|f| f.borrow().unwrap()))
                     .color(graphics::Color::from_rgb_u32(PALETTE[6]))
                     .scale(24.),
                 );
 
                 text.add(
                     TextFragment::new(info.description)
+                        .font(crate::RETRO.with(|f| f.borrow().unwrap()))
                         .scale(20.)
                         .color(graphics::Color::from_rgb_u32(PALETTE[6])),
                 );
@@ -704,11 +706,13 @@ fn construct_buildings_menu(
                 text.add(
                     TextFragment::new("\nCurrent level: ")
                         .scale(20.)
+                        .font(crate::RETRO.with(|f| f.borrow().unwrap()))
                         .color(graphics::Color::from_rgb_u32(PALETTE[6])),
                 );
 
                 text.add(
                     TextFragment::new(format!("{}\n", buildings.target[i]))
+                        .font(crate::RETRO.with(|f| f.borrow().unwrap()))
                         .scale(20.)
                         .color(graphics::Color::from_rgb_u32(PALETTE[7])),
                 );

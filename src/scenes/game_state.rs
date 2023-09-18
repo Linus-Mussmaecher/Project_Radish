@@ -296,6 +296,10 @@ impl GameState {
     ) -> Result<(), GameError> {
         let (screen_w, screen_h) = gfx_ctx.screen_size();
 
+        let bg = graphics::Color::from_rgb_u32(crate::PALETTE[11]);
+
+        gfx_ctx.clear(Some((bg.r, bg.g, bg.b, bg.a)), None, None);
+
         let mut mesh = graphics::MeshBuilder::new();
         //street
         mesh.rectangle(

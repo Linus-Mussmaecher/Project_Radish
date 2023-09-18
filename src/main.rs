@@ -38,6 +38,7 @@ pub fn main() -> GameResult {
 
     let conf = good_web_game::conf::Conf::default()
         .physical_root_dir(Some(resource_dir))
+        .fullscreen(true)
         .cache(Some(include_bytes!("../resources/resources.tar")));
 
     good_web_game::start(conf, |ctx, gfx_ctx| {

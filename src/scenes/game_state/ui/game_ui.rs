@@ -292,15 +292,14 @@ impl<T: Copy + Eq + Hash> ui::UiContent<T> for Covering {
             target_mod.h *= self.covering;
             match graphics::Drawable::draw(
                 &graphics::MeshBuilder::new()
-                    .ellipse(
+                    .rectangle(
                         graphics::DrawMode::Fill(graphics::FillOptions::DEFAULT),
-                        graphics::Point2::new(
-                            param.target.x + param.target.w / 2.,
-                            param.target.y + param.target.h / 2.,
-                        ),
-                        self.covering * param.target.w / 2.,
-                        self.covering * param.target.h / 2.,
-                        1.0,
+                        graphics::Rect {
+                            x: param.target.x,
+                            y: param.target.y + (1. - self.covering) * param.target.h,
+                            w: param.target.w,
+                            h: self.covering * param.target.h,
+                        },
                         self.color,
                     )
                     .unwrap()
