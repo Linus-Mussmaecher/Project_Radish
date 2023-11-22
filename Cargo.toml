@@ -8,14 +8,14 @@ edition = "2021"
 [dependencies]
 
 # Framework
-good-web-game = {version = "0.6"}
+good-web-game = {version = "^0.6"}
 # UI
 mooeye = {git = "https://github.com/Linus-Mussmaecher/mooeye-web"}
 # ECS
 legion = {version = "^0.4", features = ["wasm-bindgen"]}
 # Random
-getrandom = {version = "0.2", features = ["js"]}
+getrandom = {version = "^0.2", features = ["js"]}
 rand = {version = "^0.8"}
 # other
 tinyvec = "^1.6"
-uuid = {version = "1.4", features = ["v4", "wasm-bindgen"]}
+uuid = {version = "^1.4", features = ["v4", "wasm-bindgen"]}
