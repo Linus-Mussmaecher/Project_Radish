@@ -7,7 +7,9 @@ edition = "2021"
 
 [dependencies]
 
+
 # Framework
+image="^0.24"
 good-web-game = {version = "^0.6"}
 # UI
 mooeye = {git = "https://github.com/Linus-Mussmaecher/mooeye-web"}
