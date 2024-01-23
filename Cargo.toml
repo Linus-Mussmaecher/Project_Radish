@@ -9,7 +9,7 @@ edition = "2021"
 
 
 # Framework
-image="^0.24"
+image="0.23.12"
 good-web-game = {version = "^0.6"}
 # UI
 mooeye = {git = "https://github.com/Linus-Mussmaecher/mooeye-web"}

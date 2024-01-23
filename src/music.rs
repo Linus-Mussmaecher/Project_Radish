@@ -22,8 +22,8 @@ impl MusicPlayer {
     }
 
     /// Creates a new MusicPlayer with all .wav or .mp3 files from the selected folder.
-    pub fn from_folder(ctx: &mut Context, path: impl AsRef<std::path::Path>) -> Self {
-        let mut playlist = VecDeque::new();
+    pub fn from_folder(_ctx: &mut Context, _path: impl AsRef<std::path::Path>) -> Self {
+        let playlist = VecDeque::new();
         // let paths = ctx
         //     .fs
         //     .read_dir(path.as_ref())
@@ -75,7 +75,7 @@ impl MusicPlayer {
 
     /// Stops the currently playing song (if there is one playing) and puts it back into the queue.
     pub fn stop(&mut self, ctx: &mut Context) {
-        if let Some(mut song) = self.current_song.take() {
+        if let Some(song) = self.current_song.take() {
             song.stop(ctx).unwrap();
             self.playlist.push_back(song);
         }

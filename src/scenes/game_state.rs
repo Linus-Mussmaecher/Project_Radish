@@ -16,7 +16,6 @@ pub use game_message::MessageSet;
 mod game_data;
 
 mod director;
-pub use director::EnemyDescriptor;
 
 mod components;
 
@@ -25,7 +24,6 @@ pub use controller::Controller;
 pub use controller::Interactions;
 
 pub mod achievements;
-pub use achievements::Achievement;
 
 pub mod tutorial;
 
