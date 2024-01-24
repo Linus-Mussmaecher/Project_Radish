@@ -4,7 +4,6 @@ pub use position::Velocity;
 
 pub mod graphics;
 pub use graphics::Graphics;
-pub use mooeye::sprite::Sprite;
 
 pub mod health;
 pub use health::Enemy;
