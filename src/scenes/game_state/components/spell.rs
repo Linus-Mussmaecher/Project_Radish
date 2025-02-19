@@ -218,7 +218,7 @@ pub fn spell_casting(
     }
 
     // attempt casts
-
+    //TODO: This does not use the CastSpell action and instead reads idx directly ... change?
     for i in 0..4 {
         if ix
             .commands
