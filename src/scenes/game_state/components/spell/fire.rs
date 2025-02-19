@@ -79,7 +79,7 @@ pub(super) fn construct_scorch(sprite_pool: &SpritePool) -> Spell {
 
 pub(super) fn construct_mortar(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
-        "Fiery mortar", 
+        "Fiery Mortar", 
         "Launch five mortar shells that pass over enemies and impact the middle of the battlefield, dealing area damage.", 
         sprite_pool.init_sprite_unchecked("/sprites/spells/icons/mortar_icon", Duration::ZERO),
         "/audio/sounds/spells/mortar_cast",
@@ -87,14 +87,14 @@ pub(super) fn construct_mortar(sprite_pool: &SpritePool) -> Spell {
             for _ in 0..5{
                 cmd.push((
                     pos,
-                    components::LifeDuration::new(Duration::from_secs_f32(1.9)),
+                    components::LifeDuration::new(Duration::from_secs_f32(1.5)),
                     components::Graphics::new("/sprites/spells/mortar", Duration::from_secs_f32(0.25)),
-                    components::Velocity::new(rand::random::<f32>() * 96. - 48., -270. + rand::random::<f32>() * 96.),
+                    components::Velocity::new(rand::random::<f32>() * 96. - 48., -360. + rand::random::<f32>() * 128.),
                     components::Actions::new()
                         .with_effect(ActionEffect::on_death(
                             ActionEffectTarget::new().with_range(64.).with_enemies_only(true),
                             RemoveSource::TimedOut,
-                            GameAction::TakeDamage { dmg: 45 },
+                            GameAction::TakeDamage { dmg: 55 },
                         ))
                         .with_effect(ActionEffect::on_death(
                             ActionEffectTarget::new_only_self(),
@@ -120,7 +120,7 @@ pub(super) fn construct_mortar(sprite_pool: &SpritePool) -> Spell {
 pub(super) fn construct_flameorb(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Flame Orb",
-        "Hurl an orb of flame, dealing a not-quite-as-small amount of damage and igniting enemies near the target.",
+        "Hurl an orb of flame, dealing a medium amount of direct damage and igniting enemies near the target.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/flameorb", Duration::ZERO),
         "/audio/sounds/fireball_cast",
         GameAction::spawn(|_, pos, cmd| {
@@ -145,8 +145,8 @@ pub(super) fn construct_flameorb(sprite_pool: &SpritePool) -> Spell {
                             vec![
                                 ActionEffect::repeat(
                                     ActionEffectTarget::new_only_self(),
-                                    GameAction::TakeDamage { dmg: 4 },
-                                    Duration::from_secs_f32(0.5),
+                                    GameAction::TakeDamage { dmg: 5 },
+                                    Duration::from_secs_f32(0.8),
                                 )
                                 .with_duration(Duration::from_secs(4))
                                 .into(),
@@ -161,7 +161,7 @@ pub(super) fn construct_flameorb(sprite_pool: &SpritePool) -> Spell {
                 }),
             ));
         }),
-        tiny_vec!([f32; MAX_SPELL_SLOTS] => 2.5, 5.),
+        tiny_vec!([f32; MAX_SPELL_SLOTS] => 2., 4.),
     )
 }
 

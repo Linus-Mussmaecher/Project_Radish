@@ -103,7 +103,7 @@ pub(super) fn construct_airburst(sprite_pool: &SpritePool) -> Spell {
 
 pub(super) fn construct_blackhole(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
-        "Blackhole",
+        "Black Hole",
         "Launch a slow-moving ball of antimatter. When colliding with an enemy, it will spawn a blackhole that attracts enemies for 6 seconds, then damages and shortly silences close enemies.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/blackhole", Duration::ZERO),
         "/audio/sounds/spells/blackhole_cast",
@@ -171,7 +171,7 @@ pub(super) fn construct_blackhole(sprite_pool: &SpritePool) -> Spell {
 
 pub(super) fn construct_mind_wipe(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
-        "Mind wipe",
+        "Mind Wipe",
         "Launch a bolt of dark energy that deals a medium amount of damage to the first enemy hit. After a short delay, deal the same damage again and silence the target for 15 seconds.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/icons/mindwipe_icon", Duration::ZERO),
         "/audio/sounds/spells/mindwipe_cast",
@@ -203,7 +203,7 @@ pub(super) fn construct_mind_wipe(sprite_pool: &SpritePool) -> Spell {
 pub(super) fn construct_arcane_missiles(sprite_pool: &SpritePool) -> Spell {
     Spell::new(
         "Arcane Missiles",
-        "Infuse your self with arcane power. Every second for the next 10 seconds, launch an arcane missile towards a nearby enemy, dealing moderate damage.",
+        "Infuse your self with arcane power. For the next 10 seconds, launch a torrent of arcane missiles towards nearby enemies, dealing moderate damage.",
         sprite_pool.init_sprite_unchecked("/sprites/spells/icons/arcane_bolt_icon", Duration::ZERO),
         "/audio/sounds/spells/amissiles_cast",
         ActionEffect::repeat(
@@ -287,7 +287,7 @@ pub(super) fn construct_arcane_blast(sprite_pool: &SpritePool) -> Spell {
                                         components::Collision::new(8., 8., true, |e1, e2| vec![
                                                     (e1, GameAction::Remove(RemoveSource::ProjectileCollision)),
                                                     (e1, GameAction::play_sound("/audio/sounds/spells/ablast_hit2")),
-                                                    (e2, GameAction::TakeDamage { dmg: 30 }),
+                                                    (e2, GameAction::TakeDamage { dmg: 60 }),
                                                 ],),
                                     ));
                                 }
@@ -295,5 +295,5 @@ pub(super) fn construct_arcane_blast(sprite_pool: &SpritePool) -> Spell {
                         ],),
             ));
         }),
-        tiny_vec!([f32; MAX_SPELL_SLOTS] => 5.,10., 15.))
+        tiny_vec!([f32; MAX_SPELL_SLOTS] => 4.,8., 12.))
 }
